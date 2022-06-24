@@ -9,21 +9,35 @@ This file contains definitions for `NEList`, an inductive type meant to
 represent non-empty lists.
 -/
 
-namespace NEList
+namespace NonEmpty
 
-inductive NEList (α : Type)
-  | uno  : α → NEList α
-  | cons : α → NEList α → NEList α
+inductive NEList (A : Type)
+  | uno  : A → NEList A
+  | cons : A → NEList A → NEList A
 
-/-- Builds an `NEList α` from a term of `α` and a term of `List α` -/
-def toNEList (a : α) : List α → NEList α
+/-- Builds an `NEList A` from a term of `A` and a term of `List A` -/
+def toNEList (a : A) : List A → NEList A
   | []      => .uno a
   | b :: bs => .cons a (toNEList b bs)
 
-/-- Creates a term of `List α` from the elements of a term of `NEList α` -/
-def toList : NEList α → List α
+/-- Creates a term of `List A` from the elements of a term of `NEList A` -/
+def toList : NEList A → List A
   | .uno  a   => [a]
   | .cons a b => a :: toList b
+
+/-- Performs a fold-left on a `NEList`
+The `specialize` tag forces the compiler to create a version of the function
+for each `f` used for optimization purposes -/
+@[specialize]
+def foldlNE (f : B → A → B) (init : B) (l : NEList A) : B :=
+  match l with
+    | .uno x => f init x
+    | .cons x xs => foldlNE f (f init x) xs 
+
+def foldrNE (f : A → B → B) (init : B) (l : NEList A) : B :=
+  match l with
+    | .uno x => f x init
+    | .cons x xs => foldrNE f (f x init) xs
 
 instance ord2beq [Ord T] : BEq T where
   -- beq x y := compare x y == Ordering.eq
@@ -48,4 +62,4 @@ def nonEmptyString (s : String) : Option (NEList Char) :=
   match s with
     | { data := str } => nonEmpty str
 
-end NEList
+end NonEmpty
