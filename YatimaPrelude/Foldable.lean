@@ -3,7 +3,7 @@ import YatimaPrelude.NonEmpty
 
 namespace Foldable
 
-class Foldable (T : Type -> Type) where
+class Foldable (T : Type → Type) where
    fold : [HMul M M M] → [One M] → T M → M
    foldr : (A → B → B) → B → T A → B
    foldl : (A → B → A) → A → T B → A
