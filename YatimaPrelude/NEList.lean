@@ -1,4 +1,4 @@
-import Megaparsec.Util
+import YatimaPrelude.Instances
 
 /-
   Copyright (c) 2022 Arthur Paulino. All rights reserved.
@@ -29,8 +29,8 @@ def toList : NEList α → List α
 
 def ord2beq_nel [Ord T] [BEq T] (x y : NEList T) : Bool :=
   match x, y with
-  | .cons u x₁, .cons v y₁ => Util.ord2compare u v && ord2beq_nel x₁ y₁
-  | .uno u, .uno v => Util.ord2compare u v
+  | .cons u x₁, .cons v y₁ => Instances.ord2compare u v && ord2beq_nel x₁ y₁
+  | .uno u, .uno v => Instances.ord2compare u v
   | _, _ => false
 
 def nonEmpty (l : List A) : Option (NEList A) :=
