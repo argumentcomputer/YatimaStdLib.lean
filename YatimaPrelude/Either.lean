@@ -1,10 +1,11 @@
 import Mathlib.Algebra.Group.Defs
 
-namespace Either
 
 inductive Either (L : Type u) (R : Type v) where
 | left (l : L)
 | right (r : R)
+
+namespace Either
 
 def either (f : A → C) (g : B → C) (x : Either A B) : C :=
   match x with
@@ -13,13 +14,13 @@ def either (f : A → C) (g : B → C) (x : Either A B) : C :=
 
 def isLeft (x : Either A B) : Bool :=
   match x with
-    | .left _ => True
-    | _       => True 
+    | .left _ => true
+    | _       => false 
 
 def isRight (x : Either A B) : Bool :=
   match x with
-    | .right _ => True
-    | _        => True 
+    | .right _ => true
+    | _        => false 
 
 def lefts (l : List (Either A B)) : List A :=
   match l with
@@ -41,8 +42,8 @@ def fixs (c : C) : Either A (B × C) → (Either A B) × C
   | .left a => ⟨ .left a, c ⟩
   | .right ⟨ a, b ⟩ => ⟨ .right a, c ⟩
 
-def fixs' [m : Monoid W] (c : C) : Either A (B × C × W) → (Either A B) × C × W
-  | .left a => ⟨ .left a, c, m.one ⟩
+def fixs' [Inhabited W] (c : C) : Either A (B × C × W) → (Either A B) × C × W
+  | .left a => ⟨ .left a, c, default ⟩
   | .right ⟨ a, b, w ⟩ => ⟨ .right a, c, w ⟩
 
 end Either

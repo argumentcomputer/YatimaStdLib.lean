@@ -1,6 +1,8 @@
+import YatimaPrelude.Foldable
+
 namespace List
 
-def compareAux {α : Type u} [inst: Ord α] : List α → List α → Ordering
+def compareAux [Ord α] : List α → List α → Ordering
   | [], [] => Ordering.eq
   | [], _ => Ordering.lt
   | _, [] => Ordering.gt
@@ -8,7 +10,7 @@ def compareAux {α : Type u} [inst: Ord α] : List α → List α → Ordering
     | Ordering.eq => compareAux xs ys
     | other => other
 
-instance listOrd {α : Type u} [inst: Ord α] : Ord (List α) where
+instance listOrd [Ord α] : Ord (List α) where
   compare := compareAux
 
 def mapOption {α β: Type u} : (α → Option β) → List α → List β
@@ -20,10 +22,21 @@ def mapOption {α β: Type u} : (α → Option β) → List α → List β
 
 def catOptions {α : Type u} : List (Option α) → List α := mapOption id
 
-def indexOf [BEq α] (as : List α) (a : α) : Option Nat :=
-  let rec aux (a : α) (i : Nat) : List α → Option Nat
-    | a' :: as' => if a == a' then some i else aux a (i + 1) as'
-    | []        => none
-  aux a 0 as
+-- mathlib already has this
+-- def indexOf' [BEq α] (as : List α) (a : α) : Option Nat :=
+--   let rec aux (a : α) (i : Nat) : List α → Option Nat
+--     | a' :: as' => if a == a' then some i else aux a (i + 1) as'
+--     | []        => none
+--   aux a 0 as
+
+protected def fold [HMul M M M] [One M] (l : List M) : M :=
+  match l with
+    | [] => One.one
+    | (x :: xs) => x * List.fold xs
+
+instance : Foldable List where
+  fold := List.fold
+  foldr := List.foldr
+  foldl := List.foldl
 
 end List
