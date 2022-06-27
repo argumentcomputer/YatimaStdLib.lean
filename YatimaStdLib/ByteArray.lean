@@ -1,5 +1,5 @@
-import YatimaPrelude.List
-import YatimaPrelude.Nat
+import YatimaStdLib.List
+import YatimaStdLib.Nat
 
 namespace ByteArray
 

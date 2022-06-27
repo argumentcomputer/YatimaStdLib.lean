@@ -8,7 +8,7 @@
 This file contains definitions for `NEList`, an inductive type meant to
 represent non-empty lists.
 -/
-import YatimaPrelude.Foldable
+import YatimaStdLib.Foldable
 
 inductive NEList (A : Type)
   | uno  : A → NEList A

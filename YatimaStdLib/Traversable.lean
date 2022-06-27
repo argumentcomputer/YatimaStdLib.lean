@@ -1,6 +1,6 @@
-import YatimaPrelude.Applicative
-import YatimaPrelude.Foldable
-import YatimaPrelude.NonEmpty
+import YatimaStdLib.Applicative
+import YatimaStdLib.Foldable
+import YatimaStdLib.NonEmpty
 
 namespace Traversable
 

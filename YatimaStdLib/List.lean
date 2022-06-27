@@ -1,4 +1,4 @@
-import YatimaPrelude.Foldable
+import YatimaStdLib.Foldable
 
 namespace List
 
