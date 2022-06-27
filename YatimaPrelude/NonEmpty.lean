@@ -34,10 +34,25 @@ def foldlNE (f : B → A → B) (init : B) (l : NEList A) : B :=
     | .uno x => f init x
     | .cons x xs => foldlNE f (f init x) xs 
 
+/-- Performs a fold-right on a `NEList`
+The `specialize` tag forces the compiler to create a version of the function
+for each `f` used for optimization purposes -/
+@[specialize]
 def foldrNE (f : A → B → B) (init : B) (l : NEList A) : B :=
   match l with
     | .uno x => f x init
     | .cons x xs => foldrNE f (f x init) xs
+
+/-- Performs a map on a `NEList`
+The `specialize` tag forces the compiler to create a version of the function
+for each `f` used for optimization purposes -/
+@[specialize]
+def NEList.map (f : α → β) : NEList α → NEList β
+  | uno  a    => uno  (f a)
+  | cons a as => cons (f a) (map f as)
+
+instance neFun : Functor NEList where
+  map := NEList.map
 
 instance ord2beq [Ord T] : BEq T where
   -- beq x y := compare x y == Ordering.eq
@@ -45,7 +60,6 @@ instance ord2beq [Ord T] : BEq T where
 
 def ord2compare [Ord T] (x y : T) : Bool :=
   compare x y == Ordering.eq
-
 
 def ord2beq_nel [Ord T] [BEq T] (x y : NEList T) : Bool :=
   match x, y with

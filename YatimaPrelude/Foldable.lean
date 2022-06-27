@@ -14,7 +14,7 @@ def foldList [HMul M M M] [One M]
     | [] => One.one
     | (x :: xs) => x * foldList xs
 
-instance : Foldable List where
+instance foldableList : Foldable List where
   fold := foldList
   foldr := List.foldr
   foldl := List.foldl
@@ -24,7 +24,7 @@ def foldNE [HMul M M M] (l : NonEmpty.NEList M) : M :=
     | .uno x => x
     | .cons x xs => x * foldNE xs
 
-instance : Foldable NonEmpty.NEList where
+instance foldableNEList : Foldable NonEmpty.NEList where
   fold := foldNE
   foldr := NonEmpty.foldrNE
   foldl := NonEmpty.foldlNE

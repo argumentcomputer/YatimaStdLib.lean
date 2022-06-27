@@ -1,4 +1,6 @@
+import YatimaPrelude.Applicative
 import YatimaPrelude.Foldable
+import YatimaPrelude.NonEmpty
 
 namespace Traversable
 
@@ -13,5 +15,13 @@ def mapM [Monad M] [Functor T] [Foldable.Foldable T] [Traversable T] : (A → M 
 
 def sequence [Monad M] [Functor T] [Foldable.Foldable T] [Traversable T] : T (M A) → M (T A) :=
   sequenceA
+
+instance funList : Functor List where
+  map := List.map
+
+instance trList : Traversable List where
+  traverse f :=
+    let cons_f x ys := Applicative.liftA₂ (fun x xs => x :: xs) (f x) ys
+    List.foldr cons_f (pure [])
 
 end Traversable
