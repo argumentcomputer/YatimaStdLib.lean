@@ -22,13 +22,6 @@ def mapOption {α β: Type u} : (α → Option β) → List α → List β
 
 def catOptions {α : Type u} : List (Option α) → List α := mapOption id
 
--- mathlib already has this
--- def indexOf' [BEq α] (as : List α) (a : α) : Option Nat :=
---   let rec aux (a : α) (i : Nat) : List α → Option Nat
---     | a' :: as' => if a == a' then some i else aux a (i + 1) as'
---     | []        => none
---   aux a 0 as
-
 protected def fold [HMul M M M] [One M] (l : List M) : M :=
   match l with
     | [] => One.one

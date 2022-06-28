@@ -1,6 +1,15 @@
 import Mathlib.Algebra.Group.Defs
 
+/- 
+The Either type represents values with two possibilities: a value of type Either a b is either Left a or Right b.
 
+The Either type is sometimes used to represent a value which is either correct or an error; 
+by convention, the Left constructor is used to hold an error value and the Right constructor 
+is used to hold a correct value (mnemonic: "right" also means "correct").
+
+The data type is inspired by:
+https://hackage.haskell.org/package/base-4.16.1.0/docs/Data-Either.html#t:Either
+-/
 inductive Either (L : Type u) (R : Type v) where
 | left (l : L)
 | right (r : R)
