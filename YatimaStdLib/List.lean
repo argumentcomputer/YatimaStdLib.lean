@@ -97,16 +97,29 @@ end
 
 /-- 
 Monadic mergesort, based on the Haskell version:
-https://hackage.haskell.org/package/base-4.16.1.0/docs/src/Data-OldList.html#sort 👍🏼
+https://hackage.haskell.org/package/base-4.16.1.0/docs/src/Data-OldList.html#sort
+By default we sort from least to greatest; set `rev := true` for greatest to least
 -/
-def sortByM [Monad μ] (xs: List α) (cmp: α -> α -> μ Ordering) : μ (List α) :=
-  sequencesM cmp xs >>= mergeAllM cmp
+def sortByM [Monad μ] (xs: List α) (cmp: α -> α -> μ Ordering) (rev := false) : 
+    μ (List α) := do
+  if rev then 
+    let revCmp : _ → _ → μ Ordering := fun x y => do
+      match (← cmp x y) with
+      | .gt => return Ordering.lt 
+      | .eq => return Ordering.eq 
+      | .lt => return Ordering.gt
+    sequencesM revCmp xs >>= mergeAllM revCmp
+  else 
+    sequencesM cmp xs >>= mergeAllM cmp
 
-def sortBy (cmp : α -> α -> Ordering) (xs: List α) : List α := 
-  Id.run do xs.sortByM (cmp <$> · <*> ·)
+/-- 
+Mergesort from least to greatest. To sort from greatest to 
+-/
+def sortBy (cmp : α -> α -> Ordering) (xs: List α) (rev := false) : List α := 
+  Id.run do xs.sortByM (cmp <$> · <*> ·) rev
 
-def sort [Ord α] (xs: List α) : List α := 
-  sortBy compare xs
+def sort [Ord α] (xs: List α) (rev := false) : List α := 
+  sortBy compare xs rev
 
 def groupByMAux [Monad μ] (eq : α → α → μ Bool) : List α → List (List α) → μ (List (List α))
   | a::as, (ag::g)::gs => do match (← eq a ag) with
