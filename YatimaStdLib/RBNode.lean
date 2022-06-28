@@ -9,7 +9,7 @@ namespace Std.RBNode
 instance [BEq α] [BEq β] : BEq (RBNode α fun _ => β) where
   beq a b := RBNode.toList a == RBNode.toList b
 
-namespace Std.RBNode
+end Std.RBNode
 
 namespace Std.RBMap 
 

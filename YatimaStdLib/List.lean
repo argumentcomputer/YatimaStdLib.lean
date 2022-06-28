@@ -96,8 +96,8 @@ mutual
 end
 
 /-- 
-Monadic mergesort, based on the Haskell version 
-TODO(Winston): find the link 
+Monadic mergesort, based on the Haskell version:
+https://hackage.haskell.org/package/base-4.16.1.0/docs/src/Data-OldList.html#sort 👍🏼
 -/
 def sortByM [Monad μ] (xs: List α) (cmp: α -> α -> μ Ordering) : μ (List α) :=
   sequencesM cmp xs >>= mergeAllM cmp
