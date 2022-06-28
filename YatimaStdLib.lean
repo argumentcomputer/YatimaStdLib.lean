@@ -4,6 +4,7 @@ import YatimaStdLib.Either
 import YatimaStdLib.Foldable
 import YatimaStdLib.Identity
 import YatimaStdLib.List
+import YatimaStdLib.Monad
 import YatimaStdLib.Nat
 import YatimaStdLib.NonEmpty
 import YatimaStdLib.Option
