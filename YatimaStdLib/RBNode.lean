@@ -13,7 +13,7 @@ end Std.RBNode
 
 namespace Std.RBMap 
 
-def findM {ordering : α → α → Ordering} [Monad m] [MonadExcept ε m] 
+@[inline] def findM {ordering : α → α → Ordering} [Monad m] [MonadExcept ε m] 
   (rbmap : RBMap α β ordering) (a : α) (e : ε) : m β :=
   match rbmap.find? a with 
   | some b => pure b
