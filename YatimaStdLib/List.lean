@@ -46,9 +46,13 @@ def eraseDupB [BEq α] : List α → List α
     let exs := eraseDupB xs
     if exs.contains x then exs else x::exs
 
+/-- 
+`splitAt`, but it includes the first element at which `p` fails in the first list
+e.g. `splitAtP (fun x => x == 3) [3, 1, 2, 3]` will output `[[3, 1], [2, 3]]`
+-/
 def splitAtP [BEq α] (p : α → Bool) (l : List α) : List α × List α :=
   match l.dropWhile p with 
-  | [] => unreachable!
+  | [] => (l, [])
   | a::as => ⟨l.takeWhile p ++ [a], as⟩
 
 partial def mergeM [Monad μ] (cmp: α → α → μ Ordering) : List α → List α → μ (List α)
