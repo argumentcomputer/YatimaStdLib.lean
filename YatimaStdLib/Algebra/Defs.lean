@@ -1,5 +1,6 @@
 /-! 
 This file is largely a port of `Mathlib`'s `Algebra.Group.Defs`
+https://github.com/leanprover-community/mathlib4/blob/c46f8b6aa0f6f19a50a536da61eee3945d2e7266/Mathlib/Algebra/Group/Defs.lean
 -/
 
 class Zero.{u} (α : Type u) where
