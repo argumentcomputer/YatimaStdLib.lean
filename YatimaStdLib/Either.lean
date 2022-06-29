@@ -1,4 +1,4 @@
-import Mathlib.Algebra.Group.Defs
+import YatimaStdLib.Algebra.Defs
 
 /- 
 The Either type represents values with two possibilities: a value of type Either a b is either Left a or Right b.

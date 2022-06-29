@@ -2,6 +2,12 @@ import YatimaStdLib.Foldable
 
 namespace List
 
+def indexOf? [BEq α] (as : List α) (a : α) : Option Nat :=
+  let rec aux (a : α) (i : Nat) : List α → Option Nat
+    | a' :: as' => if a == a' then some i else aux a (i + 1) as'
+    | []        => none
+  aux a 0 as
+
 def compareAux [Ord α] : List α → List α → Ordering
   | [], [] => Ordering.eq
   | [], _ => Ordering.lt

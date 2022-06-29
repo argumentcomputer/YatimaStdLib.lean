@@ -1,4 +1,4 @@
-import Mathlib.Algebra.Group.Defs
+import YatimaStdLib.Algebra.Defs
 
 def RWST (R W S : Type u) (M : Type u → Type v) (A : Type u) : Type (max u v) :=
   R → S → M (A × S × W)
