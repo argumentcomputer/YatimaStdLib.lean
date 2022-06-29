@@ -1,4 +1,4 @@
-import Mathlib.Algebra.Group.Defs
+import YatimaStdLib.Algebra.Defs
 
 /-
 The Foldable class represents data structures that can be reduced to a summary value one element at a time. 
