@@ -1,3 +1,4 @@
+import YatimaStdLib.Algebra.Defs
 import YatimaStdLib.Applicative
 import YatimaStdLib.ByteArray
 import YatimaStdLib.Either
@@ -9,6 +10,7 @@ import YatimaStdLib.Nat
 import YatimaStdLib.NonEmpty
 import YatimaStdLib.Option
 import YatimaStdLib.RBNode
+import YatimaStdLib.RBTree
 import YatimaStdLib.RWST
 import YatimaStdLib.String
 import YatimaStdLib.Traversable
