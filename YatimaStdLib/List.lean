@@ -2,6 +2,13 @@ import YatimaStdLib.Foldable
 
 namespace List
 
+def sum [HAdd α α α] [Zero α] (xs : List α) : α := 
+  xs.foldl (· + ·) 0
+
+def splitAt : Nat → List α → List α × List α
+  | n+1, x :: xs => let (l, r) := splitAt n xs; (x :: l, r)
+  | _, xs => ([], xs)
+
 def indexOf? [BEq α] (as : List α) (a : α) : Option Nat :=
   let rec aux (a : α) (i : Nat) : List α → Option Nat
     | a' :: as' => if a == a' then some i else aux a (i + 1) as'
