@@ -17,7 +17,7 @@ instance mrwsₜ (R W S : Type) [Monoid W] [Monad M] : Monad (RWST R W S M) wher
   }
   pure x := fun _ s => pure (x, s, 1)
   bind m k := fun r s => do {
-    let (a, s', w) <- m r s
+    let (a, _, w) <- m r s
     let (b, s'', w') <- (k a) r s
     pure (b, s'', w * w') }
 

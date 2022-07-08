@@ -10,7 +10,7 @@ represent non-empty lists.
 -/
 import YatimaStdLib.Foldable
 
-inductive NEList (A : Type)
+inductive NEList (A : Type _)
   | uno  : A → NEList A
   | cons : A → NEList A → NEList A
 -- TODO: introduce notation

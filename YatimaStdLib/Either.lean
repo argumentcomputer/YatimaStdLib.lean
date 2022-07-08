@@ -49,10 +49,10 @@ def rights (l : List (Either A B)) : List B :=
 
 def fixs (c : C) : Either A (B × C) → (Either A B) × C
   | .left a => ⟨ .left a, c ⟩
-  | .right ⟨ a, b ⟩ => ⟨ .right a, c ⟩
+  | .right ⟨ a, _ ⟩ => ⟨ .right a, c ⟩
 
 def fixs' [Monoid W] (c : C) : Either A (B × C × W) → (Either A B) × C × W
   | .left a => ⟨ .left a, c, 1 ⟩
-  | .right ⟨ a, b, w ⟩ => ⟨ .right a, c, w ⟩
+  | .right ⟨ a, _, w ⟩ => ⟨ .right a, c, w ⟩
 
 end Either
