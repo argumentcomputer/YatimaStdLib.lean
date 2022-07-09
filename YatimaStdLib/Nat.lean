@@ -3,8 +3,8 @@ namespace Nat
 def toByteArrayCore : Nat → Nat → ByteArray → ByteArray
   | 0, _, bytes => bytes
   | fuel + 1, n, bytes =>
-    let b: UInt8 := UInt8.ofNat (n % 256);
-    let n' := n / 256;
+    let b: UInt8 := UInt8.ofNat (n % 256)
+    let n' := n / 256
     if n' = 0 then (bytes.push b)
     else toByteArrayCore fuel n' (bytes.push b)
 
@@ -20,7 +20,7 @@ def toByteListCore : Nat → Nat → List UInt8 → List UInt8
   | 0, _, bytes => bytes
   | fuel + 1, n, bytes =>
     let b: UInt8 := UInt8.ofNat (n % 256)
-    let n' := n / 256;
+    let n' := n / 256
     if n' = 0 then (bytes.cons b)
     else toByteListCore fuel n' (bytes.cons b)
 
