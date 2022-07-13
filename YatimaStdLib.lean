@@ -9,6 +9,7 @@ import YatimaStdLib.Monad
 import YatimaStdLib.Nat
 import YatimaStdLib.NonEmpty
 import YatimaStdLib.Option
+import YatimaStdLib.RBMap
 import YatimaStdLib.RBNode
 import YatimaStdLib.RWST
 import YatimaStdLib.String
