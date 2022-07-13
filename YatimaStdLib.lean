@@ -13,3 +13,4 @@ import YatimaStdLib.RBNode
 import YatimaStdLib.RWST
 import YatimaStdLib.String
 import YatimaStdLib.Traversable
+import YatimaStdLib.Tree
