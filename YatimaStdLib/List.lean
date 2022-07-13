@@ -141,4 +141,12 @@ def joinM [Monad μ] : List (List α) → μ (List α)
   | []      => return []
   | a :: as => do return a ++ (← joinM as)
 
+def pairwise : List α → List (α × α)
+  | [ ]
+  | [_] => []
+  | x :: y :: zs => ((y :: zs).map fun k => (x, k)) ++ (y :: zs).pairwise
+
+def cartesian (as : List α) (bs : List β) : List (α × β) :=
+  as.foldl (init := []) fun acc a => acc ++ bs.map fun b => (a, b)
+
 end List
