@@ -1,4 +1,4 @@
-/-! 
+/-!
 This file is largely a port of `Mathlib`'s `Algebra.Group.Defs`
 https://github.com/leanprover-community/mathlib4/blob/c46f8b6aa0f6f19a50a536da61eee3945d2e7266/Mathlib/Algebra/Group/Defs.lean
 -/
@@ -314,7 +314,7 @@ end MulRightCancel
 ### Monoids
 -/
 
-class Monoid (M : Type u) extends Semigroup M, MulOneClass M 
+class Monoid (M : Type u) extends Semigroup M, MulOneClass M
 
 /-
 ### Commutative monoids
@@ -336,8 +336,8 @@ end CommMonoid
 -/
 
 class DivInvMonoid (G : Type u) extends Monoid G, Inv G, Div G :=
-(div := λ a b => a * b⁻¹)
-(div_eq_mul_inv : ∀ a b : G, a / b = a * b⁻¹)
+  div := λ a b => a * b⁻¹
+  div_eq_mul_inv : ∀ a b : G, a / b = a * b⁻¹
 
 /-
 ### Groups
