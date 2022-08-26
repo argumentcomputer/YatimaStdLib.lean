@@ -29,7 +29,7 @@ for each `f` used for optimization purposes -/
 def foldl (f : B → A → B) (init : B) (l : NEList A) : B :=
   match l with
     | .uno x => f init x
-    | .cons x xs => foldl f (f init x) xs 
+    | .cons x xs => foldl f (f init x) xs
 
 /-- Performs a fold-right on a `NEList`
 The `specialize` tag forces the compiler to create a version of the function
@@ -60,7 +60,7 @@ protected def beq [BEq α] : NEList α → NEList α → Bool
   | _,          _          => false
 
 instance [BEq T] : BEq $ NEList T := ⟨NEList.beq⟩
-  
+
 def nonEmpty (l : List A) : Option (NEList A) :=
   match l with
   | [] => Option.none
@@ -82,7 +82,7 @@ instance : Foldable NEList where
 
 end NEList
 
-namespace List 
+namespace List
 
 /-- Builds an `NEList A` from a term of `A` and a term of `List A` -/
 def toNEList (a : A) : List A → NEList A
