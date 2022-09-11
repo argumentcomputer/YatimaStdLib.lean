@@ -1,6 +1,6 @@
-import Std
+import Lean
 
-namespace Std.RBMap 
+namespace Std.RBMap
 
 instance {cmp : α → α → Ordering} : Inhabited (RBMap α β cmp) where
   default := .empty

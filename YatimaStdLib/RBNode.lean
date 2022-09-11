@@ -1,4 +1,4 @@
-import Std.Data.RBTree
+import Lean
 open Std RBNode
 
 namespace Std.RBNode
@@ -11,7 +11,7 @@ instance [BEq α] [BEq β] : BEq (RBNode α fun _ => β) where
 
 end Std.RBNode
 
-namespace Std.RBMap 
+namespace Std.RBMap
 
 @[inline] def findM {ordering : α → α → Ordering} [Monad m] [MonadExcept ε m] 
   (rbmap : RBMap α β ordering) (a : α) (e : ε) : m β :=
@@ -23,4 +23,4 @@ instance [ToString α] [ToString β] {ordering : α → α → Ordering} :
   ToString (RBMap α β ordering) :=
   { toString := fun rbmap => s!"{rbmap.toList}" }
 
-end Std.RBMap 
+end Std.RBMap
