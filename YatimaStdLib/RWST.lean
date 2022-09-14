@@ -3,12 +3,12 @@ import YatimaStdLib.Algebra.Defs
 def RWST (R W S : Type u) (M : Type u → Type v) (A : Type u) : Type (max u v) :=
   R → S → M (A × S × W)
 
+def void [Functor φ] (fx : φ a) : φ Unit :=
+  (fun _ => ()) <$> fx
+
 namespace RWST
 
 /-- RWS monad and its transformer and required utilities -/
-
-def void [Monad M] (ma : M A) : M Unit :=
-  (fun _ => ()) <$> ma
 
 instance mrwsₜ (R W S : Type) [Monoid W] [Monad M] : Monad (RWST R W S M) where
   map f x := fun r s => do {
