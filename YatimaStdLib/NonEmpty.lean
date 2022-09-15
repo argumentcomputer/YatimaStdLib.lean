@@ -19,6 +19,16 @@ inductive NEList (α : Type _)
 -- TODO: add macros for full NEList shortcut syntax, similar to `[a, b, c]`
 infixr:67 " :| " => NEList.cons
 notation:max "⟦" x "⟧" => NEList.uno x
+syntax "⟦"term ", " term,* "⟧" : term
+
+open Lean in
+macro_rules
+  | `(⟦$x:term, $[$xs:term],*⟧) => do
+    let xs := [x] ++ xs.toList |>.reverse
+    let mut exprs : TSyntax `term := ← `(⟦$(xs[0]!)⟧)
+    for z in xs.tail! do
+      exprs := ← `(NEList.cons $z $exprs)
+    return exprs
 
 instance [ToString α] : ToString (NEList α) where
   toString
