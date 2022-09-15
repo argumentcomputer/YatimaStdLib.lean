@@ -16,7 +16,6 @@ inductive NEList (α : Type _)
   | uno  : α → NEList α
   | cons : α → NEList α → NEList α
 
--- TODO: add macros for full NEList shortcut syntax, similar to `[a, b, c]`
 infixr:67 " :| " => NEList.cons
 notation:max "⟦" x "⟧" => NEList.uno x
 syntax "⟦"term ", " term,* "⟧" : term
