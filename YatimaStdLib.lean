@@ -12,6 +12,7 @@ import YatimaStdLib.Option
 import YatimaStdLib.RBMap
 import YatimaStdLib.RBNode
 import YatimaStdLib.RWST
+import YatimaStdLib.Seq
 import YatimaStdLib.String
 import YatimaStdLib.Traversable
 import YatimaStdLib.Tree

@@ -1,7 +1,6 @@
 import YatimaStdLib.Applicative
 import YatimaStdLib.Foldable
 import YatimaStdLib.List
-import YatimaStdLib.NonEmpty
 
 namespace Traversable
 
@@ -25,9 +24,6 @@ def mapM [Monad M] [Functor T] [Foldable T] [Traversable T] : (A → M B) → T 
 
 def sequence [Monad M] [Functor T] [Foldable T] [Traversable T] : T (M A) → M (T A) :=
   sequenceA
-
-instance funList : Functor List where
-  map := List.map
 
 instance trList : Traversable List where
   traverse f :=
