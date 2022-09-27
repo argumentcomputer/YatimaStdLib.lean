@@ -11,13 +11,9 @@ def gcdExtNat (a : Nat) (b : Nat) : Int × Int × Int :=
       let q := p.1
       let r := p.2
       have : r < Nat.succ k := by
-        rw [←h]
-        dsimp
-        unfold quotRem
-        dsimp
-        apply Nat.mod_lt
         have h2 := Nat.succ_ne_zero k
-        rw [←h] at h2
+        rw [←h] at *
+        apply Nat.mod_lt
         exact Nat.zero_lt_of_ne_zero h2
       let (s, t, g) := gcdExtNat b r
       (t, s - q * t, g)
