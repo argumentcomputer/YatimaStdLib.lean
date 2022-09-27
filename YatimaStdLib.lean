@@ -4,6 +4,7 @@ import YatimaStdLib.ByteArray
 import YatimaStdLib.Either
 import YatimaStdLib.Foldable
 import YatimaStdLib.Identity
+import YatimaStdLib.Int
 import YatimaStdLib.List
 import YatimaStdLib.Monad
 import YatimaStdLib.Nat
@@ -16,3 +17,4 @@ import YatimaStdLib.Seq
 import YatimaStdLib.String
 import YatimaStdLib.Traversable
 import YatimaStdLib.Tree
+import YatimaStdLib.Zmod
