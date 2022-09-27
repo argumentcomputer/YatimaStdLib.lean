@@ -1,6 +1,10 @@
+import YatimaStdLib.Int
+
 set_option quotPrecheck false
 
 abbrev Zmod (_ : Nat) : Type := Int
+
+open Int
 
 namespace Zmod
 
@@ -36,3 +40,5 @@ instance : Sub (Zmod n) where
   sub (a b : Zmod n) := (rep a - rep b) % (n : Int)
 
 notation a " - " b " mod " n => (a : Zmod n) - (b : Zmod n)
+
+def modInv (a : Zmod n) : Option (Zmod n) := Int.modInv a n
