@@ -42,3 +42,8 @@ instance : Sub (Zmod n) where
 notation a " - " b " mod " n => (a : Zmod n) - (b : Zmod n)
 
 def modInv (a : Zmod n) : Zmod n := Int.modInv a n
+
+instance : Div (Zmod n) where
+  div a b := a * modInv b
+
+end Zmod
