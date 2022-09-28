@@ -22,9 +22,9 @@ def gcdExtNat (a : Nat) (b : Nat) : Int × Int × Int :=
 def Int.gcdExt (a : Int) (b : Int) : Int × Int × Int := 
   gcdExtNat (Int.natAbs a) (Int.natAbs b)
 
-def Int.modInv (a : Int) (m : Int) : Option Int :=
+def Int.modInv (a : Int) (m : Int) : Int :=
   let (i, _, g) := Int.gcdExt a m
   let mkPos (x : Int) := if x < 0 then x + m else x
-  if g == 1 then Option.some (mkPos i) else .none
+  if g == 1 then mkPos i else 0
 
 end Int
