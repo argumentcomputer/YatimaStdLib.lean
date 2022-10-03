@@ -1,7 +1,5 @@
 import YatimaStdLib.Int
 
-set_option quotPrecheck false
-
 abbrev Zmod (_ : Nat) : Type := Int
 
 open Int
@@ -15,12 +13,12 @@ def rep (a : Zmod n) : Int := a
 instance : Add (Zmod n) where
   add (a b : Zmod n) := (rep a + rep b) % (n : Int)
 
-notation a " + " b " mod " n => (a : Zmod n) + (b : Zmod n)
+notation a"  + " b " mod " n => Zmod.add (a : Zmod n) (b : Zmod n)
 
 instance : Mul (Zmod n) where
   mul (a b : Zmod n) := (rep a * rep b) % (n : Int)
 
-notation a " * " b " mod " n => (a : Zmod n) * (b : Zmod n)
+notation a " * " b " mod " n => Zmod.mul (a : Zmod n) (b : Zmod n)
 
 instance : Inhabited (Zmod n) where
   default := 0
@@ -39,7 +37,7 @@ instance : Pow (Zmod n) Nat where
 instance : Sub (Zmod n) where
   sub (a b : Zmod n) := (rep a - rep b) % (n : Int)
 
-notation a " - " b " mod " n => (a : Zmod n) - (b : Zmod n)
+notation a " - " b " mod " n => Zmod.sub (a : Zmod n) (b : Zmod n)
 
 def modInv (a : Zmod n) : Zmod n := Int.modInv a n
 
