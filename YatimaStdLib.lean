@@ -10,7 +10,7 @@ import YatimaStdLib.Monad
 import YatimaStdLib.Nat
 import YatimaStdLib.NonEmpty
 import YatimaStdLib.Option
-import YatimaStdLib.PrimeField
+import YatimaStdLib.Polynomial
 import YatimaStdLib.RBMap
 import YatimaStdLib.RBNode
 import YatimaStdLib.RWST
