@@ -21,5 +21,3 @@ namespace Std.HashSet
 
 def union {α : Type _} [BEq α] [Hashable α] (s t : HashSet α) : HashSet α :=
   s.fold (HashSet.insert) t
-
-infix:50 "∪" => union
