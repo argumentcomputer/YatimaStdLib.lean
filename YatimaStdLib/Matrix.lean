@@ -2,7 +2,10 @@ import YatimaStdLib.Ring
 
 /-!
 # Basic Linear Algebra
-This file contains some basic definitions needed 
+This file contains some basic definitions needed to do linear algebra
+
+Note we do not use any dependent types or any useful features of Lean. This was a first pass and it
+will hopefully improve with time and more lemmas about arrays available in `std4`
 -/
 
 variable (R : Type) [Ring R]
@@ -40,6 +43,15 @@ end vector
 
 section matrix
 
+/--
+The type of matrices over a `Ring R`
+
+This is an abbreviation for `Array (Array R)`, so no checks are made on the shape of the array to
+ensure a rectangular shape.
+
+Implementation detail: The nested arrays are actually the **columns** of the matrix, and not the rows.
+This is done to simplify the implementation of matrix action on vectors, and matrix multiplication.
+-/
 abbrev Matrix (R : Type) [Ring R] := Array $ Array R
 
 namespace Matrix
