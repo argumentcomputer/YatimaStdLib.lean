@@ -1,3 +1,4 @@
+import YatimaStdLib.AbstractMatrix
 import YatimaStdLib.Algebra.Defs
 import YatimaStdLib.Applicative
 import YatimaStdLib.ByteArray
@@ -10,9 +11,10 @@ import YatimaStdLib.Monad
 import YatimaStdLib.Nat
 import YatimaStdLib.NonEmpty
 import YatimaStdLib.Option
-import YatimaStdLib.PrimeField
+import YatimaStdLib.Polynomial
 import YatimaStdLib.RBMap
 import YatimaStdLib.RBNode
+import YatimaStdLib.Ring
 import YatimaStdLib.RWST
 import YatimaStdLib.Seq
 import YatimaStdLib.String
