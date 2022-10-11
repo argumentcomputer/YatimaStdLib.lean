@@ -110,4 +110,10 @@ def rootsToPoly (a : List A) : Polynomial A :=
       let monom : Polynomial A := #[root,-1]
       monom * (rootsToPoly roots)
 
+instance [OfNat A 1] : OfNat (Polynomial A) 1 where
+  ofNat := #[1]
+
+instance [OfNat A 0] : OfNat (Polynomial A) 0 where
+  ofNat := zero
+
 end Polynomial
