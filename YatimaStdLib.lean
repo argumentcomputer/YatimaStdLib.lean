@@ -2,6 +2,7 @@ import YatimaStdLib.AbstractMatrix
 import YatimaStdLib.Algebra.Defs
 import YatimaStdLib.Applicative
 import YatimaStdLib.ByteArray
+import YatimaStdLib.Cached
 import YatimaStdLib.Either
 import YatimaStdLib.Foldable
 import YatimaStdLib.Identity
