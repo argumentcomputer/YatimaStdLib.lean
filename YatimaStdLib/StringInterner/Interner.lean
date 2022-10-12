@@ -22,6 +22,10 @@ The following API covers the main functionality:
 This implementation is entirely based on the Rust `string-intern` crate located
 [here](https://github.com/robbepop/string-interner). All credits should be given
 to them.
+
+# TODO
+
+Implement tests with LSpec
 -/
 
 abbrev StringInterner.Symbol := Nat
@@ -60,25 +64,3 @@ def resolve! (symbol : Symbol) : StringInterner String :=
   MonadBackend.resolve! symbol
 
 end StringInterner
-
-open StringInterner
-def test : StringInterner String := do
-  discard $ getOrIntern "Hello, world!"
-  discard $ getOrIntern "Goodbye!"
-  let ptr ← get "Hello, world!"
-  let ptr2 ← get "Goodbye!"
-  return s!"ptrs: {ptr}, {ptr2}"
-
--- #eval StringInterner.run' test
-
--- open StringInterner
-
--- class MonadStringInterner (m : Type → Type) [MonadBackend m] where
---   getOrIntern : String → StringInterner m Nat
---   resolve : Nat → StringInterner m String
-
--- instance : MonadStringInterner BufferM := {
---   getOrIntern := fun s => _,
---   resolve := fun n => MonadBackend.resolve n
--- }
-
