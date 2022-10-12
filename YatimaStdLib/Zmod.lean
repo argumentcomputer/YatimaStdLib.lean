@@ -45,6 +45,6 @@ instance : Div (Zmod n) where
   div a b := a * modInv b
 
 instance : HShiftRight (Zmod n) Nat (Zmod n) where
-  hShiftRight x k := Nat.shiftRight (Int.toNat (rep x)) k % n
+  hShiftRight x k := (Nat.shiftRight (Int.toNat (rep x)) k) % n
 
 end Zmod
