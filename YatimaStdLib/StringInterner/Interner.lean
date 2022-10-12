@@ -1,4 +1,4 @@
-import YatimaStdLib.String.Interner.Backend.Module
+import YatimaStdLib.StringInterner.Backend.Module
 import Lean.Data.HashMap
 
 /-!
@@ -6,8 +6,9 @@ import Lean.Data.HashMap
 
 Data structure to intern and resolve strings.
 
-Caches strings efficiently, with minimal memory footprint and associates them with unique symbols.
-These symbols allow constant time comparisons and look-ups to the underlying interned strings.
+Caches strings efficiently, with minimal memory footprint and associates them
+with unique symbols. These symbols allow constant time comparisons and look-ups
+to the underlying interned strings.
 
 The following API covers the main functionality:
 
@@ -18,34 +19,36 @@ The following API covers the main functionality:
 
 # Acknowledgements
 
-This implementation is entirely based on the Rust `string-intern` crate located [here](https://github.com/robbepop/string-interner). All credits should be given to them. 
-
+This implementation is entirely based on the Rust `string-intern` crate located
+[here](https://github.com/robbepop/string-interner). All credits should be given
+to them.
 -/
 
 abbrev StringInterner.Symbol := Nat
+
 abbrev StringInterner.SymbolMap := Std.HashMap UInt64 StringInterner.Symbol
 
-abbrev StringInterner := 
+abbrev StringInterner :=
   StateT StringInterner.SymbolMap StringInterner.BufferM
 
 namespace StringInterner
--- variable {m : Type → Type} [MonadBackend m]
 
-def run (state : StringInterner α) (b : Buffer := default) (map : SymbolMap := default) : 
-    (α × SymbolMap) × Buffer := 
+def run (state : StringInterner α) (b : Buffer := default)
+    (map : SymbolMap := default) : (α × SymbolMap) × Buffer :=
   StateT.run (StateT.run state map) b
-  
-def run' (state : StringInterner α) (b : Buffer := default) (map : SymbolMap := default) : α := 
+
+def run' (state : StringInterner α) (b : Buffer := default)
+    (map : SymbolMap := default) : α :=
   StateT.run' (StateT.run' state map) b
-  
-@[inline] def insert (hash : UInt64) (symbol : Symbol) : StringInterner Unit := do 
+
+@[inline] def insert (hash : UInt64) (symbol : Symbol) : StringInterner Unit :=
   modify fun s => s.insert hash symbol
 
 def getOrIntern (str : String) : StringInterner Symbol := do
   let hash := str.hash
-  match (← get).find? hash with 
+  match (← get).find? hash with
     | some sym => return sym
-    | none => 
+    | none =>
       let symbol ← MonadBackend.intern str
       insert hash symbol
       return symbol
@@ -54,12 +57,12 @@ def get (str : String) : StringInterner (Option Symbol) := do
   return (← StateT.get).find? str.hash
 
 def resolve! (symbol : Symbol) : StringInterner String :=
-  MonadBackend.resolve symbol
+  MonadBackend.resolve! symbol
 
 end StringInterner
 
 open StringInterner
-def test : StringInterner String := do 
+def test : StringInterner String := do
   discard $ getOrIntern "Hello, world!"
   discard $ getOrIntern "Goodbye!"
   let ptr ← get "Hello, world!"
@@ -70,7 +73,7 @@ def test : StringInterner String := do
 
 -- open StringInterner
 
--- class MonadStringInterner (m : Type → Type) [MonadBackend m] where 
+-- class MonadStringInterner (m : Type → Type) [MonadBackend m] where
 --   getOrIntern : String → StringInterner m Nat
 --   resolve : Nat → StringInterner m String
 
