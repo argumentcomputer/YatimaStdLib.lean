@@ -5,4 +5,3 @@ package YatimaStdLib
 
 @[defaultTarget]
 lean_lib YatimaStdLib
-

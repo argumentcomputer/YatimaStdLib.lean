@@ -13,6 +13,10 @@ instance : DecidableEq (Cached f x) := fun _ _ => isTrue (Subsingleton.allEq ..)
 instance [ToString β] : ToString (@Cached α β f x) where
   toString c := toString c.val
 
+@[simp]
+theorem eq_of_subsingleton [Subsingleton α] {a b : α} : (a = b) = True := by
+  simp [Subsingleton.allEq a b]
+
 abbrev Cached' (a : α) := Cached id a
 
 end Cached
