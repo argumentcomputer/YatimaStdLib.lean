@@ -85,7 +85,9 @@ def bArXOr (bs : Array Bit) : Bit := bs.foldl (fun b b' => b.xOr b') zero
 def bArToNat (bs : Array Bit) : Nat := bs.foldl (fun b b' => b*2 + b'.toNat) 0
 
 def ByteArray.getD (bs : ByteArray) (idx : Int) : UInt8 :=
-  if idx < 0 || bs.size ≤ idx then 0 else bs[idx.toNat]!
+  match idx with
+    | .negSucc _ => 0
+    | .ofNat n => if bs.size ≤ idx then 0 else Array.getD bs.data n 0
 
 def UInt8.getBit (u : UInt8) (n : Nat) : Bit :=
   if u &&& (1 <<< (7 - n)).toUInt8 == 0 then zero else one
