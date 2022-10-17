@@ -59,15 +59,17 @@ partial def UInt64.toByteArray (u : UInt64) : ByteArray :=
   loop u #[] |>.reverse
              |> ByteArray.mk
              |> (fun bs => ByteArray.padLeft bs 0 (8 - bs.size))
+
 inductive Bit where
   | one
   | zero
-deriving BEq
+  deriving BEq
 
 instance : ToString Bit where
   toString
     | .one  => "1"
     | .zero => "0"
+
 open Bit
 
 def Bit.xOr : Bit → Bit → Bit
@@ -79,31 +81,38 @@ def Bit.toNat : Bit → Nat
   | zero => 0
   | one  => 1
 
-def Bit.toUInt8 : Bit → UInt8 := Nat.toUInt8 ∘ Bit.toNat
-def bArXOr (bs : Array Bit) : Bit := bs.foldl (fun b b' => b.xOr b') zero
+def Bit.toUInt8 : Bit → UInt8 :=
+  Nat.toUInt8 ∘ Bit.toNat
 
-def bArToNat (bs : Array Bit) : Nat := bs.foldl (fun b b' => b*2 + b'.toNat) 0
+def bArXOr (bs : Array Bit) : Bit :=
+  bs.foldl (fun b b' => b.xOr b') zero
 
-def ByteArray.getD (bs : ByteArray) (idx : Int) : UInt8 :=
-  match idx with
-    | .negSucc _ => 0
-    | .ofNat n => if bs.size ≤ idx then 0 else Array.getD bs.data n 0
+def bArToNat (bs : Array Bit) : Nat :=
+  bs.foldl (fun b b' => b * 2 + b'.toNat) 0
+
+def ByteArray.getD (bs : ByteArray) (idx : Nat) (defaultValue : UInt8) : UInt8 :=
+  bs.data.getD idx defaultValue
 
 def UInt8.getBit (u : UInt8) (n : Nat) : Bit :=
   if u &&& (1 <<< (7 - n)).toUInt8 == 0 then zero else one
 
 def ByteArray.getBit (bs : ByteArray) (n : Nat) : Bit :=
-  let (idx, rem) := (n / 8, n%8)
-  UInt8.getBit (getD bs idx) rem
--- Shifts the byte array left by 1, preserves length (so in particular kills the first coefficient
+  let (idx, rem) := (n / 8, n % 8)
+  UInt8.getBit (getD bs idx 0) rem
+
+/--
+Shifts the byte array left by 1, preserves length (so in particular kills the
+first coefficient
+-/
 def ByteArray.shiftLeft (bs : ByteArray) : ByteArray := Id.run do
   let mut answer : ByteArray := .mkEmpty bs.size
   for idx in [:bs.size] do
-    answer := answer.push <| (getD bs idx <<< 1 : UInt8) + (getD bs (idx + 1) >>> 7 : UInt8)
+    answer := answer.push <|
+      (getD bs idx 0 <<< 1 : UInt8) + (getD bs (idx + 1) 0 >>> 7 : UInt8)
   answer
 
 def ByteArray.shiftAdd (bs : ByteArray) (b : Bit) : ByteArray :=
   let ans := shiftLeft bs
-  ans.set! (ans.size - 1) (getD ans (ans.size - 1) + b.toUInt8)
+  ans.set! (ans.size - 1) (getD ans ((ans.size - 1) + b.toUInt8.toNat) 0)
 
 end ByteArray
