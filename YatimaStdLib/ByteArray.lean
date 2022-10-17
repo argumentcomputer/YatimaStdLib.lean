@@ -92,16 +92,16 @@ def UInt8.getBit (u : UInt8) (n : Nat) : Bit :=
 
 def ByteArray.getBit (bs : ByteArray) (n : Nat) : Bit :=
   let (idx, rem) := (n / 8, n%8)
-  UInt8.getBit bs[idx]! rem
+  UInt8.getBit (getD bs idx) rem
 -- Shifts the byte array left by 1, preserves length (so in particular kills the first coefficient
 def ByteArray.shiftLeft (bs : ByteArray) : ByteArray := Id.run do
   let mut answer : ByteArray := .mkEmpty bs.size
   for idx in [:bs.size] do
-    answer := answer.push <| (bs[idx]! <<< 1 : UInt8) + (getD bs (idx + 1) >>> 7 : UInt8)
+    answer := answer.push <| (getD bs idx <<< 1 : UInt8) + (getD bs (idx + 1) >>> 7 : UInt8)
   answer
 
 def ByteArray.shiftAdd (bs : ByteArray) (b : Bit) : ByteArray :=
   let ans := shiftLeft bs
-  ans.set! (ans.size - 1) (ans[(ans.size - 1)]! + b.toUInt8)
+  ans.set! (ans.size - 1) (getD ans (ans.size - 1) + b.toUInt8)
 
 end ByteArray
