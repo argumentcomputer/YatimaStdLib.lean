@@ -41,4 +41,10 @@ instance : Div (Zmod n) where
 instance : HShiftRight (Zmod n) Nat (Zmod n) where
   hShiftRight x k := (Nat.shiftRight (Int.toNat (rep x)) k) % n
 
+def Zmod.norm (x : Zmod n) : Nat :=
+  if x < 0 then (x.rep - (x.rep / n - 1) * n).toNat else x.toNat
+
+instance : Repr (Zmod n) where
+  reprPrec n _ := s!"0x{Nat.toDigits 16 (Zmod.norm n) |>.asString}"
+
 end Zmod

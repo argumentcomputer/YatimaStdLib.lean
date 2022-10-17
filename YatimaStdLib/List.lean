@@ -149,4 +149,10 @@ def pairwise : List α → List (α × α)
 def cartesian (as : List α) (bs : List β) : List (α × β) :=
   as.foldl (init := []) fun acc a => acc ++ bs.map fun b => (a, b)
 
+def List.minWith (f : α → β) [LE β] [DecidableRel (@LE.le β _)] : List α → Option α
+  | [] => .none
+  | a :: as => match (minWith f as) with
+    | .some a' => if f a ≤ f a' then .some a else .some a'
+    | .none => .some a
+
 end List
