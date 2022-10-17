@@ -121,4 +121,12 @@ def toNEList (a : α) : List α → NEList α
   | []      => .uno a
   | b :: bs => .cons a (toNEList b bs)
 
+def NEList.min {α : Type _ } [LE α] [DecidableRel (@LE.le α _)] : NEList α → α
+  | .uno a     => a
+  | .cons a as => if a ≤ (min as) then a else (min as)
+
+def NEList.max {α : Type _ } [LE α] [DecidableRel (@LE.le α _)] : NEList α → α
+  | .uno a     => a
+  | .cons a as => if a ≤ (max as) then (max as) else a
+
 end List

@@ -44,4 +44,10 @@ def modInv (a : Zmod n) : Zmod n := Int.modInv a n
 instance : Div (Zmod n) where
   div a b := a * modInv b
 
+def Zmod.norm (x : Zmod n) : Nat :=
+  if x < 0 then (x.rep - (x.rep / n - 1) * n).toNat else x.toNat
+
+instance : Repr (Zmod n) where
+  reprPrec n _ := s!"0x{Nat.toDigits 16 (Zmod.norm n) |>.asString}"
+
 end Zmod
