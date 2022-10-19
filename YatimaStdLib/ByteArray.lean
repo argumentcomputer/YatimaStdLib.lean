@@ -60,15 +60,26 @@ partial def UInt64.toByteArray (u : UInt64) : ByteArray :=
              |> ByteArray.mk
              |> (fun bs => ByteArray.padLeft bs 0 (8 - bs.size))
 
+inductive Endian where
+  | big    : Endian
+  | little : Endian
+  deriving Repr, DecidableEq, Inhabited
+
 inductive Bit where
-  | one
   | zero
-  deriving BEq
+  | one
+  deriving DecidableEq, Inhabited
 
 instance : ToString Bit where
   toString
     | .one  => "1"
     | .zero => "0"
+
+instance : OfNat Bit 0 where
+  ofNat := .zero
+
+instance : OfNat Bit 1 where
+  ofNat := .one
 
 open Bit
 
@@ -89,6 +100,48 @@ def bArXOr (bs : Array Bit) : Bit :=
 
 def bArToNat (bs : Array Bit) : Nat :=
   bs.foldl (fun b b' => b * 2 + b'.toNat) 0
+
+def pad (n : Nat) (bs : List Bit) : List Bit :=
+  let l := bs.length
+  if l >= n then bs else List.replicate (n - l) zero ++ bs
+
+theorem Nat.div2_lt (h : n ≠ 0) : n / 2 < n := by
+  match n with
+  | 1   => decide
+  | 2   => decide
+  | 3   => decide
+  | n+4 =>
+    rw [Nat.div_eq, if_pos]
+    refine Nat.succ_lt_succ (Nat.lt_trans ?_ (Nat.lt_succ_self _))
+    exact @div2_lt (n + 2) (by simp_arith)
+    simp_arith
+
+def natToBits : Nat → List Bit
+  | 0 => [zero]
+  | 1 => [one]
+  | n + 2 =>
+    have h₁ : n + 2 ≠ 0 := by simp_arith
+    natToBits ((n + 2) / 2) ++ (if n % 2 = 0 then [zero] else [one])
+  decreasing_by exact Nat.div2_lt h₁;
+
+def uint8ToBits (u : UInt8) : List Bit :=
+  pad 8 $ natToBits $ UInt8.toNat u
+
+def byteArrayToBits (ba : ByteArray) : List Bit :=
+  List.join $ List.map uint8ToBits $ ByteArray.toList ba
+
+-- Interprets a `List Bit` as a `Nat`, taking `Endian`ness into consideration.
+def bitsToNat (l: List Bit) (en : Endian := default) : Nat :=
+  let rec go
+    | [], acc => acc
+    | b :: bs, acc => go bs $ acc * 2 + (if b = zero then 0 else 1)
+  let bits := if en = .big then l else List.reverse l
+  go bits default
+
+-- Takes first `n` elems of the `List Bit` and interprets them as a `Nat`.
+-- Returns `none` if the list is shorter than `n`.
+def someBitsToNat? (n : Nat) (l: List Bit) (en : Endian := default) : Option Nat :=
+  if n > l.length || n = 0 then .none else .some $ bitsToNat (l.take n) en
 
 def ByteArray.getD (bs : ByteArray) (idx : Nat) (defaultValue : UInt8) : UInt8 :=
   bs.data.getD idx defaultValue

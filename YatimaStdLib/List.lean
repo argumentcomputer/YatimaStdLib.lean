@@ -2,7 +2,7 @@ import YatimaStdLib.Foldable
 
 namespace List
 
-def sum [HAdd α α α] [Zero α] (xs : List α) : α := 
+def sum [HAdd α α α] [Zero α] (xs : List α) : α :=
   xs.foldl (· + ·) 0
 
 def splitAt : Nat → List α → List α × List α
@@ -48,18 +48,23 @@ instance : Foldable List where
 -- the `B` suffix avoids name conflicts with mathlib
 def eraseDupB [BEq α] : List α → List α
   | [] => []
-  | x::xs => 
+  | x::xs =>
     let exs := eraseDupB xs
     if exs.contains x then exs else x::exs
 
-/-- 
+/--
 `splitAt`, but it includes the first element at which `p` fails in the first list
 e.g. `splitAtP (fun x => x == 3) [3, 1, 2, 3]` will output `[[3, 1], [2, 3]]`
 -/
 def splitAtP [BEq α] (p : α → Bool) (l : List α) : List α × List α :=
-  match l.dropWhile p with 
+  match l.dropWhile p with
   | [] => (l, [])
   | a::as => ⟨l.takeWhile p ++ [a], as⟩
+
+def extract (l : List α) (b : Nat) (e : Nat) : List α :=
+  if b > e then l else
+    let lₐ := l.drop b
+    lₐ.take $ e - b
 
 partial def mergeM [Monad μ] (cmp: α → α → μ Ordering) : List α → List α → μ (List α)
   | as@(a::as'), bs@(b::bs') => do
@@ -77,11 +82,11 @@ partial def mergeAllM [Monad μ] (cmp: α → α → μ Ordering) : List (List �
   | [x] => return x
   | xs => mergePairsM cmp xs >>= mergeAllM cmp
 
-mutual 
+mutual
   partial def sequencesM [Monad μ] (cmp : α → α → μ Ordering) : List α → μ (List (List α))
     | a::b::xs => do
       if (← cmp a b) == .gt
-      then descendingM cmp b [a] xs 
+      then descendingM cmp b [a] xs
       else ascendingM cmp b (fun ys => a :: ys) xs
     | xs => return [xs]
 
@@ -101,30 +106,30 @@ mutual
 
 end
 
-/-- 
+/--
 Monadic mergesort, based on the Haskell version:
 https://hackage.haskell.org/package/base-4.16.1.0/docs/src/Data-OldList.html#sort
 By default we sort from least to greatest; set `rev := true` for greatest to least
 -/
-def sortByM [Monad μ] (xs: List α) (cmp: α -> α -> μ Ordering) (rev := false) : 
+def sortByM [Monad μ] (xs: List α) (cmp: α -> α -> μ Ordering) (rev := false) :
     μ (List α) := do
-  if rev then 
+  if rev then
     let revCmp : _ → _ → μ Ordering := fun x y => do
       match (← cmp x y) with
-      | .gt => return Ordering.lt 
-      | .eq => return Ordering.eq 
+      | .gt => return Ordering.lt
+      | .eq => return Ordering.eq
       | .lt => return Ordering.gt
     sequencesM revCmp xs >>= mergeAllM revCmp
-  else 
+  else
     sequencesM cmp xs >>= mergeAllM cmp
 
-/-- 
-Mergesort from least to greatest. To sort from greatest to 
+/--
+Mergesort from least to greatest. To sort from greatest to
 -/
-def sortBy (cmp : α -> α -> Ordering) (xs: List α) (rev := false) : List α := 
+def sortBy (cmp : α -> α -> Ordering) (xs: List α) (rev := false) : List α :=
   Id.run do xs.sortByM (cmp <$> · <*> ·) rev
 
-def sort [Ord α] (xs: List α) (rev := false) : List α := 
+def sort [Ord α] (xs: List α) (rev := false) : List α :=
   sortBy compare xs rev
 
 def groupByMAux [Monad μ] (eq : α → α → μ Bool) : List α → List (List α) → μ (List (List α))
