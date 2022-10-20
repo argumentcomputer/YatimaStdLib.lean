@@ -80,3 +80,14 @@ def gcdB (x y : Nat) : Int := (xgcd x y).2
 end GCD
 
 end Nat
+
+theorem Nat.div2_lt (h : n ≠ 0) : n / 2 < n := by
+  match n with
+  | 1   => decide
+  | 2   => decide
+  | 3   => decide
+  | n+4 =>
+    rw [Nat.div_eq, if_pos]
+    refine Nat.succ_lt_succ (Nat.lt_trans ?_ (Nat.lt_succ_self _))
+    exact @div2_lt (n + 2) (by simp_arith)
+    simp_arith

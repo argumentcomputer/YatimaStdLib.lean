@@ -1,5 +1,6 @@
 import YatimaStdLib.List
 import YatimaStdLib.Nat
+import YatimaStdLib.UInt
 
 namespace ByteArray
 
@@ -35,11 +36,7 @@ instance : Ord ByteArray where
 def Subarray.asBA (s : Subarray UInt8) : ByteArray :=
   s.as.data.toByteArray
 
-def UInt8.showBits (u : UInt8) : String :=
-  let numStr := u.toNat |> Nat.toDigits 2
-  "".pushn '0' (8 - numStr.length) ++ ⟨numStr⟩
-
-def ByteArray.toString (bs : ByteArray) : String := Id.run do
+def toString (bs : ByteArray) : String := Id.run do
   if bs.isEmpty then "b[]" else
   let mut ans := "b["
   for u in bs do
@@ -49,107 +46,14 @@ def ByteArray.toString (bs : ByteArray) : String := Id.run do
 instance : Repr ByteArray where
   reprPrec bs _ := toString bs
 
-def ByteArray.padLeft (bs : ByteArray) (u : UInt8) : Nat → ByteArray
+def padLeft (bs : ByteArray) (u : UInt8) : Nat → ByteArray
   | 0 => bs
   | n + 1 => ByteArray.mk #[u] ++ padLeft bs u n
 
-partial def UInt64.toByteArray (u : UInt64) : ByteArray :=
-  let rec loop (u : UInt64) (acc : Array UInt8) :=
-    if u == 0 then acc else loop (u >>> 8) <| acc.push (u &&& (0xff : UInt64)).toUInt8
-  loop u #[] |>.reverse
-             |> ByteArray.mk
-             |> (fun bs => ByteArray.padLeft bs 0 (8 - bs.size))
-
-inductive Endian where
-  | big    : Endian
-  | little : Endian
-  deriving Repr, DecidableEq, Inhabited
-
-inductive Bit where
-  | zero
-  | one
-  deriving DecidableEq, Inhabited
-
-instance : ToString Bit where
-  toString
-    | .one  => "1"
-    | .zero => "0"
-
-instance : OfNat Bit 0 where
-  ofNat := .zero
-
-instance : OfNat Bit 1 where
-  ofNat := .one
-
-open Bit
-
-def Bit.xOr : Bit → Bit → Bit
-  | one, zero
-  | zero, one => one
-  | _, _      => zero
-
-def Bit.toNat : Bit → Nat
-  | zero => 0
-  | one  => 1
-
-def Bit.toUInt8 : Bit → UInt8 :=
-  Nat.toUInt8 ∘ Bit.toNat
-
-def bArXOr (bs : Array Bit) : Bit :=
-  bs.foldl (fun b b' => b.xOr b') zero
-
-def bArToNat (bs : Array Bit) : Nat :=
-  bs.foldl (fun b b' => b * 2 + b'.toNat) 0
-
-def pad (n : Nat) (bs : List Bit) : List Bit :=
-  let l := bs.length
-  if l >= n then bs else List.replicate (n - l) zero ++ bs
-
-theorem Nat.div2_lt (h : n ≠ 0) : n / 2 < n := by
-  match n with
-  | 1   => decide
-  | 2   => decide
-  | 3   => decide
-  | n+4 =>
-    rw [Nat.div_eq, if_pos]
-    refine Nat.succ_lt_succ (Nat.lt_trans ?_ (Nat.lt_succ_self _))
-    exact @div2_lt (n + 2) (by simp_arith)
-    simp_arith
-
-def natToBits : Nat → List Bit
-  | 0 => [zero]
-  | 1 => [one]
-  | n + 2 =>
-    have h₁ : n + 2 ≠ 0 := by simp_arith
-    natToBits ((n + 2) / 2) ++ (if n % 2 = 0 then [zero] else [one])
-  decreasing_by exact Nat.div2_lt h₁;
-
-def uint8ToBits (u : UInt8) : List Bit :=
-  pad 8 $ natToBits $ UInt8.toNat u
-
-def byteArrayToBits (ba : ByteArray) : List Bit :=
-  List.join $ List.map uint8ToBits $ ByteArray.toList ba
-
--- Interprets a `List Bit` as a `Nat`, taking `Endian`ness into consideration.
-def bitsToNat (l: List Bit) (en : Endian := default) : Nat :=
-  let rec go
-    | [], acc => acc
-    | b :: bs, acc => go bs $ acc * 2 + (if b = zero then 0 else 1)
-  let bits := if en = .big then l else List.reverse l
-  go bits default
-
--- Takes first `n` elems of the `List Bit` and interprets them as a `Nat`.
--- Returns `none` if the list is shorter than `n`.
-def someBitsToNat? (n : Nat) (l: List Bit) (en : Endian := default) : Option Nat :=
-  if n > l.length || n = 0 then .none else .some $ bitsToNat (l.take n) en
-
-def ByteArray.getD (bs : ByteArray) (idx : Nat) (defaultValue : UInt8) : UInt8 :=
+def getD (bs : ByteArray) (idx : Nat) (defaultValue : UInt8) : UInt8 :=
   bs.data.getD idx defaultValue
 
-def UInt8.getBit (u : UInt8) (n : Nat) : Bit :=
-  if u &&& (1 <<< (7 - n)).toUInt8 == 0 then zero else one
-
-def ByteArray.getBit (bs : ByteArray) (n : Nat) : Bit :=
+def getBit (bs : ByteArray) (n : Nat) : Bit :=
   let (idx, rem) := (n / 8, n % 8)
   UInt8.getBit (getD bs idx 0) rem
 
@@ -157,15 +61,22 @@ def ByteArray.getBit (bs : ByteArray) (n : Nat) : Bit :=
 Shifts the byte array left by 1, preserves length (so in particular kills the
 first coefficient
 -/
-def ByteArray.shiftLeft (bs : ByteArray) : ByteArray := Id.run do
+def shiftLeft (bs : ByteArray) : ByteArray := Id.run do
   let mut answer : ByteArray := .mkEmpty bs.size
   for idx in [:bs.size] do
     answer := answer.push <|
       (getD bs idx 0 <<< 1 : UInt8) + (getD bs (idx + 1) 0 >>> 7 : UInt8)
   answer
 
-def ByteArray.shiftAdd (bs : ByteArray) (b : Bit) : ByteArray :=
+def shiftAdd (bs : ByteArray) (b : Bit) : ByteArray :=
   let ans := shiftLeft bs
   ans.set! (ans.size - 1) (getD ans ((ans.size - 1) + b.toUInt8.toNat) 0)
 
 end ByteArray
+
+partial def UInt64.toByteArray (u : UInt64) : ByteArray :=
+  let rec loop (u : UInt64) (acc : Array UInt8) :=
+    if u == 0 then acc else loop (u >>> 8) <| acc.push (u &&& (0xff : UInt64)).toUInt8
+  loop u #[] |>.reverse
+             |> ByteArray.mk
+             |> (fun bs => .padLeft bs 0 (8 - bs.size))
