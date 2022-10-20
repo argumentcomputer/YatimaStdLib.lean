@@ -112,6 +112,20 @@ instance : Traversable NEList where
 instance : Pure NEList where
   pure x := ⟦x⟧
 
+def compareWith [Ord α] : NEList α → NEList α → Ordering
+  | uno a, uno b => compare a b
+  | uno a, cons b _ =>
+    let cmp := compare a b
+    if cmp == .eq then .lt else cmp
+  | cons a _, uno b =>
+    let cmp := compare a b
+    if cmp == .eq then .gt else cmp
+  | cons a as, cons b bs =>
+    let cmp := compare a b
+    if cmp == .eq then compareWith as bs else cmp
+
+instance [Ord α] : Ord $ NEList α := ⟨compareWith⟩
+
 end NEList
 
 namespace List
