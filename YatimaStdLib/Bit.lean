@@ -43,13 +43,13 @@ end bit_methods
 
 namespace Bit
 
-def bitArXOr (bs : Array Bit) : Bit :=
+def arrayXOr (bs : Array Bit) : Bit :=
   bs.foldl (fun b b' => b.xOr b') zero
 
-def bitArToNat (bs : Array Bit) : Nat :=
+def arrayToNat (bs : Array Bit) : Nat :=
   bs.foldl (fun b b' => b * 2 + b'.toNat) 0
 
-def pad (n : Nat) (bs : List Bit) : List Bit :=
+def listPad (n : Nat) (bs : List Bit) : List Bit :=
   let l := bs.length
   if l >= n then bs else List.replicate (n - l) zero ++ bs
 
@@ -77,7 +77,7 @@ def Nat.toBits : Nat → List Bit
   decreasing_by exact Nat.div2_lt h₁;
 
 def UInt8.toBits (u : UInt8) : List Bit :=
-  Bit.pad 8 $ Nat.toBits $ UInt8.toNat u
+  Bit.listPad 8 $ Nat.toBits $ UInt8.toNat u
 
 def ByteArray.toBits (ba : ByteArray) : List Bit :=
   List.join $ List.map UInt8.toBits $ ByteArray.toList ba
