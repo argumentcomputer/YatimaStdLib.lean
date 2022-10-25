@@ -70,7 +70,7 @@ def shiftLeft (bs : ByteArray) : ByteArray := Id.run do
 
 def shiftAdd (bs : ByteArray) (b : Bit) : ByteArray :=
   let ans := shiftLeft bs
-  ans.set! (ans.size - 1) (getD ans ((ans.size - 1) + b.toUInt8.toNat) 0)
+  ans.set! (ans.size - 1) ((getD ans (ans.size - 1) 0) + b.toUInt8)
 
 end ByteArray
 
