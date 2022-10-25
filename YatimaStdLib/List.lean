@@ -35,10 +35,9 @@ def mapOption {α β: Type u} : (α → Option β) → List α → List β
 
 def catOptions {α : Type u} : List (Option α) → List α := mapOption id
 
-protected def fold [HMul M M M] [One M] (l : List M) : M :=
-  match l with
-    | [] => One.one
-    | (x :: xs) => x * List.fold xs
+protected def fold [HMul M M M] [One M] : List M → M
+  | [] => One.one
+  | (x :: xs) => x * List.fold xs
 
 instance : Foldable List where
   fold := List.fold
@@ -66,7 +65,7 @@ def extract (l : List α) (b : Nat) (e : Nat) : List α :=
     let lₐ := l.drop b
     lₐ.take $ e - b
 
-partial def mergeM [Monad μ] (cmp: α → α → μ Ordering) : List α → List α → μ (List α)
+partial def mergeM [Monad μ] (cmp : α → α → μ Ordering) : List α → List α → μ (List α)
   | as@(a::as'), bs@(b::bs') => do
     if (← cmp a b) == Ordering.gt
     then List.cons b <$> mergeM cmp as bs'

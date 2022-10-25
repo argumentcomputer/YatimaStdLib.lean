@@ -79,15 +79,24 @@ def gcdB (x y : Nat) : Int := (xgcd x y).2
 
 end GCD
 
-end Nat
-
-theorem Nat.div2_lt (h : n ≠ 0) : n / 2 < n := by
+theorem div2_lt (h : n ≠ 0) : n / 2 < n := by
   match n with
   | 1   => decide
   | 2   => decide
   | 3   => decide
   | n+4 =>
-    rw [Nat.div_eq, if_pos]
-    refine Nat.succ_lt_succ (Nat.lt_trans ?_ (Nat.lt_succ_self _))
+    rw [div_eq, if_pos]
+    refine succ_lt_succ (Nat.lt_trans ?_ (lt_succ_self _))
     exact @div2_lt (n + 2) (by simp_arith)
     simp_arith
+
+/-- Prints a `Nat` in its hexadecimal form, given the wanted length -/
+def asHex (n : Nat) (length : Nat) : String := 
+  if n < USize.size then 
+    toString n 
+  else 
+    let tail := Nat.toDigits 16 n
+    let pad := List.replicate (length - tail.length) '0'
+    "0x" ++  List.asString (pad ++ tail)
+
+end Nat
