@@ -18,11 +18,11 @@ def filterOut [BEq α] [Ord α] (map : RBMap α β cmp) (t : RBTree α cmp) :
   map.fold (init := default) fun acc a b =>
     if t.contains a then acc else acc.insert a b
 
-def toKeyList : RBMap α β cmp → List α
-  | ⟨t, _⟩ => t.revFold (fun ks k _ => k::ks) []
+def keys : RBMap α β cmp → Array α
+  | ⟨t, _⟩ => t.revFold (fun ks k _ => ks.push k) .empty
 
-def toValueList : RBMap α β cmp → List β
-  | ⟨t, _⟩ => t.revFold (fun vs _ v => v::vs) []
+def values : RBMap α β cmp → Array β
+  | ⟨t, _⟩ => t.revFold (fun vs _ v => vs.push v) .empty
 
 /-
   Merge two RBMaps, always taking the first value in case of a key
