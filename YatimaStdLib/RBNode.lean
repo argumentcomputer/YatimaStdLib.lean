@@ -4,8 +4,6 @@ open Std Lean
 
 namespace Lean.RBNode
 
-#check Lean.RBNode
-
 @[specialize] def toList (map : Lean.RBNode α fun _ => β) : List (α × β) :=
   map.revFold (fun as a b => (a, b) :: as) []
 
