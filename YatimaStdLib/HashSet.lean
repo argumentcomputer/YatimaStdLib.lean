@@ -2,7 +2,7 @@ import Lean.Data.HashSet
 
 syntax "⦃" term,* "⦄" : term
 
-open Std
+open Lean
 
 open Lean in
 macro_rules
