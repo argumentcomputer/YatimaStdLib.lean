@@ -1,15 +1,16 @@
-import Lean
-open Std RBNode
+import Std.Data.RBMap
 
-namespace Std.RBNode
+open Std Lean
 
-@[specialize] def toList (map : RBNode α (fun _ => β)) : List (α × β) :=
+namespace Lean.RBNode
+
+@[specialize] def toList (map : Lean.RBNode α fun _ => β) : List (α × β) :=
   map.revFold (fun as a b => (a, b) :: as) []
 
-instance [BEq α] [BEq β] : BEq (RBNode α fun _ => β) where
+instance [BEq α] [BEq β] : BEq (Lean.RBNode α fun _ => β) where
   beq a b := RBNode.toList a == RBNode.toList b
 
-end Std.RBNode
+end Lean.RBNode
 
 namespace Std.RBMap
 

@@ -1,5 +1,5 @@
 /-
-This is oen attempt at writing down the implementation of a Matrix/Vector library for Poseidon.
+This is one attempt at writing down the implementation of a Matrix/Vector library for Poseidon.
 I'm fairly certain this would be unwieldy to use in practice, so we prefer the implementation in
 `Matrix.lean`.
 WARNING: There's like a 50% chance I got the transposes wrong in these definitions, so the first

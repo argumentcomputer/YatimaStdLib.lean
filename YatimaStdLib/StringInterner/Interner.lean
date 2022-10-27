@@ -1,5 +1,5 @@
 import YatimaStdLib.StringInterner.Backend.Module
-import Lean.Data.HashMap
+import Std.Data.HashMap
 
 /-!
 # String Interner
