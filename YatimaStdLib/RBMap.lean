@@ -13,7 +13,7 @@ def enumList (xs : List α) : RBMap α Nat cmp :=
 def unitMap (xs : List α) : RBMap α Unit cmp :=
   RBMap.ofList (xs.map (fun x => (x, ()))) cmp
 
-def filterOut [BEq α] [Ord α] (map : RBMap α β cmp) (t : Lean.RBTree α cmp) :
+def filterOut [BEq α] [Ord α] (map : RBMap α β cmp) (t : RBSet α cmp) :
     RBMap α β cmp :=
   RBMap.foldl (fun acc a b => if t.contains a then acc else acc.insert a b) map (init := default)
 
