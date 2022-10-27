@@ -14,6 +14,22 @@ inductive Either (L : Type u) (R : Type v) where
 | left (l : L)
 | right (r : R)
 
+def mapEither (f : A → B) : Either E A → Either E B
+  | .left x => .left x
+  | .right x => .right (f x)
+
+instance : Monad (Either E) where
+  map := mapEither
+  seq fs xs :=
+    match fs with
+      | .left l => .left l
+      | .right f => mapEither f (xs ())
+  pure x := .right x
+  bind x f :=
+    match x with
+      | .left l => .left l
+      | .right r => f r
+
 namespace Either
 
 def either (f : A → C) (g : B → C) (x : Either A B) : C :=
