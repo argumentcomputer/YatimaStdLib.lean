@@ -81,4 +81,12 @@ def fixRight (b : β) : Either α β → Either α β
   | left a => left a
   | right _ => right b
 
+def optionLeft : Either α β → Option α
+  | left a => some a
+  | right _ => none
+
+def optionRight : Either α β → Option β
+  | left _ => none
+  | right b => some b
+
 end Either
