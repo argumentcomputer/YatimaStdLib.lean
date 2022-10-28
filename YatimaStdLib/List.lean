@@ -1,19 +1,10 @@
 import YatimaStdLib.Foldable
+import Std.Data.List.Basic
 
 namespace List
 
 def sum [HAdd α α α] [Zero α] (xs : List α) : α :=
   xs.foldl (· + ·) 0
-
-def splitAt : Nat → List α → List α × List α
-  | n+1, x :: xs => let (l, r) := splitAt n xs; (x :: l, r)
-  | _, xs => ([], xs)
-
-def indexOf? [BEq α] (as : List α) (a : α) : Option Nat :=
-  let rec aux (a : α) (i : Nat) : List α → Option Nat
-    | a' :: as' => if a == a' then some i else aux a (i + 1) as'
-    | []        => none
-  aux a 0 as
 
 def compareAux [Ord α] : List α → List α → Ordering
   | [], [] => Ordering.eq
