@@ -37,6 +37,14 @@ def isRight : Either α β → Bool
   | right _ => true
   | _       => false
 
+def left? : Either α β → Option α
+  | left a => some a
+  | right _ => none
+
+def right? : Either α β → Option β
+  | left _ => none
+  | right b => some b
+
 def leftsArray (l : List $ Either α β) : Array α :=
   l.foldl (init := #[]) fun acc e => match e with
     | left a => acc.push a
@@ -80,13 +88,5 @@ def fixLeft (a : α) : Either α β → Either α β
 def fixRight (b : β) : Either α β → Either α β
   | left a => left a
   | right _ => right b
-
-def optionLeft : Either α β → Option α
-  | left a => some a
-  | right _ => none
-
-def optionRight : Either α β → Option β
-  | left _ => none
-  | right b => some b
 
 end Either
