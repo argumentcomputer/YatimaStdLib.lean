@@ -1,3 +1,5 @@
+import Std.Data.Nat.Basic
+
 namespace Nat
 
 def toByteArrayCore : Nat → Nat → ByteArray → ByteArray
