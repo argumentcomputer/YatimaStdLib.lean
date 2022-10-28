@@ -53,9 +53,21 @@ def leftsArray (l : List $ Either α β) : Array α :=
 def lefts (l : List $ Either α β) : List α :=
   leftsArray l |>.data
 
+/-- Faster version of `lefts`, but the resulting order is reversed. -/
+def leftsReverse (l : List $ Either α β) : List α :=
+  l.foldl (init := []) fun acc e => match e with
+    | left a => a :: acc
+    | _ => acc
+
 def rightsArray (l : List $ Either α β) : Array β :=
   l.foldl (init := #[]) fun acc e => match e with
     | right b => acc.push b
+    | _ => acc
+
+/-- Faster version of `rights`, but the resulting order is reversed. -/
+def rightsReverse (l : List $ Either α β) : List β :=
+  l.foldl (init := []) fun acc e => match e with
+    | right b => b :: acc
     | _ => acc
 
 def rights (l : List $ Either α β) : List β :=
