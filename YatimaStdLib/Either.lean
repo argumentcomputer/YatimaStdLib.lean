@@ -1,4 +1,6 @@
-/- 
+import YatimaStdLib.Algebra.Defs
+
+/-!
 The `Either` type represents values with two possibilities: a value of type
 `Either α β` is either `left α` or `right β`.
 
@@ -77,6 +79,15 @@ def rights (l : List $ Either α β) : List β :=
   | .left  a => f a
   | .right b => g b
 
+@[specialize] def map (f : α → χ) (g : β → δ) : Either α β → Either χ δ
+  | .left  a => left  $ f a
+  | .right b => right $ g b
+
+@[specialize] def mapM [Monad m] (f : α → m χ) (g : β → m δ) :
+    Either α β → m (Either χ δ)
+  | .left  a => return left  $ ← f a
+  | .right b => return right $ ← g b
+
 @[specialize] def mapLeft (f : α → χ) : Either α β → Either χ β
   | left  a => left (f a)
   | right b => right b
@@ -100,5 +111,36 @@ def fixLeft (a : α) : Either α β → Either α β
 def fixRight (b : β) : Either α β → Either α β
   | left a => left a
   | right _ => right b
+
+namespace Correctness
+
+/-!
+The Either type is sometimes used to represent a value which is either correct
+or an error; by convention, the `left` constructor is used to hold an error
+value and the `right` constructor is used to hold a correct value
+(mnemonic: "right" also means "correct").
+-/
+
+scoped instance : Monad (Either ε) where
+  map := mapRight
+  seq fs xs :=
+    match fs with
+      | .left l => .left l
+      | .right f => mapRight f (xs ())
+  pure x := .right x
+  bind x f :=
+    match x with
+      | .left l => .left l
+      | .right r => f r
+
+def fixs (c : χ) : Either ε (α × τ) → (Either ε α) × χ
+  | .left  e      => (.left  e, c)
+  | .right (a, _) => (.right a, c)
+
+def fixs' [Monoid M] (c : χ) : Either ε (α × τ × M) → (Either ε α) × χ × M
+  | .left  e         => (.left  e, c, 1)
+  | .right (a, _, m) => (.right a, c, m)
+
+end Correctness
 
 end Either
