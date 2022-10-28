@@ -1,3 +1,5 @@
+import Std.Data.Int.Basic
+
 namespace Int
 
 def quotRem (a : Nat) (b : Nat) : Nat × Nat :=
@@ -19,10 +21,10 @@ def gcdExtNat (a : Nat) (b : Nat) : Int × Int × Int :=
       (t, s - q * t, g)
   termination_by _ => b
 
-def Int.gcdExt (a : Int) (b : Int) : Int × Int × Int := 
+def gcdExt (a : Int) (b : Int) : Int × Int × Int := 
   gcdExtNat (Int.natAbs a) (Int.natAbs b)
 
-def Int.modInv (a : Int) (m : Int) : Int :=
+def modInv (a : Int) (m : Int) : Int :=
   let (i, _, g) := Int.gcdExt a m
   let mkPos (x : Int) := if x < 0 then x + m else x
   if g == 1 then mkPos i else 0
