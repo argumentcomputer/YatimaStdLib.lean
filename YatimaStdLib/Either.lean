@@ -1,5 +1,3 @@
-import YatimaStdLib.Algebra.Defs
-
 /-!
 The `Either` type represents values with two possibilities: a value of type
 `Either α β` is either `left α` or `right β`.
@@ -137,7 +135,7 @@ def fixs (c : χ) : Either ε (α × τ) → (Either ε α) × χ
   | .left  e      => (.left  e, c)
   | .right (a, _) => (.right a, c)
 
-def fixs' [Monoid M] (c : χ) : Either ε (α × τ × M) → (Either ε α) × χ × M
+def fixs' [OfNat M 1] (c : χ) : Either ε (α × τ × M) → (Either ε α) × χ × M
   | .left  e         => (.left  e, c, 1)
   | .right (a, _, m) => (.right a, c, m)
 
