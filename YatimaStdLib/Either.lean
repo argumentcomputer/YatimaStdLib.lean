@@ -1,74 +1,144 @@
-import YatimaStdLib.Algebra.Defs
-
-/- 
-The Either type represents values with two possibilities: a value of type Either a b is either Left a or Right b.
-
-The Either type is sometimes used to represent a value which is either correct or an error; 
-by convention, the Left constructor is used to hold an error value and the Right constructor 
-is used to hold a correct value (mnemonic: "right" also means "correct").
+/-!
+The `Either` type represents values with two possibilities: a value of type
+`Either α β` is either `left α` or `right β`.
 
 The data type is inspired by:
 https://hackage.haskell.org/package/base-4.16.1.0/docs/Data-Either.html#t:Either
 -/
-inductive Either (L : Type u) (R : Type v) where
-| left (l : L)
-| right (r : R)
 
-def mapEither (f : A → B) : Either E A → Either E B
-  | .left x => .left x
-  | .right x => .right (f x)
+inductive Either (α : Type u) (β : Type v) where
+  | left  : α → Either α β
+  | right : β → Either α β
 
-instance : Monad (Either E) where
-  map := mapEither
+namespace Either
+
+instance [Inhabited α] : Inhabited (Either α β) :=
+  ⟨left default⟩
+
+instance [Inhabited β] : Inhabited (Either α β) :=
+  ⟨right default⟩
+
+instance [BEq α] [BEq β] : BEq (Either α β) where beq
+  | left a₁, left a₂ => a₁ == a₂
+  | right b₁, right b₂ => b₁ == b₂
+  | _, _ => false
+
+instance [Ord α] [Ord β] : Ord (Either α β) where compare
+  | left _, right _ => .lt
+  | right _, left _ => .gt
+  | left a₁, left a₂ => compare a₁ a₂
+  | right b₁, right b₂ => compare b₁ b₂
+
+def isLeft : Either α β → Bool
+  | left _ => true
+  | _      => false
+
+def isRight : Either α β → Bool
+  | right _ => true
+  | _       => false
+
+def left? : Either α β → Option α
+  | left a => some a
+  | right _ => none
+
+def right? : Either α β → Option β
+  | left _ => none
+  | right b => some b
+
+def leftsArray (l : List $ Either α β) : Array α :=
+  l.foldl (init := #[]) fun acc e => match e with
+    | left a => acc.push a
+    | _ => acc
+
+def lefts (l : List $ Either α β) : List α :=
+  leftsArray l |>.data
+
+/-- Faster version of `lefts`, but the resulting order is reversed. -/
+def leftsReverse (l : List $ Either α β) : List α :=
+  l.foldl (init := []) fun acc e => match e with
+    | left a => a :: acc
+    | _ => acc
+
+def rightsArray (l : List $ Either α β) : Array β :=
+  l.foldl (init := #[]) fun acc e => match e with
+    | right b => acc.push b
+    | _ => acc
+
+/-- Faster version of `rights`, but the resulting order is reversed. -/
+def rightsReverse (l : List $ Either α β) : List β :=
+  l.foldl (init := []) fun acc e => match e with
+    | right b => b :: acc
+    | _ => acc
+
+def rights (l : List $ Either α β) : List β :=
+  rightsArray l |>.data
+
+@[specialize] def either (f : α → χ) (g : β → χ) : Either α β → χ
+  | .left  a => f a
+  | .right b => g b
+
+@[specialize] def map (f : α → χ) (g : β → δ) : Either α β → Either χ δ
+  | .left  a => left  $ f a
+  | .right b => right $ g b
+
+@[specialize] def mapM [Monad m] (f : α → m χ) (g : β → m δ) :
+    Either α β → m (Either χ δ)
+  | .left  a => return left  $ ← f a
+  | .right b => return right $ ← g b
+
+@[specialize] def mapLeft (f : α → χ) : Either α β → Either χ β
+  | left  a => left (f a)
+  | right b => right b
+
+@[specialize] def mapLeftM [Monad m] (f : α → m χ) : Either α β → m (Either χ β)
+  | left  a => return left (← f a)
+  | right b => return right b
+
+@[specialize] def mapRight (f : β → χ) : Either α β → Either α χ
+  | left  a => left a
+  | right b => right (f b)
+
+@[specialize] def mapRightM [Monad m] (f : β → m χ) : Either α β → m (Either α χ)
+  | left  a => return left a
+  | right b => return right (← f b)
+
+def fixLeft (a : α) : Either α β → Either α β
+  | left _ => left a
+  | right b => right b
+
+def fixRight (b : β) : Either α β → Either α β
+  | left a => left a
+  | right _ => right b
+
+namespace Correctness
+
+/-!
+The Either type is sometimes used to represent a value which is either correct
+or an error; by convention, the `left` constructor is used to hold an error
+value and the `right` constructor is used to hold a correct value
+(mnemonic: "right" also means "correct").
+-/
+
+scoped instance : Monad (Either ε) where
+  map := mapRight
   seq fs xs :=
     match fs with
       | .left l => .left l
-      | .right f => mapEither f (xs ())
+      | .right f => mapRight f (xs ())
   pure x := .right x
   bind x f :=
     match x with
       | .left l => .left l
       | .right r => f r
 
-namespace Either
+def fixs (c : χ) : Either ε (α × τ) → (Either ε α) × χ
+  | .left  e      => (.left  e, c)
+  | .right (a, _) => (.right a, c)
 
-def either (f : A → C) (g : B → C) (x : Either A B) : C :=
-  match x with
-    | .left x => f x
-    | .right x => g x
+def fixs' [OfNat M 1] (c : χ) : Either ε (α × τ × M) → (Either ε α) × χ × M
+  | .left  e         => (.left  e, c, 1)
+  | .right (a, _, m) => (.right a, c, m)
 
-def isLeft (x : Either A B) : Bool :=
-  match x with
-    | .left _ => true
-    | _       => false 
-
-def isRight (x : Either A B) : Bool :=
-  match x with
-    | .right _ => true
-    | _        => false 
-
-def lefts (l : List (Either A B)) : List A :=
-  match l with
-    | [] => []
-    | (x::xs) => 
-         match x with
-           | .left x => x :: lefts xs
-           | .right _ => lefts xs
-
-def rights (l : List (Either A B)) : List B :=
-  match l with
-    | [] => []
-    | (x::xs) => 
-         match x with
-           | .left _ => rights xs
-           | .right x => x :: rights xs
-
-def fixs (c : C) : Either A (B × C) → (Either A B) × C
-  | .left a => ⟨ .left a, c ⟩
-  | .right ⟨ a, _ ⟩ => ⟨ .right a, c ⟩
-
-def fixs' [Monoid W] (c : C) : Either A (B × C × W) → (Either A B) × C × W
-  | .left a => ⟨ .left a, c, 1 ⟩
-  | .right ⟨ a, _, w ⟩ => ⟨ .right a, c, w ⟩
+end Correctness
 
 end Either
