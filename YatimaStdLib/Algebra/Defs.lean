@@ -202,7 +202,7 @@ by rw [add_assoc, add_right_neg, add_zero]
 
 instance (A : Type u) [AddGroup A] : IsAddRightCancel A where
   add_right_cancel a b c h := by
-  rw [← add_neg_cancel_right b a, h, add_neg_cancel_right]
+    rw [← add_neg_cancel_right b a, h, add_neg_cancel_right]
 
 instance (A : Type u) [AddGroup A] : IsAddLeftCancel A where
   add_left_cancel a b c h := by
