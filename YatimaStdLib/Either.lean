@@ -135,7 +135,7 @@ def fixs (c : χ) : Either ε (α × τ) → (Either ε α) × χ
   | .left  e      => (.left  e, c)
   | .right (a, _) => (.right a, c)
 
-def fixs' [OfNat M 1] (c : χ) : Either ε (α × τ × M) → (Either ε α) × χ × M
+def fixs' [OfNat M (nat_lit 1)] (c : χ) : Either ε (α × τ × M) → (Either ε α) × χ × M
   | .left  e         => (.left  e, c, 1)
   | .right (a, _, m) => (.right a, c, m)
 
