@@ -15,10 +15,10 @@ instance : ToString Bit where
     | .one  => "1"
     | .zero => "0"
 
-instance : OfNat Bit 0 where
+instance : OfNat Bit (nat_lit 0) where
   ofNat := .zero
 
-instance : OfNat Bit 1 where
+instance : OfNat Bit (nat_lit 1) where
   ofNat := .one
 
 section bit_methods
