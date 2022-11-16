@@ -11,7 +11,7 @@ def Matrix (A : Type) (r c : Nat) : Type := Fin c → Fin r → A
 
 namespace Matrix
 
-variable [Inhabited A] [Add A] [Mul A] [OfNat A 0]
+variable [Inhabited A] [Add A] [Mul A] [OfNat A (nat_lit 0)]
 
 def last (f : Fin n.succ → A) : Fin n → A := f ∘ Fin.succ
 
