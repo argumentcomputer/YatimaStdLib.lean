@@ -10,7 +10,7 @@ def tail (ar : Polynomial A) : Polynomial A :=
     | [] => Array.empty
     | (_ :: xs) => Array.mk xs
 
-variable {A : Type} [Add A] [Mul A] [HPow A Nat A] [OfNat A 1] [OfNat A 0] 
+variable {A : Type} [Add A] [Mul A] [HPow A Nat A] [OfNat A (nat_lit 1)] [OfNat A (nat_lit 0)] 
                     [hab : Inhabited A] [eq : BEq A] [Div A] [Neg A]
 
 def dropWhile (p : A → Bool) (f : Polynomial A) : Polynomial A :=
@@ -110,10 +110,10 @@ def rootsToPoly (a : List A) : Polynomial A :=
       let monom : Polynomial A := #[root,-1]
       monom * (rootsToPoly roots)
 
-instance : OfNat (Polynomial A) 1 where
+instance : OfNat (Polynomial A) (nat_lit 1) where
   ofNat := #[1]
 
-instance : OfNat (Polynomial A) 0 where
+instance : OfNat (Polynomial A) (nat_lit 0) where
   ofNat := zero
 
 end Polynomial
