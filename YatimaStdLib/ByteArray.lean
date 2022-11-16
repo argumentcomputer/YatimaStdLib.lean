@@ -11,8 +11,7 @@ def asLEtoNat (b : ByteArray) : Nat :=
 
 /-- Read Nat from Big-Endian ByteArray -/
 def asBEtoNat (b : ByteArray) : Nat :=
-  b.data.data.foldl (init := 0)
-    fun acc bᵢ => acc.shiftLeft 8 + bᵢ.toNat
+  b.data.data.foldl (init := 0) fun acc bᵢ => acc.shiftLeft 8 + bᵢ.toNat
 
 def leadingZeroBits (bytes : ByteArray) : Nat := Id.run do
   let mut c := 0
@@ -23,15 +22,22 @@ def leadingZeroBits (bytes : ByteArray) : Nat := Id.run do
     else c := c + zs
   return c
 
-def pushZeros (bytes : ByteArray): Nat → ByteArray
-  | 0     => bytes
-  | n + 1 => pushZeros (bytes.push 0) n
+def pushZeros (bytes : ByteArray) (n : Nat) : ByteArray := Id.run do
+  let mut bytes := bytes
+  for _ in [0 : n] do
+    bytes := bytes.push 0
+  return bytes
 
-instance {α : Type u} [Ord α] : Ord (Array α) where
+/- The following three instances should be replaced by C implementations -/
+
+instance (priority := low) {α : Type u} [Ord α] : Ord (Array α) where
   compare x y := compare x.data y.data
 
-instance : Ord ByteArray where
+instance (priority := low) : Ord ByteArray where
   compare x y := compare x.data y.data
+
+instance (priority := low) : BEq ByteArray where
+  beq x y := x.data == y.data
 
 def Subarray.asBA (s : Subarray UInt8) : ByteArray :=
   s.as.data.toByteArray
