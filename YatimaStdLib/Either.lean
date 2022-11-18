@@ -1,3 +1,5 @@
+import YatimaStdLib.Monad
+
 /-!
 The `Either` type represents values with two possibilities: a value of type
 `Either α β` is either `left α` or `right β`.
@@ -138,6 +140,11 @@ def fixs (c : χ) : Either ε (α × τ) → (Either ε α) × χ
 def fixs' [OfNat M (nat_lit 1)] (c : χ) : Either ε (α × τ × M) → (Either ε α) × χ × M
   | .left  e         => (.left  e, c, 1)
   | .right (a, _, m) => (.right a, c, m)
+
+open Monad in
+def Either.sequence_ (arr : Array (Either A B)) : Either A Unit :=
+  let c (m : Either A B) (k : Either A Unit) := seqComp m k
+  Array.foldr c (.right ()) arr
 
 end Correctness
 
