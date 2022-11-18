@@ -142,8 +142,8 @@ def fixs' [OfNat M (nat_lit 1)] (c : χ) : Either ε (α × τ × M) → (Either
   | .right (a, _, m) => (.right a, c, m)
 
 open Monad in
-def Either.sequence_ (arr : Array (Either A B)) : Either A Unit :=
-  let c (m : Either A B) (k : Either A Unit) := seqComp m k
+def Either.sequence_ (arr : Array (Either ε α)) : Either ε Unit :=
+  let c (m : Either ε α) (k : Either ε Unit) := seqComp m k
   Array.foldr c (.right ()) arr
 
 end Correctness
