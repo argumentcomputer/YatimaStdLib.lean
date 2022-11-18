@@ -1,4 +1,4 @@
--- generates the array of nats from 0,...,n by a given n
+/-- Generates the array of nats from 0,...,n by a given n -/
 def Array.iota (n : Nat) : Array Nat :=
   Array.mk (List.range n) |>.push n
 
