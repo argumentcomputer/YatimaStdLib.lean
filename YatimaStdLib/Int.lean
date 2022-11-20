@@ -5,6 +5,11 @@ namespace Int
 def quotRem (a : Nat) (b : Nat) : Nat × Nat :=
   (a / b, a % b)
 
+/-- 
+Return `(x, y, g)` where `g` is the greatest common divisor of `a` and `b`, and `x`, `y` satisfy
+
+`x * a + y * b = g`
+-/
 def gcdExtNat (a : Nat) (b : Nat) : Int × Int × Int :=
   match h : b with
     | 0 => (1, 0, a)
@@ -12,8 +17,8 @@ def gcdExtNat (a : Nat) (b : Nat) : Int × Int × Int :=
       let p := quotRem a b
       let q := p.1
       let r := p.2
-      have : r < Nat.succ k := by
-        have h2 := Nat.succ_ne_zero k
+      have : r < k.succ := by
+        have h2 := k.succ_ne_zero
         rw [← h] at *
         apply Nat.mod_lt
         exact Nat.zero_lt_of_ne_zero h2
