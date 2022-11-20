@@ -120,8 +120,6 @@ def polyQuotRem (f : Polynomial A) (g : Polynomial A) : Polynomial A × Polynomi
     match n with
     | 0     => (#[], #[])
     | k + 1 => 
-      | k + 1 =>
-    | k + 1 => 
       if k + 1 < g'.size then (#[],f')
       else
         let x := f'.getD 0 0
@@ -140,19 +138,20 @@ def polyDiv (f g : Polynomial A) : Polynomial A := polyQuotRem f g |>.fst
 /-- Returns the remainder of the division of the polynomial `f` by `g` -/
 def polyMod (f g : Polynomial A) : Polynomial A := polyQuotRem f g |>.snd
 
+/-- 
+Returns `(a, b, d)` where `d` is the greatest common divisor of `f` and `g` and `a`, `b` satisfy
 
-def polyMod (f : Polynomial A) (g : Polynomial A) : Polynomial A :=
-    let rec polyMod' f' g' (n : Nat) :=
-    match n with
-      | 0 => Array.empty
-      | k + 1 =>
-        if k + 1 < g'.size then f'
-        else
-          let x := Array.getD f' 0 0
-          let y := Array.getD g' 0 0
-          let z := x / y
-          polyMod' (tail (polySub f' (polyMul #[z] g'))) g' k 
-  Array.reverse $ polyMod' (Array.reverse f) (Array.reverse g) (f.size)
+`a * f + b * g = d `
+
+TODO : Eliminate `partial` using `termination_by _ => g.degree` and a proof that `polyQuotRem`
+reduces degree.
+-/
+partial def polyEuc [ToString A] [Inhabited A] [Div A] (f g : Polynomial A) : Polynomial A × Polynomial A × Polynomial A 
+  := if g.isZero then 
+       (#[1 / f.lead], #[0], f.makeMonic) else
+       let (q, r) := polyQuotRem f g
+       let (s, t, d) := polyEuc g r
+       (t, s - q * t, d)
 
 /-- 
 Returns the monic polynomial with the roots taken from the list `a`.
@@ -160,8 +159,6 @@ Returns the monic polynomial with the roots taken from the list `a`.
 def rootsToPoly (as : List A) : Polynomial A :=
   match as with
   | [] => #[1]
-  | (root :: roots) => 
-    | (root :: roots) => 
   | (root :: roots) => 
     let monom : Polynomial A := #[-root,1]
     monom * (rootsToPoly roots)
