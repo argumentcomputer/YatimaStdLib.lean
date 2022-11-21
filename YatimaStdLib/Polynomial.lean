@@ -146,7 +146,7 @@ Returns `(a, b, d)` where `d` is the greatest common divisor of `f` and `g` and 
 TODO : Eliminate `partial` using `termination_by _ => g.degree` and a proof that `polyQuotRem`
 reduces degree.
 -/
-partial def polyEuc [ToString A] [Inhabited A] [Div A] (f g : Polynomial A) : Polynomial A × Polynomial A × Polynomial A 
+partial def polyEuc [Inhabited A] [Div A] (f g : Polynomial A) : Polynomial A × Polynomial A × Polynomial A 
   := if g.isZero then 
        (#[1 / f.lead], #[0], f.makeMonic) else
        let (q, r) := polyQuotRem f g
