@@ -110,35 +110,4 @@ def fixRight (b : β) : Either α β → Either α β
   | left a => left a
   | right _ => right b
 
-namespace Correctness
-
-/-!
-The Either type is sometimes used to represent a value which is either correct
-or an error; by convention, the `left` constructor is used to hold an error
-value and the `right` constructor is used to hold a correct value
-(mnemonic: "right" also means "correct").
--/
-
-scoped instance : Monad (Either ε) where
-  map := mapRight
-  seq fs xs :=
-    match fs with
-      | .left l => .left l
-      | .right f => mapRight f (xs ())
-  pure x := .right x
-  bind x f :=
-    match x with
-      | .left l => .left l
-      | .right r => f r
-
-def fixs (c : χ) : Either ε (α × τ) → (Either ε α) × χ
-  | .left  e      => (.left  e, c)
-  | .right (a, _) => (.right a, c)
-
-def fixs' [OfNat M (nat_lit 1)] (c : χ) : Either ε (α × τ × M) → (Either ε α) × χ × M
-  | .left  e         => (.left  e, c, 1)
-  | .right (a, _, m) => (.right a, c, m)
-
-end Correctness
-
 end Either
