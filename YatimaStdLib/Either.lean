@@ -139,6 +139,22 @@ def fixs' [OfNat M (nat_lit 1)] (c : χ) : Either ε (α × τ × M) → (Either
   | .left  e         => (.left  e, c, 1)
   | .right (a, _, m) => (.right a, c, m)
 
+inductive ExceptT (ε : Type _) (M : Type _ → Type _) (α : Type _) where
+  | exceptT : M (Either ε α) → ExceptT ε M α
+
+def runExceptT (m : ExceptT ε M α) : M (Either ε α) :=
+  match m with
+  | .exceptT act => act
+
+open ExceptT
+instance [m : Monad M] : Monad (ExceptT ε M) where
+  pure := exceptT ∘ pure ∘ right
+  bind m k := .exceptT $ do
+    let a ← runExceptT m
+    match a with
+      | .left e => pure $ left e
+      | .right x => runExceptT (k x)
+
 end Correctness
 
 end Either
