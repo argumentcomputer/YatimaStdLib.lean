@@ -21,34 +21,48 @@ abbrev MultiVarLinPolynomial := Std.RBMap Nat Nat compare
 
 namespace MultiVarLinPolynomial
 
-def baseToVarIndices (b: Nat) : List Nat :=
-  List.range (b.log2 + 1) |>.foldr (init := []) fun idx acc =>
-    if b >>> idx % 2 == 0 then acc else idx :: acc
+abbrev Indices := Std.RBSet Nat compare
 
-def varIndicesToBase (is : List Nat) : Nat :=
+def baseToIndices (b: Nat) : Indices :=
+  List.range (b.log2 + 1) |>.foldr (init := default) fun idx acc =>
+    if b >>> idx % 2 == 0 then acc else acc.insert idx
+
+def Indices.indicesToBase (is : Indices) : Nat :=
   is.foldl (init := 0) fun acc i => acc + 1 <<< i
 
 open LSpec in -- TODO : prove this as a theorem
-#lspec check "roundtripping" $ ∀ n, varIndicesToBase (baseToVarIndices n) = n
+#lspec check "roundtripping" $ ∀ n, (baseToIndices n).indicesToBase = n
 
 variable (mvlp : MultiVarLinPolynomial)
 
-def toParts : List (Nat × List Nat) :=
-  mvlp.toList.map fun (b, c) => (c + 1, baseToVarIndices b)
+def toParts : List $ Nat × Indices :=
+  mvlp.toList.map fun (b, c) => (c + 1, baseToIndices b)
 
-def ofParts (parts : List (Nat × List Nat)) : MultiVarLinPolynomial :=
+def ofParts (parts : List $ Nat × Indices) : MultiVarLinPolynomial :=
   parts.foldl (init := default) fun acc (c, is) =>
-    if c == 0 then acc else acc.insert (varIndicesToBase is) (c - 1)
+    if c == 0 then acc else acc.insert is.indicesToBase (c - 1)
+
+def toPartsL : List $ Nat × List Nat :=
+  mvlp.toList.map fun (b, c) => (c + 1, baseToIndices b |>.toList)
+
+def ofPartsL (parts : List $ Nat × List Nat) : MultiVarLinPolynomial :=
+  parts.foldl (init := default) fun acc (c, is) =>
+    if c == 0 then acc else acc.insert (Indices.indicesToBase (.ofList is _)) (c - 1)
 
 def toString : String :=
   let partsString := mvlp.toParts.map fun (coef, indices) =>
     if indices.isEmpty then ToString.toString coef
     else
-      let varsProdString := "·".intercalate $ indices.map fun i => s!"x{i}"
+      let varsProdString := "·".intercalate $ indices.toList.map fun i => s!"x{i}"
       s!"{coef}·{varsProdString}"
   " + ".intercalate partsString
 
-#eval (ofParts [(2, [1]), (3, [4, 0]), (4, [])]).toString
+#eval (ofPartsL [(2, [1]), (3, [4, 0]), (4, [])]).toString
 -- "4 + 2·x1 + 3·x0·x4"
+
+def coef (is : Indices) : Nat :=
+  match mvlp.find? is.indicesToBase with
+  | some c => c + 1
+  | none   => 0
 
 end MultiVarLinPolynomial
