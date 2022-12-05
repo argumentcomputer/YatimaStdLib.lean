@@ -23,45 +23,45 @@ namespace MultiVarLinPolynomial
 
 abbrev Indices := Std.RBSet Nat compare
 
-def baseToIndices (b: Nat) : Indices :=
-  List.range (b.log2 + 1) |>.foldr (init := default) fun idx acc =>
+def Indices.ofBase (b: Nat) : Indices :=
+  List.range (b.log2 + 1) |>.foldl (init := default) fun acc idx =>
     if b >>> idx % 2 == 0 then acc else acc.insert idx
 
-def Indices.indicesToBase (is : Indices) : Nat :=
+def Indices.toBase (is : Indices) : Nat :=
   is.foldl (init := 0) fun acc i => acc + 1 <<< i
 
 open LSpec in -- TODO : prove this as a theorem
-#lspec check "roundtripping" $ ∀ n, (baseToIndices n).indicesToBase = n
+#lspec check "roundtripping" $ ∀ n, (Indices.ofBase n).toBase = n
 
 variable (mvlp : MultiVarLinPolynomial)
 
-def toParts : List $ Nat × Indices :=
-  mvlp.toList.map fun (b, c) => (c + 1, baseToIndices b)
+def toSummands : List $ Nat × Indices :=
+  mvlp.foldl (init := []) fun acc b c => (c + 1, Indices.ofBase b) :: acc
 
-def ofParts (parts : List $ Nat × Indices) : MultiVarLinPolynomial :=
-  parts.foldl (init := default) fun acc (c, is) =>
-    if c == 0 then acc else acc.insert is.indicesToBase (c - 1)
+def ofSummands (summands : List $ Nat × Indices) : MultiVarLinPolynomial :=
+  summands.foldl (init := default) fun acc (c, is) =>
+    if c == 0 then acc else acc.insert is.toBase (c - 1)
 
-def toPartsL : List $ Nat × List Nat :=
-  mvlp.toList.map fun (b, c) => (c + 1, baseToIndices b |>.toList)
+def toSummandsL : List $ Nat × List Nat :=
+  mvlp.foldl (init := []) fun acc b c => (c + 1, Indices.ofBase b |>.toList) :: acc
 
-def ofPartsL (parts : List $ Nat × List Nat) : MultiVarLinPolynomial :=
-  parts.foldl (init := default) fun acc (c, is) =>
-    if c == 0 then acc else acc.insert (Indices.indicesToBase (.ofList is _)) (c - 1)
+def ofSummandsL (summands : List $ Nat × List Nat) : MultiVarLinPolynomial :=
+  summands.foldl (init := default) fun acc (c, is) =>
+    if c == 0 then acc else acc.insert (Indices.toBase (.ofList is _)) (c - 1)
 
 def toString : String :=
-  let partsString := mvlp.toParts.map fun (coef, indices) =>
+  let summandsString := mvlp.toSummands.map fun (coef, indices) =>
     if indices.isEmpty then ToString.toString coef
     else
       let varsProdString := "·".intercalate $ indices.toList.map fun i => s!"x{i}"
       s!"{coef}·{varsProdString}"
-  " + ".intercalate partsString
+  " + ".intercalate summandsString
 
-#eval (ofPartsL [(2, [1]), (3, [4, 0]), (4, [])]).toString
--- "4 + 2·x1 + 3·x0·x4"
+#eval (ofSummandsL [(2, [1]), (3, [4, 0]), (4, [])]).toString
+-- "3·x0·x4 + 2·x1 + 4"
 
 def coef (is : Indices) : Nat :=
-  match mvlp.find? is.indicesToBase with
+  match mvlp.find? is.toBase with
   | some c => c + 1
   | none   => 0
 
