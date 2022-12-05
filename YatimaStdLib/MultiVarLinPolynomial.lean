@@ -30,9 +30,6 @@ def Indices.ofBase (b: Nat) : Indices :=
 def Indices.toBase (is : Indices) : Nat :=
   is.foldl (init := 0) fun acc i => acc + 1 <<< i
 
-open LSpec in -- TODO : prove this as a theorem
-#lspec check "roundtripping" $ ∀ n, (Indices.ofBase n).toBase = n
-
 variable (mvlp : MultiVarLinPolynomial)
 
 def toSummands : List $ Nat × Indices :=
@@ -57,12 +54,57 @@ def toString : String :=
       s!"{coef}·{varsProdString}"
   " + ".intercalate summandsString
 
-#eval (ofSummandsL [(2, [1]), (3, [4, 0]), (4, [])]).toString
--- "3·x0·x4 + 2·x1 + 4"
+def scale (n : Nat) : MultiVarLinPolynomial :=
+  if n == 0 then default
+  else mvlp.foldl (init := default) fun acc b c => acc.insert b $ n * c.succ - 1
 
-def coef (is : Indices) : Nat :=
-  match mvlp.find? is.toBase with
-  | some c => c + 1
-  | none   => 0
+def add (mvlp' : MultiVarLinPolynomial) : MultiVarLinPolynomial :=
+  mvlp'.foldl (init := mvlp) fun acc b' c' => match mvlp.find? b' with
+    | some c => acc.insert b' $ c + c' + 1
+    | none => acc.insert b' c'
+
+def disjointMul (mvlp' : MultiVarLinPolynomial) : MultiVarLinPolynomial :=
+  mvlp.foldl (init := default) fun pol b c =>
+    mvlp'.foldl (init := pol) fun pol b' c' =>
+      pol.insert (b ||| b') (c.succ * c'.succ - 1)
+
+namespace Tests
+
+open LSpec
+
+-- TODO : prove this as a theorem
+#lspec check "roundtripping" $ ∀ n, (Indices.ofBase n).toBase = n
+
+/-- 3·x0·x4 + 2·x1 + 4 -/
+def pol1 := ofSummandsL [(2, [1]), (3, [4, 0]), (4, [])]
+
+/-- 2·x1·x4 + 4·x0·x4 + 1·x1·x3 + 3 -/
+def pol2 := ofSummandsL [(1, [1, 3]), (4, [4, 0]), (2, [4, 1]), (3, [])]
+
+/-- 9·x0·x4 + 6·x1 + 12 -/
+def pol1Scaled3 := ofSummandsL [(6, [1]), (9, [4, 0]), (12, [])]
+
+/-- 2·x1·x4 + 7·x0·x4 + 1·x1·x3 + 2·x1 + 7 -/
+def pol1AddPol2 :=
+  ofSummandsL [(1, [1, 3]), (2, [1]), (7, [4, 0]), (2, [4, 1]), (7, [])]
+
+/-- 4·x2·x3 + 12·x2 + 5 -/
+def pol3 := ofSummandsL [(12, [2]), (4, [2, 3]), (5, [])]
+
+/--
+12·x0·x2·x3·x4 + 36·x0·x2·x4 + 15·x0·x4 + 8·x1·x2·x3 + 16·x2·x3 +
+  24·x1·x2 + 48·x2 + 10·x1 + 20
+-/
+def pol1MulPol3 := ofSummandsL [
+  (12, [0, 2, 3, 4]), (36, [0, 2, 4]), (15, [0, 4]),
+  (8, [1, 2, 3]), (24, [1, 2]), (10, [1]),
+  (16, [2, 3]), (48, [2]), (20, [])]
+
+#lspec
+  test "scaling works" (pol1.scale 3 == pol1Scaled3) $
+  test "addition is correct" (pol1.add pol2 == pol1AddPol2) $
+  test "disjoint multiplication is correct" (pol1.disjointMul pol3 == pol1MulPol3)
+
+end Tests
 
 end MultiVarLinPolynomial
