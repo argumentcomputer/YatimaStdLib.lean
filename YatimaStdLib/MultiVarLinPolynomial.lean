@@ -68,6 +68,18 @@ def disjointMul (mvlp' : MultiVarLinPolynomial) : MultiVarLinPolynomial :=
     mvlp'.foldl (init := pol) fun pol b' c' =>
       pol.insert (b ||| b') (c.succ * c'.succ - 1)
 
+def eval (input : Std.RBMap Nat Nat compare) : Nat :=
+  mvlp.foldl (init := 0) fun acc b c =>
+    let prod := Indices.ofBase b |>.foldl (init := 1) fun acc i =>
+      match input.find? i with
+      | none
+      | some 0 => 0
+      | some v => acc * v
+    acc + c.succ * prod
+
+@[inline] def evalL (input : List $ Nat × Nat) : Nat :=
+  mvlp.eval $ .ofList input _
+
 namespace Tests
 
 open LSpec
@@ -103,7 +115,10 @@ def pol1MulPol3 := ofSummandsL [
 #lspec
   test "scaling works" (pol1.scale 3 == pol1Scaled3) $
   test "addition is correct" (pol1.add pol2 == pol1AddPol2) $
-  test "disjoint multiplication is correct" (pol1.disjointMul pol3 == pol1MulPol3)
+  test "disjoint multiplication is correct"
+    (pol1.disjointMul pol3 == pol1MulPol3) $
+  test "evaluation is correct"
+    (pol1MulPol3.evalL [(0, 0), (1, 1), (2, 2), (4, 4)] == 174)
 
 end Tests
 
