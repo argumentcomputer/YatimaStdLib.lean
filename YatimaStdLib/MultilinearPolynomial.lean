@@ -59,7 +59,7 @@ protected def toString [ToString α] : String :=
 instance [ToString α] : ToString $ MultilinearPolynomial α where
   toString x := x.toString
 
-variable [HMul α α α] [HAdd α α α] [OfNat α 0]
+variable [HMul α α α] [HAdd α α α] [OfNat α (nat_lit 0)]
 
 /-- Scales the coefficients of a MLP by a factor `a : α` -/
 def scale (a : α) : MultilinearPolynomial α :=
