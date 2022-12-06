@@ -3,7 +3,7 @@ import YatimaStdLib.Nat
 import LSpec
 
 /--
-A `MultiVarLinPolynomial α` ("MVLP" for short) represents a multivariate linear
+A `MultilinearPolynomial α` ("MLP" for short) represents a multivariate linear
 polynomial on `α`. Each `(b, c)` pair in the `RBMap` represents a summand with
 coefficient `c : α` and variables encoded in `b : Nat`.
 
@@ -15,9 +15,9 @@ For example, `(6, 9)` encodes `9x₁x₂` because
 * `9` is the coefficient
 * `6₁₀ = 110₂`, so the variables on indexes `1` and `2` are present
 -/
-abbrev MultiVarLinPolynomial α := Std.RBMap Nat α compare
+abbrev MultilinearPolynomial α := Std.RBMap Nat α compare
 
-namespace MultiVarLinPolynomial
+namespace MultilinearPolynomial
 
 /-- The indices of variables in a summand -/
 abbrev Indices := Std.RBSet Nat compare
@@ -31,96 +31,96 @@ def Indices.ofBase (b : Nat) : Indices :=
 def Indices.toBase (is : Indices) : Nat :=
   is.foldl (init := 0) fun acc i => acc + 1 <<< i
 
-variable (mvlp : MultiVarLinPolynomial α)
+variable (mlp : MultilinearPolynomial α)
 
-/-- Turns a MVLP into a list of its summands -/
+/-- Turns a MLP into a list of its summands -/
 def toSummands : List $ α × Indices :=
-  mvlp.foldl (init := []) fun acc b c => (c, Indices.ofBase b) :: acc
+  mlp.foldl (init := []) fun acc b c => (c, Indices.ofBase b) :: acc
 
-/-- Instantiates a MVLP from a list of summands -/
-def ofSummands (summands : List $ α × Indices) : MultiVarLinPolynomial α :=
+/-- Instantiates a MLP from a list of summands -/
+def ofSummands (summands : List $ α × Indices) : MultilinearPolynomial α :=
   summands.foldl (init := default) fun acc (c, is) =>
     acc.insert is.toBase c
 
 /-- Similar to `toSummands`, but the resulting indices are lists of `Nat` -/
 def toSummandsL : List $ α × List Nat :=
-  mvlp.foldl (init := []) fun acc b c => (c, Indices.ofBase b |>.toList) :: acc
+  mlp.foldl (init := []) fun acc b c => (c, Indices.ofBase b |>.toList) :: acc
 
 /-- Similar to `ofSummands`, but the consumed indices are lists of `Nat` -/
-def ofSummandsL (summands : List $ α × List Nat) : MultiVarLinPolynomial α :=
+def ofSummandsL (summands : List $ α × List Nat) : MultilinearPolynomial α :=
   summands.foldl (init := default) fun acc (c, is) =>
     acc.insert (Indices.toBase (.ofList is _)) c
 
 protected def toString [ToString α] : String :=
-  let summandsString := mvlp.toSummands.map fun (c, is) =>
+  let summandsString := mlp.toSummands.map fun (c, is) =>
     is.foldl (init := toString c) fun acc i => s!"{acc}x{i.toSubscriptString}"
   " + ".intercalate summandsString
 
-instance [ToString α] : ToString $ MultiVarLinPolynomial α where
+instance [ToString α] : ToString $ MultilinearPolynomial α where
   toString x := x.toString
 
 variable [HMul α α α] [HAdd α α α] [OfNat α 0]
 
-/-- Scales the coefficients of a MVLP by a factor `a : α` -/
-def scale (a : α) : MultiVarLinPolynomial α :=
-  mvlp.foldl (init := default) fun acc b c => acc.insert b $ a * c
+/-- Scales the coefficients of a MLP by a factor `a : α` -/
+def scale (a : α) : MultilinearPolynomial α :=
+  mlp.foldl (init := default) fun acc b c => acc.insert b $ a * c
 
 /--
-The sum of two MVLPs defined on the same domain `a`.
+The sum of two MLPs defined on the same domain `a`.
 
 Efficiency note: provide the smaller polynomial on the right.
 -/
-def add (mvlp' : MultiVarLinPolynomial α) : MultiVarLinPolynomial α :=
-  mvlp'.foldl (init := mvlp) fun acc b' c' => match mvlp.find? b' with
+def add (mlp' : MultilinearPolynomial α) : MultilinearPolynomial α :=
+  mlp'.foldl (init := mlp) fun acc b' c' => match mlp.find? b' with
     | some c => acc.insert b' (c + c')
     | none => acc.insert b' c'
 
-instance : HAdd (MultiVarLinPolynomial α) (MultiVarLinPolynomial α)
-  (MultiVarLinPolynomial α) where hAdd x y := x.add y
+instance : HAdd (MultilinearPolynomial α) (MultilinearPolynomial α)
+  (MultilinearPolynomial α) where hAdd x y := x.add y
 
 /--
-Multiplying two MVLPs to obtain a MVLP is not as straightforward because
+Multiplying two MLPs to obtain a MLP is not as straightforward because
 multiplication may increase the power of some variable if it's present on
-summands of the two initial MVLPs, resulting on a polynomial that would no
+summands of the two initial MLPs, resulting on a polynomial that would no
 longer be linear.
 
 Thus we implement a "disjoint" multiplication, which considers that no variable
-is present on summands of both input MVLPs.
+is present on summands of both input MLPs.
 
 For example, `(x + 1) * (y + x + 2)` wouldn't be a disjoint multiplication, but
 `(x + 1) * (y + 2)` would.
 -/
-def disjointMul (mvlp' : MultiVarLinPolynomial α) : MultiVarLinPolynomial α :=
-  mvlp.foldl (init := default) fun pol b c =>
-    mvlp'.foldl (init := pol) fun pol b' c' =>
+def disjointMul (mlp' : MultilinearPolynomial α) : MultilinearPolynomial α :=
+  mlp.foldl (init := default) fun pol b c =>
+    mlp'.foldl (init := pol) fun pol b' c' =>
       pol.insert (b ||| b') (c * c')
 
-instance : HMul (MultiVarLinPolynomial α) (MultiVarLinPolynomial α)
-  (MultiVarLinPolynomial α) where hMul x y := x.disjointMul y
+instance : HMul (MultilinearPolynomial α) (MultilinearPolynomial α)
+  (MultilinearPolynomial α) where hMul x y := x.disjointMul y
 
 /--
-Evaluates a MVLP on an array whose values represent the values of the variables
+Evaluates a MLP on an array whose values represent the values of the variables
 indexed from 0, matching the indexes of the array. Variables on indexes beyond
 the range of the array are considered to have value 0.
 -/
 def eval (input : Array α) : α :=
   let inputSize := input.size
-  mvlp.foldl (init := 0) fun acc b c => acc + (
+  mlp.foldl (init := 0) fun acc b c => HAdd.hAdd acc $
     Indices.ofBase b |>.foldl (init := c) fun acc i =>
-      acc * (if h : i < inputSize then input[i]'h else 0))
+      acc * (if h : i < inputSize then input[i]'h else 0)
 
 /--
-Evaluates a MVLP on a map that indicates the value of the variables indexed from
+Evaluates a MLP on a map that indicates the value of the variables indexed from
 0. Variables whose indexes aren't in the map are considered to have value 0.
 -/
 def eval' (input : Std.RBMap Nat α compare) : α :=
-  mvlp.foldl (init := 0) fun acc b c => acc + (
+  mlp.foldl (init := 0) fun acc b c => HAdd.hAdd acc $
     Indices.ofBase b |>.foldl (init := c) fun acc i =>
-      acc * (input.find? i |>.getD 0))
+      acc * (input.find? i |>.getD 0)
 
 /-- Similar to `eval'`, but takes a list of `(index, value)` instead -/
 @[inline] def eval'L (input : List $ Nat × α) : α :=
-  mvlp.eval' $ .ofList input _
+  mlp.eval' $ .ofList input _
 
 namespace Tests
 
@@ -154,11 +154,9 @@ def pol1MulPol3 := ofSummandsL [
 #lspec
   test "scaling works" (pol1.scale 3 == pol1Scaled3) $
   test "addition is correct" (pol1.add pol2 == pol1AddPol2) $
-  test "disjoint multiplication is correct"
-    (pol1.disjointMul pol3 == pol1MulPol3) $
-  test "evaluation is correct"
-    (pol1MulPol3.eval #[0, 1, 2, 0, 4] == 174)
+  test "disjoint multiplication is correct" (pol1.disjointMul pol3 == pol1MulPol3) $
+  test "evaluation is correct" (pol1MulPol3.eval #[0, 1, 2, 0, 4] == 174)
 
 end Tests
 
-end MultiVarLinPolynomial
+end MultilinearPolynomial
