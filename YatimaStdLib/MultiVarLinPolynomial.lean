@@ -66,7 +66,7 @@ def scale (a : α) : MultiVarLinPolynomial α :=
   mvlp.foldl (init := default) fun acc b c => acc.insert b $ a * c
 
 /--
-The sum of two MVLP defined on the same domain `a`.
+The sum of two MVLPs defined on the same domain `a`.
 
 Efficiency note: provide the smaller polynomial on the right.
 -/
@@ -79,12 +79,13 @@ instance : HAdd (MultiVarLinPolynomial α) (MultiVarLinPolynomial α)
   (MultiVarLinPolynomial α) where hAdd x y := x.add y
 
 /--
-Multiplying two MVLPs is not as straightforward because multiplication may
-increase the power of some variable if it's present on summands of the two
-initial MVLPs, resulting on a polynomial that would no longer be linear.
+Multiplying two MVLPs to obtain a MVLP is not as straightforward because
+multiplication may increase the power of some variable if it's present on
+summands of the two initial MVLPs, resulting on a polynomial that would no
+longer be linear.
 
 Thus we implement a "disjoint" multiplication, which considers that no variable
-is present on summands of the input MVLPs.
+is present on summands of both input MVLPs.
 
 For example, `(x + 1) * (y + x + 2)` wouldn't be a disjoint multiplication, but
 `(x + 1) * (y + 2)` would.
