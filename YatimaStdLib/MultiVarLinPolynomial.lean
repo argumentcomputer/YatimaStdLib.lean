@@ -65,7 +65,11 @@ variable [HMul α α α] [HAdd α α α] [OfNat α 0]
 def scale (a : α) : MultiVarLinPolynomial α :=
   mvlp.foldl (init := default) fun acc b c => acc.insert b $ a * c
 
-/-- The sum of two MVLP defined on the same domain `a` -/
+/--
+The sum of two MVLP defined on the same domain `a`.
+
+Efficiency note: provide the smaller polynomial on the right.
+-/
 def add (mvlp' : MultiVarLinPolynomial α) : MultiVarLinPolynomial α :=
   mvlp'.foldl (init := mvlp) fun acc b' c' => match mvlp.find? b' with
     | some c => acc.insert b' (c + c')
