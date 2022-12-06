@@ -59,7 +59,7 @@ protected def toString [ToString α] : String :=
 instance [ToString α] : ToString $ MultilinearPolynomial α where
   toString x := x.toString
 
-variable [HMul α α α] [HAdd α α α] [OfNat α (nat_lit 0)]
+variable [HMul α α α] [HAdd α α α] [OfNat α $ nat_lit 0] [BEq α]
 
 /-- Scales the coefficients of a MLP by a factor `a : α` -/
 def scale (a : α) : MultilinearPolynomial α :=
@@ -122,6 +122,14 @@ def eval' (input : Std.RBMap Nat α compare) : α :=
 @[inline] def eval'L (input : List $ Nat × α) : α :=
   mlp.eval' $ .ofList input _
 
+/-- Strips away pairs with coefficients equal to zero -/
+def prune : MultilinearPolynomial α :=
+  mlp.foldl (init := default) fun acc b c =>
+    if c == 0 then acc else acc.insert b c
+
+instance : BEq $ MultilinearPolynomial α where
+  beq x y := x.prune == y.prune
+
 namespace Tests
 
 open LSpec
@@ -155,7 +163,12 @@ def pol1MulPol3 := ofSummandsL [
   test "scaling works" (pol1.scale 3 == pol1Scaled3) $
   test "addition is correct" (pol1.add pol2 == pol1AddPol2) $
   test "disjoint multiplication is correct" (pol1.disjointMul pol3 == pol1MulPol3) $
-  test "evaluation is correct" (pol1MulPol3.eval #[0, 1, 2, 0, 4] == 174)
+  test "evaluation is correct" (pol1MulPol3.eval #[0, 1, 2, 0, 4] == 174) $
+  test "scaling with zero results on zero" (pol1.scale 0 == default) $
+  test "zero is right-neutral on addition" (pol1 + default == pol1) $
+  test "zero is left-neutral on addition" (default + pol1 == pol1) $
+  test "multiplying by zero takes to zero" (pol1 * default == default) $
+  test "zero multiplied by anything goes to zero" (default * pol1 == default)
 
 end Tests
 
