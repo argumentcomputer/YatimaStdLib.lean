@@ -1,8 +1,9 @@
 import Std.Data.RBMap
+import YatimaStdLib.Nat
 import LSpec
 
 /--
-A `MultiVarLinPolynomial` represents a multivariate linear polynomial. Each
+A `MultiVarLinPolynomial α` represents a multivariate linear polynomial on `α`. Each
 `(b, c)` pair in the `RBMap` represents a non-zero coefficient.
 
 The coefficient itself is `c + 1`. Note that wee add `1` for the sake of
@@ -13,11 +14,11 @@ The variables relative to the coefficient are encoded in the base `b`, which, if
 understood in binary form, tells whether a variable multiplies the coefficient
 or not.
 
-For example, `9·x1·x2` is represented by the pair `(6, 8)` because
+For example, `9x₁x₂` is represented by the pair `(6, 8)` because
 * `8 + 1 = 9` (the coefficient)
 * `6₁₀ = 110₂` (variables on indexes `1` and `2` are present)
 -/
-abbrev MultiVarLinPolynomial := Std.RBMap Nat Nat compare
+abbrev MultiVarLinPolynomial α := Std.RBMap Nat α compare
 
 namespace MultiVarLinPolynomial
 
@@ -30,55 +31,54 @@ def Indices.ofBase (b: Nat) : Indices :=
 def Indices.toBase (is : Indices) : Nat :=
   is.foldl (init := 0) fun acc i => acc + 1 <<< i
 
-variable (mvlp : MultiVarLinPolynomial)
+variable (mvlp : MultiVarLinPolynomial α) [HMul α α α] [HAdd α α α] [OfNat α 0]
 
-def toSummands : List $ Nat × Indices :=
-  mvlp.foldl (init := []) fun acc b c => (c + 1, Indices.ofBase b) :: acc
+def toSummands : List $ α × Indices :=
+  mvlp.foldl (init := []) fun acc b c => (c, Indices.ofBase b) :: acc
 
-def ofSummands (summands : List $ Nat × Indices) : MultiVarLinPolynomial :=
+def ofSummands (summands : List $ α × Indices) : MultiVarLinPolynomial α :=
   summands.foldl (init := default) fun acc (c, is) =>
-    if c == 0 then acc else acc.insert is.toBase (c - 1)
+    acc.insert is.toBase c
 
-def toSummandsL : List $ Nat × List Nat :=
-  mvlp.foldl (init := []) fun acc b c => (c + 1, Indices.ofBase b |>.toList) :: acc
+def toSummandsL : List $ α × List Nat :=
+  mvlp.foldl (init := []) fun acc b c => (c, Indices.ofBase b |>.toList) :: acc
 
-def ofSummandsL (summands : List $ Nat × List Nat) : MultiVarLinPolynomial :=
+def ofSummandsL (summands : List $ α × List Nat) : MultiVarLinPolynomial α :=
   summands.foldl (init := default) fun acc (c, is) =>
-    if c == 0 then acc else acc.insert (Indices.toBase (.ofList is _)) (c - 1)
+    acc.insert (Indices.toBase (.ofList is _)) c
 
-def toString : String :=
+def toString [ToString α] : String :=
   let summandsString := mvlp.toSummands.map fun (coef, indices) =>
-    if indices.isEmpty then ToString.toString coef
-    else
-      let varsProdString := "·".intercalate $ indices.toList.map fun i => s!"x{i}"
-      s!"{coef}·{varsProdString}"
+    indices.foldl (init := ToString.toString coef) fun acc i =>
+      s!"{acc}x{i.toSubscriptString}"
   " + ".intercalate summandsString
 
-def scale (n : Nat) : MultiVarLinPolynomial :=
-  if n == 0 then default
-  else mvlp.foldl (init := default) fun acc b c => acc.insert b $ n * c.succ - 1
+def scale (a : α) : MultiVarLinPolynomial α :=
+  mvlp.foldl (init := default) fun acc b c => acc.insert b $ a * c
 
-def add (mvlp' : MultiVarLinPolynomial) : MultiVarLinPolynomial :=
+def add (mvlp' : MultiVarLinPolynomial α) : MultiVarLinPolynomial α :=
   mvlp'.foldl (init := mvlp) fun acc b' c' => match mvlp.find? b' with
-    | some c => acc.insert b' $ c + c' + 1
+    | some c => acc.insert b' (c + c')
     | none => acc.insert b' c'
 
-def disjointMul (mvlp' : MultiVarLinPolynomial) : MultiVarLinPolynomial :=
+def disjointMul (mvlp' : MultiVarLinPolynomial α) : MultiVarLinPolynomial α :=
   mvlp.foldl (init := default) fun pol b c =>
     mvlp'.foldl (init := pol) fun pol b' c' =>
-      pol.insert (b ||| b') (c.succ * c'.succ - 1)
+      pol.insert (b ||| b') (c * c')
 
-def eval (input : Std.RBMap Nat Nat compare) : Nat :=
-  mvlp.foldl (init := 0) fun acc b c =>
-    let prod := Indices.ofBase b |>.foldl (init := 1) fun acc i =>
-      match input.find? i with
-      | none
-      | some 0 => 0
-      | some v => acc * v
-    acc + c.succ * prod
+def eval (input : Array α) : α :=
+  let inputSize := input.size
+  mvlp.foldl (init := 0) fun acc b c => acc + (
+    Indices.ofBase b |>.foldl (init := c) fun acc i =>
+      acc * (if h : i < inputSize then input[i]'h else 0))
 
-@[inline] def evalL (input : List $ Nat × Nat) : Nat :=
-  mvlp.eval $ .ofList input _
+def eval' (input : Std.RBMap Nat α compare) : α :=
+  mvlp.foldl (init := 0) fun acc b c => acc + (
+    Indices.ofBase b |>.foldl (init := c) fun acc i =>
+      acc * (input.find? i |>.getD 0))
+
+@[inline] def eval'L (input : List $ Nat × α) : α :=
+  mvlp.eval' $ .ofList input _
 
 namespace Tests
 
@@ -87,26 +87,23 @@ open LSpec
 -- TODO : prove this as a theorem
 #lspec check "roundtripping" $ ∀ n, (Indices.ofBase n).toBase = n
 
-/-- 3·x0·x4 + 2·x1 + 4 -/
+/-- 3x₀x₄ + 2x₁ + 4 -/
 def pol1 := ofSummandsL [(2, [1]), (3, [4, 0]), (4, [])]
 
-/-- 2·x1·x4 + 4·x0·x4 + 1·x1·x3 + 3 -/
+/-- 2x₁x₄ + 4x₀x₄ + 1x₁x₃ + 3 -/
 def pol2 := ofSummandsL [(1, [1, 3]), (4, [4, 0]), (2, [4, 1]), (3, [])]
 
-/-- 9·x0·x4 + 6·x1 + 12 -/
+/-- 9x₀x₄ + 6x₁ + 12 -/
 def pol1Scaled3 := ofSummandsL [(6, [1]), (9, [4, 0]), (12, [])]
 
-/-- 2·x1·x4 + 7·x0·x4 + 1·x1·x3 + 2·x1 + 7 -/
+/-- 2x₁x₄ + 7x₀x₄ + 1x₁x₃ + 2x₁ + 7 -/
 def pol1AddPol2 :=
   ofSummandsL [(1, [1, 3]), (2, [1]), (7, [4, 0]), (2, [4, 1]), (7, [])]
 
-/-- 4·x2·x3 + 12·x2 + 5 -/
+/-- 4x₂x₃ + 12x₂ + 5 -/
 def pol3 := ofSummandsL [(12, [2]), (4, [2, 3]), (5, [])]
 
-/--
-12·x0·x2·x3·x4 + 36·x0·x2·x4 + 15·x0·x4 + 8·x1·x2·x3 + 16·x2·x3 +
-  24·x1·x2 + 48·x2 + 10·x1 + 20
--/
+/-- 12x₀x₂x₃x₄ + 36x₀x₂x₄ + 15x₀x₄ + 8x₁x₂x₃ + 16x₂x₃ + 24x₁x₂ + 48x₂ + 10x₁ + 20 -/
 def pol1MulPol3 := ofSummandsL [
   (12, [0, 2, 3, 4]), (36, [0, 2, 4]), (15, [0, 4]),
   (8, [1, 2, 3]), (24, [1, 2]), (10, [1]),
@@ -118,7 +115,7 @@ def pol1MulPol3 := ofSummandsL [
   test "disjoint multiplication is correct"
     (pol1.disjointMul pol3 == pol1MulPol3) $
   test "evaluation is correct"
-    (pol1MulPol3.evalL [(0, 0), (1, 1), (2, 2), (4, 4)] == 174)
+    (pol1MulPol3.eval #[0, 1, 2, 0, 4] == 174)
 
 end Tests
 
