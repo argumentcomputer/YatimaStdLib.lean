@@ -1,5 +1,8 @@
+import YatimaStdLib.MultilinearPolynomial
+import YatimaStdLib.Zmod
 import YatimaStdLib.MLE.Cache
 import YatimaStdLib.Array
+import YatimaStdLib.Ord
 
 namespace MLE
 
@@ -18,31 +21,28 @@ def multilinearExtension (f : Nat → Zmod n) (ν : Nat) : MultilinearPolynomial
     acc + .scale (multilinearLagrangePolynomial w ν) (f w)
 
 def mkCacheContent (pols : String) : String :=
-  s!"import YatimaStdLib.MultilinearPolynomial
-import YatimaStdLib.Zmod
-import YatimaStdLib.Ord
-
-namespace MLE
-
-def multilinearLagrangePolynomialCache :
-    Std.RBMap (Nat × Nat) (MultilinearPolynomial $ Zmod n) compare := .ofList [
-{pols}
-] _
-
-end MLE
-"
+s!"import YatimaStdLib.MLE.CacheDSL
+open MLE.DSL in
+def MLE.multilinearLagrangePolynomialCacheData : List $ (Nat × Nat) × (List $ Nat × Int) := ⟪
+{pols}⟫"
 
 def writeCache (r n : Nat) : IO Unit := do
   let mut pols : Array String := #[]
   for i in [0 : r + 1] do
     for j in [0 : r + 1] do
       let pol := @multilinearLagrangePolynomial n i j
-      pols := pols.push s!"  (({i}, {j}), .ofPairs {pol.toList})"
+      let polStr := " ".intercalate (pol.toList.map fun (b, c) => s!"({b} {c})")
+      pols := pols.push s!"  {i} {j} # {polStr}"
   let polsStr := ",\n".intercalate (← pols.shuffle (some 42)).data
   IO.FS.writeFile ⟨"YatimaStdLib/MLE/Cache.lean"⟩ (mkCacheContent polsStr)
 
 -- Uncomment this line to write the cache file (be careful with the parameters)
 -- #eval writeCache 4 10
+
+def multilinearLagrangePolynomialCache :
+    Std.RBMap (Nat × Nat) (MultilinearPolynomial $ Zmod n) compare :=
+  multilinearLagrangePolynomialCacheData.foldl (init := default) fun acc (k, v) =>
+    acc.insert k (.ofList v _)
 
 def multilinearExtension' (f : Nat → Zmod n) (ν : Nat) : MultilinearPolynomial $ Zmod n :=
   .prune $ List.range (1 <<< ν) |>.foldl (init := default) fun acc w =>
