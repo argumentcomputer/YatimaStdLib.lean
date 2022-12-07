@@ -3,11 +3,16 @@ import YatimaStdLib.Array
 
 namespace MLE
 
+/--
+Computes the multilinear Lagrange basis polynomial with interpolating set
+{0, 1}^ν.
+-/
 def multilinearLagrangePolynomial (w ν : Nat) : MultilinearPolynomial $ Zmod n :=
-  List.range ν |>.foldl (init := .ofSummandsL [(1, [])]) fun acc i =>
+  List.range ν |>.foldl (init := .ofPairs [(0, 1)]) fun acc i =>
     let wᵢ := w >>> i % 2
-    acc * .ofPairs [(1 <<< i, 2 * wᵢ - 1), (0, 1 - wᵢ)]
+    acc * .prune (.ofPairs [(1 <<< i, 2 * wᵢ - 1), (0, 1 - wᵢ)])
 
+/-- Computes the multilinear extension of a function `f : {0, 1}^ν → Zmod n` -/
 def multilinearExtension (f : Nat → Zmod n) (ν : Nat) : MultilinearPolynomial $ Zmod n :=
   .prune $ List.range (1 <<< ν) |>.foldl (init := default) fun acc w =>
     acc + .scale (multilinearLagrangePolynomial w ν) (f w)

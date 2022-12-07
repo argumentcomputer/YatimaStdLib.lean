@@ -31,7 +31,7 @@ def Indices.ofBase (b : Nat) : Indices :=
 def Indices.toBase (is : Indices) : Nat :=
   is.foldl (init := 0) fun acc i => acc + 1 <<< i
 
-/-- Instantiates a MPL from the list of raw `(b, c)` pairs -/
+/-- Instantiates a MLP from the list of raw `(b, c)` pairs -/
 def ofPairs (pairs : List $ Nat × α) : MultilinearPolynomial α :=
   .ofList pairs _
 
