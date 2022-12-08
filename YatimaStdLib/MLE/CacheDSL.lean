@@ -31,6 +31,12 @@ def elabSummand : TSyntax `summand → TermElabM Expr
 def elabProdType (n₁ n₂ : Name) : TermElabM Expr :=
   mkAppM ``Prod #[.const n₁ [], .const n₂ []]
 
+def mkListLit (type : Expr) (xs : List Expr) : MetaM Expr := do
+  let u ← getDecLevel type
+  let cons := .const ``List.cons [u]
+  return xs.foldr (init := mkApp (mkConst ``List.nil [u]) type) fun e acc =>
+    mkApp (mkApp (mkApp cons type) e) acc
+
 def elabPolynomial : TSyntax `polynomial → TermElabM Expr
   | `(polynomial | $w:num $ν:num # $ar:summand*) => do
     let k := mkAppN (.const ``mkNatNatPair []) #[mkNatLit w.getNat, mkNatLit ν.getNat]
