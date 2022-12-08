@@ -34,7 +34,7 @@ def writeJsonCache (νMax : Nat) : IO Unit := do
   IO.FS.writeFile ⟨"YatimaStdLib/MLE/cache.json"⟩ json.compress
 
 -- Uncomment to write the cache file (be careful with the parameter):
--- #eval writeJsonCache 4
+-- #eval writeJsonCache 17
 
 open Lean (Json)
 
