@@ -17,13 +17,19 @@ def filterOut [BEq α] [Ord α] (map : RBMap α β cmp) (t : RBSet α cmp) :
     RBMap α β cmp :=
   RBMap.foldl (fun acc a b => if t.contains a then acc else acc.insert a b) map (init := default)
 
-/-
-  Merge two RBMaps, always taking the first value in case of a key
-  being present in both maps. Intended for set simulation.
+/- 
+Merge two RBMaps, always taking the first value in case of a key being present
+in both maps. Intended for set simulation.
 -/
 def mergeKeySets (m1 : RBMap α β cmp) m2 :=
   RBMap.mergeWith (fun _ v _ => v) m1 m2
 
 instance : Append (RBMap α Unit cmp) := ⟨RBMap.mergeKeySets⟩
+
+def mapValues (m : RBMap α β cmp) (f : β → χ) : RBMap α χ cmp :=
+  m.foldl (init := default) fun acc a b => acc.insert a (f b)
+
+def mapKeys [Ord χ] (m : RBMap α β cmp) (f : α → χ) : RBMap χ β compare :=
+  m.foldl (init := default) fun acc a b => acc.insert (f a) b
 
 end Std.RBMap
