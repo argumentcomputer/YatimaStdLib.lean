@@ -9,6 +9,10 @@ def ordCmp (a : Nat × Nat) (b : Nat × Nat) : Ordering :=
     | _    => if a == b then .eq else .gt
 
 abbrev SparseMatrix (R : Type) := Std.RBMap (Nat × Nat) R ordCmp
+
+instance : Functor SparseMatrix where
+  map f m := Std.RBMap.mapVal (fun _ x => f x) m
+
 abbrev Row (R : Type) := Array R
 abbrev Col (R : Type) := Array R
 
@@ -16,34 +20,55 @@ variable {R : Type} [Ring R] [Coe Nat R]
 
 open Std.RBMap
 
+/--
+A number of rows
+-/
 def SparseMatrix.rows (m : SparseMatrix R) : Nat :=
   1 + (Array.foldr max 0 $ Array.map (fun p => p.1) $ keysArray m)
 
+/--
+A number of columns
+-/
 def SparseMatrix.cols (m : SparseMatrix R) : Nat :=
   1 + (Array.foldr max 0 $ Array.map (fun p => p.2) $ keysArray m)
 
+/--
+Matrix dimension
+-/
 def SparseMatrix.dim (m : SparseMatrix R) : Nat × Nat :=
   (rows m, cols m)
 
+/--
+Returns a triple by given indices
+-/
 def SparseMatrix.findEntry (m : SparseMatrix R) (p : Nat × Nat) : Nat × Nat × R :=
   let ((row, col), val) := Option.getD (Std.RBMap.findEntry? m p) ((0,0),0)
   (row, col, val)
 
+/--
+Returns an element by indices, whenever it exists, or 0 otherwise
+-/
 def SparseMatrix.findElem (m : SparseMatrix R) (p : Nat × Nat) : R :=
   let (_, val) := Option.getD (Std.RBMap.findEntry? m p) ((0,0),0)
   val
 
+/--
+Returns a particular row by an index
+-/
 def SparseMatrix.row (m : SparseMatrix R) (i : Nat) : Row R :=
   Std.RBMap.valuesArray $
     Std.RBMap.mapKeys (Std.RBMap.filter m (fun j _ => i == j.1)) (fun (a,_) => a)
 
+/--
+Returns a particular column by an index
+-/
 def SparseMatrix.col (m : SparseMatrix R) (i : Nat) : Col R :=
   Std.RBMap.valuesArray $
     Std.RBMap.mapKeys (Std.RBMap.filter m (fun j _ => i == j.2)) (fun (_,b) => b)
 
-instance : Functor SparseMatrix where
-  map f m := Std.RBMap.mapVal (fun _ x => f x) m
-
+/--
+Sparse matrix addition
+-/
 def SparseMatrix.addition
   (m₁ : SparseMatrix R) (m₂ : SparseMatrix R) : SparseMatrix R := Id.run do
   let cij i j := findD m₁ (i,j) 0 + findD m₂ (i,j) 0
@@ -56,18 +81,12 @@ def SparseMatrix.addition
     pure acc
   else panic "wrong dim"
 
-/-
-def SparseMatrix.ofList (l : List ((Nat × Nat) × R)) : SparseMatrix R :=
-  Std.RBMap.ofList l ordCmp
- 
-def mat1 : SparseMatrix Int := SparseMatrix.ofList [((0,0),4), ((0,1),5), ((1,0),5), ((1,1),5)]
+instance : Add (SparseMatrix R) where
+  add := SparseMatrix.addition
 
-def mat2 : SparseMatrix Int := SparseMatrix.ofList [((0,0),3), ((0,1),9), ((1,0),4), ((1,1),2)]
-
-#eval findD mat2 (0,1) 0
-#eval SparseMatrix.addition mat1 mat2
+/--
+Computes a product between a sparse matrix and an array
 -/
-
 def SparseMatrix.vecProduct (m : SparseMatrix R) (v : Col R) : Col R := Id.run do
   let (rows,cols) := (m.rows, m.cols)
   let vals : Array (Nat × R) := Id.run do
@@ -82,12 +101,19 @@ def SparseMatrix.vecProduct (m : SparseMatrix R) (v : Col R) : Col R := Id.run d
     #[0, rows] 
     vals
 
+instance : HMul (SparseMatrix R) (Array R) (Array R) where
+  hMul := SparseMatrix.vecProduct
+
+/--
+Sparse matrix multiplication
+-/
 def SparseMatrix.multiplication
   (m₁ : SparseMatrix R) (m₂ : SparseMatrix R) : SparseMatrix R := Id.run do
   let cols₂ := m₂.cols
   let rows₁ := m₁.rows
   if rows₁ == cols₂ then
-    let cij i j : R := Array.foldr (. + .) 0 (Array.map (fun (a, b) => a * b) (Array.zip (m₁.row i) (m₂.col j)))
+    let cij i j : R :=
+      Array.foldr (. + .) 0 (Array.map (fun (a, b) => a * b) (Array.zip (m₁.row i) (m₂.col j)))
     let mut acc : SparseMatrix R := Std.RBMap.empty
     for i in [0:rows₁] do
       for j in [0:cols₂] do
@@ -96,6 +122,12 @@ def SparseMatrix.multiplication
   else
     panic! "wrong dim"
 
+instance : Mul (SparseMatrix R) where
+  mul := SparseMatrix.multiplication
+
+/--
+Sparse matrix Hadamard multiplication
+-/
 def SparseMatrix.hadamard
   (m₁ : SparseMatrix R) (m₂ : SparseMatrix R) : SparseMatrix R := Id.run do
   if m₁.dim == m₂.dim then
