@@ -1,4 +1,5 @@
 import YatimaStdLib.Nat
+import YatimaStdLib.Array
 
 inductive Endian where
   | big    : Endian
@@ -33,6 +34,8 @@ def xOr : Bit → Bit → Bit
 def toNat : Bit → Nat
   | zero => 0
   | one  => 1
+
+instance : Coe Bit Nat := ⟨toNat⟩
 
 def toUInt8 : Bit → UInt8 :=
   Nat.toUInt8 ∘ Bit.toNat
@@ -81,3 +84,16 @@ def UInt8.toBits (u : UInt8) : List Bit :=
 
 def ByteArray.toBits (ba : ByteArray) : List Bit :=
   List.join $ List.map UInt8.toBits $ ByteArray.toList ba
+
+/-- Generates the array of binary expansions between `0` and `2^n` -/
+def getBits (n : Nat) : Array (Array Bit) := Id.run do
+  let mut answer := #[(.mkArray n 0)]
+  for x in [1:2^n] do
+    let xBits := x |> (Nat.toDigits 2 ·) 
+                   |>.map (fun c => c.toNat - 48)
+                   |>.map (fun n => if n == 0 then .zero else .one)
+                   |>.reverse
+                   |>.toArray
+                   |>.pad 0 n
+    answer := answer.push xBits
+  return answer
