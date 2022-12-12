@@ -1,4 +1,5 @@
 import YatimaStdLib.MLE.MultilinearLagrangePolynomial
+import YatimaStdLib.Bit
 
 namespace MLE
 
@@ -15,11 +16,51 @@ namespace Tests
 
 open LSpec
 
-/-- TODO : proper testing -/
-def f : Nat → Zmod 5 := fun _ => 0
+/- A couple random functions for testing (Random number generator: My brain)-/
+private def f₁ : Nat → Zmod 13
+  | 0 => 7
+  | 1 => 11
+  | 2 => 3
+  | 3 => 5
+  | 4 => 12
+  | 5 => 0
+  | 6 => 1
+  | 7 => 2
+  | _ => 0
+
+private def f₂ : Nat → Zmod 29
+  | 0 | 5 | 13 => 19
+  | 1 | 12 => 7
+  | 2 | 7 => 1
+  | 3 => 0
+  | 4 | 10 | 14 => 9
+  | 6 => 28
+  | 8 => 3
+  | 9 | 11 => 11
+  | 15 => 3
+  | _ => 0
+
+def buildCases (f : Nat → Zmod n) (ν : Nat) : Array (Zmod n) := Id.run do
+  let mut answer := #[]
+  for i in [:2^ν] do
+    answer := answer.push (f i)
+  return answer
+
+open MultilinearPolynomial in
+def buildTests (f : Nat → Zmod n) (ν : Nat) : Bool := Id.run do
+  let mut comps := #[]
+  let bins := getBits ν
+  let results := buildCases f ν 
+  let mle := multilinearExtension f ν .pallas
+  for t in [:2^ν] do
+    let b := eval mle bins[t]! == results[t]!
+    comps := comps.push b
+  dbg_trace comps
+  comps.all (· == true)
 
 #lspec
-  test "" (multilinearExtension f 0 .pallas == .ofSummandsL [])
+  test "Multilinear extension works 1" (buildTests f₁ 3) $
+  test "Multilinear extension works 2" (buildTests f₂ 4) 
 
 end Tests
 
