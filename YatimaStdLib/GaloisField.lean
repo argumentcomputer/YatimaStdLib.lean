@@ -8,7 +8,7 @@ import YatimaStdLib.Bit
 This module provides the basic data structures necessary to define and work with prime fields
 and their extensions.
 
-Here we post some definitions from https://hackage.haskell.org/package/galois-field-1.0.2
+Here we port some definitions from https://hackage.haskell.org/package/galois-field-1.0.2
 -/
 
 /-- The structure of a Galois field on t-/
