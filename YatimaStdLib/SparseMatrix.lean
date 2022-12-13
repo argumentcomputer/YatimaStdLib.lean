@@ -16,8 +16,6 @@ instance : Functor SparseMatrix where
 abbrev Row (R : Type) := Array R
 abbrev Col (R : Type) := Array R
 
-variable {R : Type} [Ring R] [Coe Nat R]
-
 open Std.RBMap
 
 /--
@@ -39,20 +37,6 @@ def SparseMatrix.dim (m : SparseMatrix R) : Nat × Nat :=
   (rows m, cols m)
 
 /--
-Returns a triple by given indices
--/
-def SparseMatrix.findEntry (m : SparseMatrix R) (p : Nat × Nat) : Nat × Nat × R :=
-  let ((row, col), val) := Option.getD (Std.RBMap.findEntry? m p) ((0,0),0)
-  (row, col, val)
-
-/--
-Returns an element by indices, whenever it exists, or 0 otherwise
--/
-def SparseMatrix.findElem (m : SparseMatrix R) (p : Nat × Nat) : R :=
-  let (_, val) := Option.getD (Std.RBMap.findEntry? m p) ((0,0),0)
-  val
-
-/--
 Returns a particular row by an index
 -/
 def SparseMatrix.row (m : SparseMatrix R) (i : Nat) : Row R :=
@@ -65,6 +49,21 @@ Returns a particular column by an index
 def SparseMatrix.col (m : SparseMatrix R) (i : Nat) : Col R :=
   Std.RBMap.valuesArray $
     Std.RBMap.mapKeys (Std.RBMap.filter m (fun j _ => i == j.2)) (fun (_,b) => b)
+
+variable {R : Type} [Ring R] [Coe Nat R]
+
+/--
+Returns a triple by given indices
+-/
+def SparseMatrix.findEntry (m : SparseMatrix R) (p : Nat × Nat) : Nat × Nat × R :=
+  let ((row, col), val) := Option.getD (Std.RBMap.findEntry? m p) ((0,0),0)
+  (row, col, val)
+
+/--
+Returns an element by indices, whenever it exists, or 0 otherwise
+-/
+def SparseMatrix.findElem (m : SparseMatrix R) (p : Nat × Nat) : R :=
+  (SparseMatrix.findEntry m p).2.2
 
 /--
 Sparse matrix addition
