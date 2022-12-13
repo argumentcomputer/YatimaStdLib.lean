@@ -1,14 +1,10 @@
 import YatimaStdLib.Array
+import YatimaStdLib.Ord
 import YatimaStdLib.Ring
 import YatimaStdLib.RBMap
 import Std.Data.RBMap
 
-def ordCmp (a : Nat × Nat) (b : Nat × Nat) : Ordering :=
-  match a.1 < b.1 && a.2 < b.2 with
-    | true => .lt
-    | _    => if a == b then .eq else .gt
-
-abbrev SparseMatrix (R : Type) := Std.RBMap (Nat × Nat) R ordCmp
+abbrev SparseMatrix (R : Type) := Std.RBMap (Nat × Nat) R compare
 
 instance : Functor SparseMatrix where
   map f m := Std.RBMap.mapVal (fun _ x => f x) m
