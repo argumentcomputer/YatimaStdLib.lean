@@ -1,5 +1,6 @@
 import YatimaStdLib.Polynomial
 import YatimaStdLib.Zmod
+import YatimaStdLib.Bit
 
 /-!
 # Galois Fields
@@ -8,11 +9,6 @@ This module provides the basic data structures necessary to define and work with
 and their extensions.
 
 Here we post some definitions from https://hackage.haskell.org/package/galois-field-1.0.2
-
-TODO : 
-* Add a normalize function for elements in an extension field
-* Add a function to calculate Legendre symbol
-* Add more documentation
 -/
 
 /-- The structure of a Galois field on t-/
@@ -53,10 +49,22 @@ instance [GaloisField K] : Div K where
 instance [GaloisField K] : Sub K where
   sub := minus
 
+/-- An `O(log n)` implementation of `galPow` -/
+def fastPow [Mul K] [OfNat K (nat_lit 1)] (x : K) (n : Nat) : K := 
+  let binExp := n.toBits
+  let squares := getSquares [x] (binExp.length)
+  binExp.zip squares |>.foldl (init := 1) (fun acc (x, s) => if x == .one then acc * s else acc)
+  where getSquares (acc : List K) (n : Nat) : List K :=
+    match n with
+    | 0 => []
+    | 1 => acc
+    | n + 1 => getSquares ((acc.headD x) * (acc.headD x) :: acc) n
+
 def galPow [GaloisField K] : K → Nat → K
   | _, 0 => 1
   | x, (k + 1) => x * (galPow x k)
 
+-- TODO: Replace this with `fastPow`?
 instance [GaloisField K] : HPow K Nat K where
   hPow := galPow
 
@@ -89,24 +97,21 @@ open Polynomial
 /-- 
 Pre-computed evaluations of the Frobenius for a Galois field for small degree (2 and 3) extensions.
 
-`frobenius Q P` evaluates the Frobenius of `Q` in the extension of `K` defined by `P`. 
+`frobenius P Q` evaluates the Frobenius of `Q` in the extension of `K` defined by `P`. 
 
 -/
 def frobenius [GaloisField K] [BEq K] :
   Polynomial K → Polynomial K → Option (Polynomial K)
-  | #[], _ => .some #[]
-  | #[a],_ => .some #[frob a]
-  | #[a,b], #[x,y,z] =>
+  | _,  #[] => .some #[]
+  | _, #[a] => .some #[frob a]
+  | #[x,y,z], #[a,b] =>
     if y == 0 && z == 1 then
-      if (deg K) == 2 then .some #[a, -b] else
-      if (char K) == 2 then .some #[frob a - frob b * x]
-      else
-        let nxq : K := (-x) ^ (char K >>> 1)
-        .some #[frob a, frob b * nxq]
-      else .none
+      let nxq : K := (-x) ^ (char K >>> 1)
+      .some #[frob a, frob b * nxq]
+    else .none
   | #[a,b], #[x,y₁,y₂,z] =>
     if y₁ == 0 && y₂ == 0 && z == 1 then
-      let (q,r) := Int.quotRem ((char K)) 3
+      let (q,r) := Int.quotRem (char K) 3
       let nxq : K := (-x) ^ q
       if (char K) == 3 then .some #[frob a - frob b * x] else
       if r == 1 then .some #[frob a, frob b * nxq] else
@@ -114,7 +119,7 @@ def frobenius [GaloisField K] [BEq K] :
     else .none
   | #[a,b,c], #[x,y₁,y₂,z] =>
     if y₁ == 0 && y₂ == 0 && z == 1 then
-      let (q,r) := Int.quotRem ((char K)) 3
+      let (q,r) := Int.quotRem (char K) 3
       let nxq : K := (-x) ^ q
       if (char K) == 3 then .some #[frob a - (frob b - frob c * x) * x] else
       if r == 1 then .some #[frob a, frob b * nxq, frob c * nxq * nxq] else
@@ -133,24 +138,8 @@ instance {P : Polynomial K} [GaloisField K] : Coe (Polynomial K) (Extension K P)
 def Extension.defPoly {K : Type _} [GaloisField K] {P : Polynomial K} (_ : Extension K P) 
   : Polynomial K := P
 
-/-- The irreducible monic associated to an extension field `Extension K P` of `K` -/
-class IrreducibleMonic (K : Type _) [GaloisField K] where
-  poly : Polynomial K
-
-instance : IrreducibleMonic (Zmod p) where
-  poly := #[0, 1]
-
--- instance [GaloisField K] : IrreducibleMonic (Extension K P) where
---   poly := P
-
--- class ExtensionField (K : Type) [GaloisField K] where
---   fromE [GaloisField (Extension K P)] [IrreducibleMonic K P] : Extension K P → Polynomial K
-
 /-- 
 Calculates powers of polynomials
-
-TODO : Add this to YatimaStdLib
-TODO : Add a repeated-squares implementation
 -/
 def polyPow {K : Type _} [GaloisField K] [BEq K] : Polynomial K → Nat → Polynomial K
   | _, 0 => #[1]
@@ -160,23 +149,29 @@ def polyInv {K : Type _} [GaloisField K] [BEq K] (Q P : Polynomial K) : Polynomi
   let (a, _, g) := polyEuc Q P
   if g == #[1] then a else #[0]
 
-open IrreducibleMonic in
+instance [GaloisField K] [BEq K] : Mul (Extension K P) where
+  mul := polyMul
+
+instance [GaloisField K] : OfNat (Extension K P) (nat_lit 1) := ⟨#[1]⟩
+
 instance [GaloisField K] [BEq K]: GaloisField (Extension K P) where
   plus := polyAdd
-  times := polyMul
+  times := (· * ·)
   null := #[0]
-  ein := #[1]
+  ein := 1
   minus := polySub
   divis f g := polyMul (polyInv g P) f
   char := char K
   deg := (deg K) * degree (P)
   frob e :=
-      match frobenius e P with
-      | .some z => z
-      | .none => polyPow e (char K)
+    match frobenius e P with
+    | .some z => z
+    | .none => fastPow e (char K)
+
+def fieldNorm [GaloisField K] [BEq K] (a : Extension K P) := polyMod a P
 
 instance [GaloisField K] [BEq K] : BEq (Extension K P) where
-  beq a b := polyMod a P == polyMod b P
+  beq a b := fieldNorm a == fieldNorm b
 
 class TowerOfFields (K : Type _) (L : Type _) [GaloisField K] [GaloisField L] where
   embed : K → L
@@ -191,13 +186,21 @@ instance [GaloisField L] [GaloisField K] [BEq K] [BEq L]
     t₂.embed ∘ t₁.embed
 
 -- fields with square roots
-inductive LegendreSymbol where
-  | Zero
-  | QuadraticResidue
-  | QuadraticNonResidue
+inductive Residue where
+  | zero
+  | quadraticResidue
+  | quadraticNonResidue
+deriving Repr
+
+def legendreSymbol [GaloisField K] [BEq K] (x : K) : Residue :=
+  let pow := (char K) ^ (deg K) >>> 1
+  let exp := fastPow x pow
+  if exp == 1 then .quadraticResidue else 
+  if exp == -1 then .quadraticNonResidue else
+    .zero
 
 class SqrtField (F : Type _) where
-  legendre : F → LegendreSymbol
+  legendre : F → Residue
   sqrt : F → Option F
 
 end GaloisField
