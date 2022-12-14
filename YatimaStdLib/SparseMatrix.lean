@@ -58,6 +58,12 @@ def SparseMatrix.col (m : SparseMatrix R) (i : Nat) : Col R :=
   Std.RBMap.valuesArray $
     Std.RBMap.mapKeys (Std.RBMap.filter m (fun j _ => i == j.2)) (fun (_,b) => b)
 
+/--
+Transpose a sparse matrix
+-/
+def SparseMatrix.transpose (m : SparseMatrix R) : SparseMatrix R :=
+  Std.RBMap.mapKeys m (fun (a,b) => (b,a))
+
 variable {R : Type} [Ring R] [Coe Nat R]
 
 /--
@@ -120,7 +126,8 @@ def SparseMatrix.multiplication
   let rows₁ := m₁.rows
   if rows₁ == cols₂ then
     let cij i j : R :=
-      Array.foldr (. + .) 0 (Array.map (fun (a, b) => a * b) (Array.zip (m₁.row i) (m₂.col j)))
+      Array.foldr (. + .) 0
+        (Array.map (fun (a, b) => a * b) (Array.zip (m₁.col i) (m₂.row j)))
     let mut acc : SparseMatrix R := Std.RBMap.empty
     for i in [0:rows₁] do
       for j in [0:cols₂] do
