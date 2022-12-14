@@ -6,6 +6,18 @@ import Std.Data.RBMap
 
 abbrev SparseMatrix (R : Type) := Std.RBMap (Nat × Nat) R compare
 
+/--
+Creates a sparse matrix from a list
+-/
+def ofList (l : List ((Nat × Nat) × R)) : SparseMatrix R :=
+  Std.RBMap.ofList l compare
+
+/--
+Creates a sparse matrix from an array
+-/
+def ofArray (l : Array ((Nat × Nat) × R)) : SparseMatrix R :=
+  Std.RBMap.ofArray l compare
+
 instance : Functor SparseMatrix where
   map f m := Std.RBMap.mapVal (fun _ x => f x) m
 
