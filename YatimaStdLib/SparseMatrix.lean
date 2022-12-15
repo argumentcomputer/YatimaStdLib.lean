@@ -112,25 +112,18 @@ def SparseMatrix.findElem (m : SparseMatrix R) (p : Nat × Nat) : R :=
   (SparseMatrix.findEntry m p).2.2
 
 /--
-Sparse matrix addition
+Sparse matrix addition. This implementation assumes that the matrices are
+compatible w.r.t. addition and sets the dimension of the resulting matrix as the
+dimension of the one provided in the first argument.
+
+Efficiency note: if you know which matrix is the most sparse one, provide it as
+the second argument of this function.
 -/
-def SparseMatrix.addition
-  (m₁ : SparseMatrix R) (m₂ : SparseMatrix R) : SparseMatrix R := Id.run do
-  let cij i j :=
-    match (find? m₁.entries (i,j), find? m₂.entries (i,j)) with
-      | (.none, .none) => panic "not found"
-      | (.some n, .none) => n
-      | (.none, .some n) => n
-      | (.some m, .some n) =>
-        if m == 0 && n == 0 then panic "not found" else m + n
-  let (cols, rows) := (m₁.cols, m₁.rows)
-  if dim m₁ == dim m₂ then
-    let mut acc : SparseMatrix R := SparseMatrix.empty cols rows
-    for i in [0:rows] do
-      for j in [0:cols] do
-        acc := SparseMatrix.insert i j (cij i j) acc
-    pure acc
-  else panic "wrong dim"
+def SparseMatrix.addition (m₁ m₂ : SparseMatrix R) : SparseMatrix R :=
+  { m₁ with entries := m₂.entries.foldl (init := m₁.entries) fun acc k v₂ =>
+    match m₁.entries.find? k with
+    | none => acc.insert k v₂
+    | some v₁ => acc.insert k (v₁ + v₂) }
 
 instance : Add (SparseMatrix R) where
   add := SparseMatrix.addition
