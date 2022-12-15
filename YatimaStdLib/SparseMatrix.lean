@@ -9,6 +9,9 @@ structure SparseMatrix (R : Type _) where
   rows : Nat
   cols : Nat
 
+instance [ToString R] : ToString (SparseMatrix R) where
+  toString m := toString ∘ Std.RBMap.Values.toArray $ m.entries
+
 open Std.RBMap
 
 /--
