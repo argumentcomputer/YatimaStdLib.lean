@@ -96,7 +96,7 @@ def SparseMatrix.transpose (m : SparseMatrix R) : SparseMatrix R :=
     m.cols
     m.rows
 
-variable {R : Type} [Ring R] [Coe Nat R]
+variable {R : Type} [Ring R] [Coe Nat R] [BEq R]
 
 /--
 Returns a triple by given indices
@@ -116,7 +116,13 @@ Sparse matrix addition
 -/
 def SparseMatrix.addition
   (m₁ : SparseMatrix R) (m₂ : SparseMatrix R) : SparseMatrix R := Id.run do
-  let cij i j := findD m₁.entries (i,j) 0 + findD m₂.entries (i,j) 0
+  let cij i j :=
+    match (find? m₁.entries (i,j), find? m₂.entries (i,j)) with
+      | (.none, .none) => panic "not found"
+      | (.some n, .none) => n
+      | (.none, .some n) => n
+      | (.some m, .some n) =>
+        if m == 0 && n == 0 then panic "not found" else m + n
   let (cols, rows) := (m₁.cols, m₁.rows)
   if dim m₁ == dim m₂ then
     let mut acc : SparseMatrix R := SparseMatrix.empty cols rows
