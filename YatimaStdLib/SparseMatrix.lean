@@ -30,22 +30,22 @@ def SparseMatrix.insert
 /--
 Creates a sparse matrix from a list
 -/
-def ofList (l : List ((Nat × Nat) × R)) : SparseMatrix R :=
-  let entries := Std.RBMap.ofList l compare
+def ofListWithDims
+  (rows : Nat) (cols : Nat) (l : List ((Nat × Nat) × R)) : SparseMatrix R :=
   SparseMatrix.mk
-    entries
-    (1 + (Array.foldr max 0 $ Array.map (fun p => p.1) $ keysArray entries))
-    (1 + (Array.foldr max 0 $ Array.map (fun p => p.2) $ keysArray entries))
+    (Std.RBMap.ofList l compare)
+    rows
+    cols
 
 /--
 Creates a sparse matrix from an array
 -/
-def ofArray (l : Array ((Nat × Nat) × R)) : SparseMatrix R :=
-  let entries := Std.RBMap.ofArray l compare
+def ofArrayWithDims
+  (rows : Nat) (cols : Nat) (l : Array ((Nat × Nat) × R)) : SparseMatrix R :=
   SparseMatrix.mk
     (Std.RBMap.ofArray l compare)
-    (1 + (Array.foldr max 0 $ Array.map (fun p => p.1) $ keysArray entries))
-    (1 + (Array.foldr max 0 $ Array.map (fun p => p.2) $ keysArray entries))
+    rows
+    cols
 
 instance : Functor SparseMatrix where
   map f m :=
