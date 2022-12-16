@@ -11,7 +11,19 @@ structure SparseMatrix (R : Type _) where
   deriving BEq
 
 instance [ToString R] : ToString (SparseMatrix R) where
-  toString m := toString ∘ Std.RBMap.Values.toArray $ m.entries
+  toString m :=
+  let print (p : (Nat × Nat) × R) :=
+    match p with
+      | ((i,j), v) => 
+        "row:" ++ 
+        toString i ++
+        " col:" ++
+        toString j ++
+        " " ++
+        toString v ++ "\n"
+  let triples :=
+    print <$> Std.RBMap.toList m.entries
+  List.foldr (. ++ .) "" triples
 
 open Std.RBMap
 
