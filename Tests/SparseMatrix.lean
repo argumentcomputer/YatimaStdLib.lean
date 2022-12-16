@@ -25,9 +25,19 @@ def res' : SparseMatrix Int :=
 def res'' : SparseMatrix Int :=
   ofArrayWithDims 2 2 #[((0,0),0), ((0,1),2), ((1,0),10), ((1,1),6)]
 
+def resProd : SparseMatrix Int :=
+  ofArrayWithDims 2 2 #[((0,0),70), ((0,1),62), ((1,0),53), ((1,1),43)]
+
+def resProd' : SparseMatrix Int :=
+  ofArrayWithDims 2 2 #[((0,0),5), ((0,1),6), ((1,0),35), ((1,1),43)]
+
 #eval mat1 + mat1
 
 #lspec test "addition works" (mat₁ + mat₂ == res) $
        test "addition works" (mat1 + mat2 == res') $
        test "addition works" (mat1 + mat1 == res'')
+
+#lspec test "multiplication works" (mat₁ * mat₂ == resProd) $
+       test "multiplication works" (mat1 * mat2 == resProd')
+
 #lspec test "dim works" (mat1.dim == (2,2))
