@@ -31,29 +31,12 @@ def resProd : SparseMatrix Int :=
 def resProd' : SparseMatrix Int :=
   ofArrayWithDims 2 2 #[((0,0),5), ((0,1),6), ((1,0),35), ((1,1),43)]
 
-#eval mat1 + mat1
-
-#lspec test "addition works" (mat₁ + mat₂ == res) $
-       test "addition works" (mat1 + mat2 == res') $
-       test "addition works" (mat1 + mat1 == res'')
-
-#lspec test "multiplication works" (mat₁ * mat₂ == resProd) $
-       test "multiplication works" (mat1 * mat2 == resProd')
-
-#lspec test "dim works" (mat1.dim == (2,2))
-
 def anotherMat : SparseMatrix Int :=
   ofArrayWithDims 3 3
     #[ ((0,0), 56), ((0,1), 32), ((0,2), 21),
        ((1,0), 34), ((1,1), 24), ((1,2), 21),
        ((2,0), 43), ((2,1), 53), ((2,2), 24)
     ]
-
-def row₁ : Row Int := #[98, 32, 31]
-
-def resRow : Row Int := #[6953, 4541, 6414]
-
-#lspec test "vecProduct" (anotherMat * row₁ == resRow)
 
 def anotherMat' : SparseMatrix Int :=
   ofArrayWithDims 3 3
@@ -62,6 +45,20 @@ def anotherMat' : SparseMatrix Int :=
        ((2,0), 42), ((2,1), 34), ((2,2), 4)
     ]
 
+def anotherMat'' : SparseMatrix Int :=
+  ofArrayWithDims 3 2 
+    #[ ((0,0), 43), ((0,1), 76),
+       ((1,0), 32), ((1,1), 45),
+       ((2,0), 21), ((2,1), 7)
+     ]
+
+def prodRes : SparseMatrix Int :=
+  ofArrayWithDims 3 2
+    #[ ((0,0), 3873), ((0,1), 5843),
+       ((1,0), 2671), ((1,1), 3811),
+       ((2,0), 4049), ((2,1), 5821)
+     ]
+
 def hadamardRes : SparseMatrix Int :=
   ofArrayWithDims 3 3
     #[ ((0,0), 4200), ((0,1), 1728), ((0,2), 168),
@@ -69,4 +66,19 @@ def hadamardRes : SparseMatrix Int :=
        ((2,0), 1806), ((2,1), 1802), ((2,2), 96)
     ]
 
+def row₁ : Row Int := #[98, 32, 31]
+def row₂ : Row Int := #[23, 89]
+
+def resRow : Row Int := #[6953, 4541, 6414]
+def resRow' : Row Int := #[715, 382]
+
+#lspec test "addition works" (mat₁ + mat₂ == res) $
+       test "addition works" (mat1 + mat2 == res') $
+       test "addition works" (mat1 + mat1 == res'')
+#lspec test "multiplication works" (mat₁ * mat₂ == resProd) $
+       test "multiplication works" (mat1 * mat2 == resProd') $
+       test "multiplication works" (anotherMat * anotherMat'' == prodRes)
+#lspec test "dim works" (mat1.dim == (2,2))
+#lspec test "vecProduct works" (anotherMat * row₁ == resRow) $
+       test "vecProduct works" (mat₁ * row₂ == resRow')
 #lspec test "hadamard works" (hadamard anotherMat anotherMat' == hadamardRes)

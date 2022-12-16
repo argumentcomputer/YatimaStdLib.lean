@@ -154,15 +154,15 @@ Sparse matrix multiplication
 -/
 def SparseMatrix.multiplication
   (m₁ : SparseMatrix R) (m₂ : SparseMatrix R) : SparseMatrix R := Id.run do
-  let cols₂ := m₂.cols
-  let rows₁ := m₁.rows
-  if rows₁ == cols₂ then
+  let cols₁ := m₁.cols
+  let rows₂ := m₂.rows
+  if cols₁ == rows₂ then
     let cij i j : R :=
       Array.foldr (. + .) 0
         (Array.map (fun (a, b) => a * b) (Array.zip (m₁.col i) (m₂.row j)))
-    let mut acc : SparseMatrix R := SparseMatrix.empty rows₁ cols₂
-    for i in [0:rows₁] do
-      for j in [0:cols₂] do
+    let mut acc : SparseMatrix R := SparseMatrix.empty rows₂ cols₁
+    for i in [0:cols₁] do
+      for j in [0:rows₂] do
       acc := SparseMatrix.insert i j (cij i j) acc
     pure acc
   else
