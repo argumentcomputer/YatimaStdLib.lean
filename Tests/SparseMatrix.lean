@@ -41,3 +41,16 @@ def resProd' : SparseMatrix Int :=
        test "multiplication works" (mat1 * mat2 == resProd')
 
 #lspec test "dim works" (mat1.dim == (2,2))
+
+def anotherMat : SparseMatrix Int :=
+  ofArrayWithDims 3 3
+    #[ ((0,0), 56), ((0,1), 32), ((0,2), 21),
+       ((1,0), 34), ((1,1), 24), ((1,2), 21),
+       ((2,0), 43), ((2,1), 53), ((2,2), 24)
+    ]
+
+def row₁ : Row Int := #[98, 32, 31]
+
+def resRow : Row Int := #[6953, 4541, 6414]
+
+#lspec test "vecProduct" (anotherMat * row₁ == resRow)
