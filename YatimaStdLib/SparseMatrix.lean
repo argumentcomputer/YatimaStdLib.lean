@@ -8,6 +8,7 @@ structure SparseMatrix (R : Type _) where
   entries : Std.RBMap (Nat × Nat) R compare
   rows : Nat
   cols : Nat
+  deriving BEq
 
 instance [ToString R] : ToString (SparseMatrix R) where
   toString m := toString ∘ Std.RBMap.Values.toArray $ m.entries
@@ -67,7 +68,7 @@ instance : Inhabited (SparseMatrix R) where
 Matrix dimension
 -/
 def SparseMatrix.dim (m : SparseMatrix R) : Nat × Nat :=
-  (rows m, cols m)
+  (m.rows, m.cols)
 
 /--
 Returns a particular row by an index
