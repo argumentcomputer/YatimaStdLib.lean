@@ -54,3 +54,19 @@ def row₁ : Row Int := #[98, 32, 31]
 def resRow : Row Int := #[6953, 4541, 6414]
 
 #lspec test "vecProduct" (anotherMat * row₁ == resRow)
+
+def anotherMat' : SparseMatrix Int :=
+  ofArrayWithDims 3 3
+    #[ ((0,0), 75), ((0,1), 54), ((0,2), 8),
+       ((1,0), 234), ((1,1), 34), ((1,2), 35),
+       ((2,0), 42), ((2,1), 34), ((2,2), 4)
+    ]
+
+def hadamardRes : SparseMatrix Int :=
+  ofArrayWithDims 3 3
+    #[ ((0,0), 4200), ((0,1), 1728), ((0,2), 168),
+       ((1,0), 7956), ((1,1), 816), ((1,2), 735),
+       ((2,0), 1806), ((2,1), 1802), ((2,2), 96)
+    ]
+
+#lspec test "hadamard works" (hadamard anotherMat anotherMat' == hadamardRes)
