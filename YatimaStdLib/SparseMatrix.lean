@@ -8,7 +8,6 @@ structure SparseMatrix (R : Type _) where
   entries : Std.RBMap (Nat × Nat) R compare
   rows : Nat
   cols : Nat
-  deriving BEq
 
 instance [ToString R] : ToString (SparseMatrix R) where
   toString m :=
@@ -27,17 +26,18 @@ instance [ToString R] : ToString (SparseMatrix R) where
 
 open Std.RBMap
 
+namespace SparseMatrix
+
 /--
 Empty matrix
 -/
-def SparseMatrix.empty (col : Nat) (row : Nat) : SparseMatrix R :=
+def empty (col : Nat) (row : Nat) : SparseMatrix R :=
   SparseMatrix.mk Std.RBMap.empty col row
 
 /--
 Insert a triple
 -/
-def SparseMatrix.insert
-  (col : Nat) (row : Nat) (a : R) (m : SparseMatrix R) : SparseMatrix R :=
+def insert (m : SparseMatrix R) (col row : Nat) (a : R) : SparseMatrix R :=
   SparseMatrix.mk
     (Std.RBMap.insert m.entries (col,row) a)
     m.rows
@@ -70,69 +70,35 @@ instance : Functor SparseMatrix where
     m.rows
     m.cols
 
-abbrev Row (R : Type) := Array R
-abbrev Col (R : Type) := Array R
-
 instance : Inhabited (SparseMatrix R) where
   default := SparseMatrix.empty 0 0
 
 /--
 Matrix dimension
 -/
-def SparseMatrix.dim (m : SparseMatrix R) : Nat × Nat :=
+def dim (m : SparseMatrix R) : Nat × Nat :=
   (m.rows, m.cols)
-
-/--
-Returns a particular row by an index
--/
-def SparseMatrix.row (m : SparseMatrix R) (i : Nat) : Row R :=
-  Std.RBMap.valuesArray $
-    Std.RBMap.mapKeys
-      (Std.RBMap.filter m.entries (fun j _ => i == j.1))
-      (fun (a,_) => a)
-
-/--
-Returns a particular column by an index
--/
-def SparseMatrix.col (m : SparseMatrix R) (i : Nat) : Col R :=
-  Std.RBMap.valuesArray $
-    Std.RBMap.mapKeys
-      (Std.RBMap.filter m.entries (fun j _ => i == j.2))
-      (fun (_,b) => b)
 
 /--
 Transpose a sparse matrix
 -/
-def SparseMatrix.transpose (m : SparseMatrix R) : SparseMatrix R :=
+def transpose (m : SparseMatrix R) : SparseMatrix R :=
   SparseMatrix.mk
     (Std.RBMap.mapKeys m.entries $ fun (a,b) => (b,a))
     m.cols
     m.rows
 
-variable {R : Type} [Ring R] [Coe Nat R] [BEq R]
+variable [Ring R] [BEq R]
 
 /--
-Returns a triple by given indices
--/
-def SparseMatrix.findEntry (m : SparseMatrix R) (p : Nat × Nat) : Nat × Nat × R :=
-  let ((row, col), val) := Option.getD (Std.RBMap.findEntry? m.entries p) ((0,0),0)
-  (row, col, val)
-
-/--
-Returns an element by indices, whenever it exists, or 0 otherwise
--/
-def SparseMatrix.findElem (m : SparseMatrix R) (p : Nat × Nat) : R :=
-  (SparseMatrix.findEntry m p).2.2
-
-/--
-Sparse matrix addition. This implementation assumes that the matrices are
-compatible w.r.t. addition and sets the dimension of the resulting matrix as the
-dimension of the one provided in the first argument.
+Sparse matrix addition. This implementation assumes that the matrices have the
+same dimensions and sets the dimension of the resulting matrix as the dimensions
+of the one provided in the first argument.
 
 Efficiency note: if you know which matrix is the most sparse one, provide it as
 the second argument of this function.
 -/
-def SparseMatrix.addition (m₁ m₂ : SparseMatrix R) : SparseMatrix R :=
+def addition (m₁ m₂ : SparseMatrix R) : SparseMatrix R :=
   { m₁ with entries := m₂.entries.foldl (init := m₁.entries) fun acc k v₂ =>
     match m₁.entries.find? k with
     | none => acc.insert k v₂
@@ -141,65 +107,66 @@ def SparseMatrix.addition (m₁ m₂ : SparseMatrix R) : SparseMatrix R :=
 instance : Add (SparseMatrix R) where
   add := SparseMatrix.addition
 
-/--
-Computes a product between a sparse matrix and an array
--/
-def SparseMatrix.vecProduct (m : SparseMatrix R) (v : Col R) : Col R := Id.run do
-  let (rows,cols) := (m.rows, m.cols)
-  let vals : Array (Nat × R) := Id.run do
-    let mut acc := Array.empty
-    for i in [0:rows] do
-      for k in [0:cols] do
-        let (row, col, val) := SparseMatrix.findEntry m (i,k)
-        acc := Array.push acc (row, val * Array.getD v col 0)
-    pure acc
-  Array.foldr 
-    (fun (r,v) mz => Array.setD mz r (v + Array.getD mz r 0)) 
-    #[0, rows] 
-    vals
+abbrev SparseArray R := Std.RBMap Nat R compare
 
-instance : HMul (SparseMatrix R) (Array R) (Array R) where
-  hMul := SparseMatrix.vecProduct
+def SparseArray.zipProd (x y : SparseArray R) : SparseArray R :=
+  y.foldl (init := default) fun acc k v => match x.find? k with
+    | none => acc
+    | some v' => acc.insert k (v * v')
+
+def SparseArray.sum (x : SparseArray R) : R :=
+  x.foldl (init := 0) fun acc _ v => acc + v
+
+def collectRows (m : SparseMatrix R) : Std.RBMap Nat (SparseArray R) compare :=
+  m.entries.foldl (init := default) fun acc (i, j) v => match acc.find? i with
+    | some arr => acc.insert i (arr.insert j v)
+    | none => acc.insert i (.single j v)
+
+def collectCols (m : SparseMatrix R) : Std.RBMap Nat (SparseArray R) compare :=
+  m.entries.foldl (init := default) fun acc (i, j) v => match acc.find? j with
+    | some arr => acc.insert j (arr.insert i v)
+    | none => acc.insert j (.single i v)
 
 /--
-Sparse matrix multiplication
+Sparse matrix multiplication. Assumes that the input matrices are compatible
+w.r.t. multiplication
 -/
-def SparseMatrix.multiplication
-  (m₁ : SparseMatrix R) (m₂ : SparseMatrix R) : SparseMatrix R := Id.run do
-  let cols₁ := m₁.cols
-  let rows₂ := m₂.rows
-  if cols₁ == rows₂ then
-    let cij i j : R :=
-      Array.foldr (. + .) 0
-        (Array.map (fun (a, b) => a * b) (Array.zip (m₁.col i) (m₂.row j)))
-    let mut acc : SparseMatrix R := SparseMatrix.empty rows₂ cols₁
-    for i in [0:cols₁] do
-      for j in [0:rows₂] do
-      acc := SparseMatrix.insert i j (cij i j) acc
-    pure acc
-  else
-    panic! "wrong dim"
+def multiplication (m₁ m₂ : SparseMatrix R) : SparseMatrix R :=
+  let rCols := collectCols m₂
+  let entries := collectRows m₁ |>.foldl (init := default) fun acc i r =>
+    rCols.foldl (init := acc) fun acc j c =>
+      acc.insert (i, j) (r.zipProd c).sum
+  ⟨entries, m₁.rows, m₂.cols⟩
 
 instance : Mul (SparseMatrix R) where
-  mul := SparseMatrix.multiplication
+  mul := multiplication
 
 /--
-Sparse matrix Hadamard multiplication
--/
-def SparseMatrix.hadamard
-  (m₁ : SparseMatrix R) (m₂ : SparseMatrix R) : SparseMatrix R := Id.run do
-  if m₁.dim == m₂.dim then
-    let mut acc : SparseMatrix R := SparseMatrix.empty m₁.rows m₂.cols
-    let (rows, cols) := m₁.dim
-    for i in [0:rows] do
-      for j in [0:cols] do
-      acc :=
-        SparseMatrix.insert i j
-          (SparseMatrix.findElem m₁ (i,j) * SparseMatrix.findElem m₂ (i,j))
-          acc
-    pure acc
-  else
-    panic! "wrong dim"
+Sparse matrix Hadamard multiplication. This implementation assumes that the
+matrices have the same dimensions and sets the dimension of the resulting matrix
+as the dimensions of the one provided in the first argument.
 
-def SparseMatrix.scale
-  (r : R) (m : SparseMatrix R) : SparseMatrix R := (fun x => x * r) <$> m
+Efficiency note: if you know which matrix is the most sparse one, provide it as
+the second argument of this function.
+-/
+def hadamard (m₁ m₂ : SparseMatrix R) : SparseMatrix R :=
+  { m₁ with entries := m₂.entries.foldl (init := default) fun acc k v =>
+    match m₁.entries.find? k with
+    | none => acc
+    | some v' => acc.insert k (v * v') }
+
+/-- Multiplies each element in the `SparseMatrix R` by a scalar `r : R` -/
+def scale (m : SparseMatrix R) (r : R) : SparseMatrix R :=
+  if r == 0 then default else (fun x => x * r) <$> m
+
+/-- Removes all entries whose value is zero -/
+def prune (m : SparseMatrix R) : SparseMatrix R :=
+  { m with entries := m.entries.foldl (init := default) fun acc k v =>
+    if v == 0 then acc else acc.insert k v }
+
+instance : BEq (SparseMatrix R) where
+  beq x y :=
+    let (x, y) := (x.prune, y.prune)
+    x.dim == y.dim && x.entries == y.entries
+
+end SparseMatrix

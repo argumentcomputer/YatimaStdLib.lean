@@ -66,12 +66,6 @@ def hadamardRes : SparseMatrix Int :=
        ((2,0), 1806), ((2,1), 1802), ((2,2), 96)
     ]
 
-def row₁ : Row Int := #[98, 32, 31]
-def row₂ : Row Int := #[23, 89]
-
-def resRow : Row Int := #[6953, 4541, 6414]
-def resRow' : Row Int := #[715, 382]
-
 #lspec test "addition works" (mat₁ + mat₂ == res) $
        test "addition works" (mat1 + mat2 == res') $
        test "addition works" (mat1 + mat1 == res'')
@@ -79,6 +73,4 @@ def resRow' : Row Int := #[715, 382]
        test "multiplication works" (mat1 * mat2 == resProd') $
        test "multiplication works" (anotherMat * anotherMat'' == prodRes)
 #lspec test "dim works" (mat1.dim == (2,2))
-#lspec test "vecProduct works" (anotherMat * row₁ == resRow) $
-       test "vecProduct works" (mat₁ * row₂ == resRow')
 #lspec test "hadamard works" (hadamard anotherMat anotherMat' == hadamardRes)
