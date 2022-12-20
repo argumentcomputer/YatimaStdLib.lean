@@ -11,3 +11,6 @@ require LSpec from git
 
 @[default_target]
 lean_lib YatimaStdLib
+
+lean_exe Benchmarks.Matrix
+lean_exe Benchmarks.SparseMatrix
