@@ -109,6 +109,9 @@ instance : Add (SparseMatrix R) where
 
 abbrev SparseArray R := Std.RBMap Nat R compare
 
+def Array.toSparse (x : Array R) : SparseArray R :=
+  Std.RBMap.fromArray $ Array.zip (Array.iota x.size) (x : Array R)
+
 def SparseArray.zipProd (x y : SparseArray R) : SparseArray R :=
   y.foldl (init := default) fun acc k v => match x.find? k with
     | none => acc
