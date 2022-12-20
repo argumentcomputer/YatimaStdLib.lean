@@ -143,8 +143,8 @@ instance : Mul (SparseMatrix R) where
 
 instance : HMul (SparseMatrix R) (SparseArray R) (SparseArray R) where
   hMul m v :=
-    let res := m * SparseMatrix.mk (mapKeys v (fun i => (i,1))) v.size 1
-    mapKeys res.entries (fun (_,b) => b) 
+    let res := m * SparseMatrix.mk (mapKeys v (fun i => (i,0))) 1 v.size
+    Std.RBMap.findD (collectCols res) 0 Std.RBMap.empty
 
 /--
 Sparse matrix Hadamard multiplication. This implementation assumes that the

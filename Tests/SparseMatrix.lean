@@ -66,6 +66,12 @@ def hadamardRes : SparseMatrix Int :=
        ((2,0), 1806), ((2,1), 1802), ((2,2), 96)
     ]
 
+def vec : SparseArray Int := 
+  Std.RBMap.ofArray #[(0,34), (1,37), (2,19)] compare
+
+def vec' : SparseArray Int :=
+  Std.RBMap.ofArray #[(0, 3487), (1, 2443), (2, 3879)] compare
+
 #lspec test "addition works" (mat₁ + mat₂ == res) $
        test "addition works" (mat1 + mat2 == res') $
        test "addition works" (mat1 + mat1 == res'')
@@ -74,3 +80,4 @@ def hadamardRes : SparseMatrix Int :=
        test "multiplication works" (anotherMat * anotherMat'' == prodRes)
 #lspec test "dim works" (mat1.dim == (2,2))
 #lspec test "hadamard works" (hadamard anotherMat anotherMat' == hadamardRes)
+#lspec test "matrix-vector multiplication works" (anotherMat * vec == vec')
