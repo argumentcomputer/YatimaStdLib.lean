@@ -18,6 +18,7 @@ import YatimaStdLib.RBNode
 import YatimaStdLib.Ring
 import YatimaStdLib.RWST
 import YatimaStdLib.Seq
+import YatimaStdLib.SparseMatrix
 import YatimaStdLib.String
 import YatimaStdLib.Traversable
 import YatimaStdLib.Tree

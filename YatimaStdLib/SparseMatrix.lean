@@ -117,6 +117,14 @@ def SparseArray.zipProd (x y : SparseArray R) : SparseArray R :=
 def SparseArray.sum (x : SparseArray R) : R :=
   x.foldl (init := 0) fun acc _ v => acc + v
 
+/-- Removes all entries whose value is zero -/
+def SparseArray.prune (x : SparseArray R) : SparseArray R :=
+  x.foldl (init := default) fun acc k v =>
+    if v == 0 then acc else acc.insert k v
+
+instance : BEq (SparseArray R) where
+  beq x y := x.prune == y.prune
+
 def collectRows (m : SparseMatrix R) : Std.RBMap Nat (SparseArray R) compare :=
   m.entries.foldl (init := default) fun acc (i, j) v => match acc.find? i with
     | some arr => acc.insert i (arr.insert j v)
@@ -140,6 +148,10 @@ def multiplication (m₁ m₂ : SparseMatrix R) : SparseMatrix R :=
 
 instance : Mul (SparseMatrix R) where
   mul := multiplication
+
+instance : HMul (SparseMatrix R) (SparseArray R) (SparseArray R) where
+  hMul m v := m.collectRows |>.foldl (init := default)
+    fun acc i r => acc.insert i (r.zipProd v).sum
 
 /--
 Sparse matrix Hadamard multiplication. This implementation assumes that the
