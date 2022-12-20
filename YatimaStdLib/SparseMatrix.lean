@@ -141,6 +141,11 @@ def multiplication (m₁ m₂ : SparseMatrix R) : SparseMatrix R :=
 instance : Mul (SparseMatrix R) where
   mul := multiplication
 
+instance : HMul (SparseMatrix R) (SparseArray R) (SparseArray R) where
+  hMul m v :=
+    let res := m * SparseMatrix.mk (mapKeys v (fun i => (i,1))) v.size 1
+    mapKeys res.entries (fun (_,b) => b) 
+
 /--
 Sparse matrix Hadamard multiplication. This implementation assumes that the
 matrices have the same dimensions and sets the dimension of the resulting matrix
