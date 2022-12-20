@@ -1,7 +1,7 @@
 import LSpec
-import YatimaStdLib.USize
+import YatimaStdLib.Nat
 
-open Lean LSpec USize
+open Lean LSpec Nat
 
 #lspec test "next_power_of_two works" (nextPowerOfTwo 5 == 8) $
        test "next_power_of_two works" (nextPowerOfTwo 100 == 128) $
