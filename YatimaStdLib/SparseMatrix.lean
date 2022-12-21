@@ -125,6 +125,9 @@ def SparseArray.prune (x : SparseArray R) : SparseArray R :=
 instance : BEq (SparseArray R) where
   beq x y := x.prune == y.prune
 
+def Array.toSparse (x : Array R) : SparseArray R :=
+  SparseArray.prune $ Std.RBMap.fromArray $ Array.zip (Array.iota x.size) (x : Array R)
+
 def collectRows (m : SparseMatrix R) : Std.RBMap Nat (SparseArray R) compare :=
   m.entries.foldl (init := default) fun acc (i, j) v => match acc.find? i with
     | some arr => acc.insert i (arr.insert j v)
