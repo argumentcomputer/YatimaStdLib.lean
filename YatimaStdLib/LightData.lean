@@ -1,3 +1,5 @@
+import YatimaStdLib.ByteArray
+
 inductive LightData
   | nil : LightData
   | bol : Bool   → LightData
@@ -10,23 +12,26 @@ inductive LightData
   | arr : Array LightData → LightData
   deriving Inhabited, BEq
 
-def UInt16.toByteArray : UInt16 → ByteArray
-  | _ => sorry
+/- TODO : use faster implementations -/
 
-def UInt32.toByteArray : UInt32 → ByteArray
-  | _ => sorry
+def UInt16.toByteArray' : UInt16 → ByteArray
+  | x => let bytes := x.toNat.toByteArrayLE; bytes.pushZeros $ 2 - bytes.size
 
-def UInt64.toByteArray : UInt64 → ByteArray
-  | _ => sorry
+def UInt32.toByteArray' : UInt32 → ByteArray
+  | x => let bytes := x.toNat.toByteArrayLE; bytes.pushZeros $ 4 - bytes.size
 
-def UInt16.ofByteArray : ByteArray → UInt16
-  | _ => sorry
+def UInt64.toByteArray' : UInt64 → ByteArray
+  | x => let bytes := x.toNat.toByteArrayLE; bytes.pushZeros $ 8 - bytes.size
 
-def UInt32.ofByteArray : ByteArray → UInt32
-  | _ => sorry
+def UInt16.ofByteArray' : ByteArray → UInt16
+  | bytes => .ofNat bytes.asLEtoNat
 
-def UInt64.ofByteArray : ByteArray → UInt64
-  | _ => sorry
+def UInt32.ofByteArray' : ByteArray → UInt32
+  | bytes => .ofNat bytes.asLEtoNat
+
+def UInt64.ofByteArray' : ByteArray → UInt64
+  | bytes => .ofNat bytes.asLEtoNat
+#eval (400).toByteArrayLE
 
 namespace LightData
 
@@ -91,7 +96,7 @@ partial def serialize : LightData → ByteArray
   | d@(u16 x)
   | d@(u32 x)
   | d@(u64 x)
-  | d@(lnk x) => .mk #[d.tag] ++ x.toByteArray
+  | d@(lnk x) => .mk #[d.tag] ++ x.toByteArray'
   | d@(str x) => let x := x.toUTF8; .mk #[d.tag] ++ serialize x.size ++ x
   | d@(arr x) =>
     let init := ⟨#[d.tag]⟩ ++ serialize x.size
@@ -121,19 +126,19 @@ def deBool : DeM Bool := do
 def deByteArray (n : Nat) : DeM ByteArray := do
   let idx ← get
   let ctx ← read
-  if ctx.size - idx < n then
+  if ctx.size - idx - 1 < n then
     set $ idx + n
     return ctx.bytes.copySlice idx .empty 0 n
-  else throw s!"Not enough data to read {n} bytes"
+  else throw s!"Not enough data to read {n} bytes (size {ctx.size}, idx {idx})"
 
 def deUInt16 : DeM UInt16 :=
-  return .ofByteArray $ ← deByteArray 2
+  return .ofByteArray' $ ← deByteArray 2
 
 def deUInt32 : DeM UInt32 :=
-  return .ofByteArray $ ← deByteArray 4
+  return .ofByteArray' $ ← deByteArray 4
 
 def deUInt64 : DeM UInt64 :=
-  return .ofByteArray $ ← deByteArray 8
+  return .ofByteArray' $ ← deByteArray 8
 
 def deNat : DeM Nat := do
   match ← deUInt8 with
@@ -164,9 +169,7 @@ partial def deLightData : DeM LightData := do
 def deserialize (bytes : ByteArray) : Except String LightData :=
   (StateT.run (ReaderT.run deLightData ⟨bytes, bytes.size, by eq_refl⟩) 0).1
 
--- def qq : LightData := 3
-
--- #eval qq
--- #eval deserialize (qq.serialize)
+def qq : LightData := .arr #[300, 300]
+#eval (qq, deserialize qq.serialize)
 
 end LightData
