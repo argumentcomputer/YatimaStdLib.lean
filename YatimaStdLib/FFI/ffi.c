@@ -39,3 +39,18 @@ extern l_res lean_byte_array_to_uint32(l_arg a) {
 extern l_res lean_byte_array_to_uint64(l_arg a) {
     return *((uint64_t*)lean_to_sarray(a)->m_data);
 }
+
+extern uint8_t lean_byte_array_ord(l_arg a, l_arg b) {
+    lean_sarray_object* oa = lean_to_sarray(a);
+    lean_sarray_object* ob = lean_to_sarray(b);
+    size_t sa = oa->m_size;
+    size_t sb = ob->m_size;
+    if (sa == sb) {
+        int diff = memcmp(oa->m_data, ob->m_data, sa);
+        if (diff < 0) return 0;
+        else if (diff == 0) return 1;
+        return 2;
+    }
+    else if (sa < sb) return 0;
+    return 2;
+}

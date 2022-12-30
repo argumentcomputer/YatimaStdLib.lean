@@ -1,6 +1,7 @@
 import YatimaStdLib.List
 import YatimaStdLib.Nat
 import YatimaStdLib.UInt
+import YatimaStdLib.FFI.UIntByteArray
 
 namespace ByteArray
 
@@ -28,16 +29,11 @@ def pushZeros (bytes : ByteArray) (n : Nat) : ByteArray := Id.run do
     bytes := bytes.push 0
   return bytes
 
-/- The following three instances should be replaced by C implementations -/
+instance : Ord ByteArray := ⟨ByteArray.ordC⟩
 
-instance (priority := low) {α : Type u} [Ord α] : Ord (Array α) where
-  compare x y := compare x.data y.data
-
-instance (priority := low) : Ord ByteArray where
-  compare x y := compare x.data y.data
-
-instance (priority := low) : BEq ByteArray where
-  beq x y := x.data == y.data
+instance : BEq ByteArray where
+  beq x y := match compare x y with
+    | .eq => true | _ => false
 
 def Subarray.asBA (s : Subarray UInt8) : ByteArray :=
   s.as.data.toByteArray

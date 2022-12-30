@@ -8,10 +8,13 @@ opaque UInt32.toByteArrayC : UInt32 → ByteArray
 opaque UInt64.toByteArrayC : UInt64 → ByteArray
 
 @[extern "lean_byte_array_to_uint16"]
-opaque UInt16.ofByteArrayC : ByteArray → UInt16
+opaque UInt16.ofByteArrayC : @& ByteArray → UInt16
 
 @[extern "lean_byte_array_to_uint32"]
-opaque UInt32.ofByteArrayC : ByteArray → UInt32
+opaque UInt32.ofByteArrayC : @& ByteArray → UInt32
 
 @[extern "lean_byte_array_to_uint64"]
-opaque UInt64.ofByteArrayC : ByteArray → UInt64
+opaque UInt64.ofByteArrayC : @& ByteArray → UInt64
+
+@[extern "lean_byte_array_ord"]
+opaque ByteArray.ordC : @& ByteArray → @& ByteArray → Ordering
