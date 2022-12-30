@@ -1,4 +1,5 @@
 import YatimaStdLib.ByteArray
+import YatimaStdLib.FFI.UIntByteArray
 
 inductive LightData
   | nil : LightData
@@ -12,26 +13,6 @@ inductive LightData
   | arr : Array LightData → LightData
   deriving Inhabited, BEq
 
-/- TODO : use faster implementations -/
-
-def UInt16.toByteArray' : UInt16 → ByteArray
-  | x => let bytes := x.toNat.toByteArrayLE; bytes.pushZeros $ 2 - bytes.size
-
-def UInt32.toByteArray' : UInt32 → ByteArray
-  | x => let bytes := x.toNat.toByteArrayLE; bytes.pushZeros $ 4 - bytes.size
-
-def UInt64.toByteArray' : UInt64 → ByteArray
-  | x => let bytes := x.toNat.toByteArrayLE; bytes.pushZeros $ 8 - bytes.size
-
-def UInt16.ofByteArray' : ByteArray → UInt16
-  | bytes => .ofNat bytes.asLEtoNat
-
-def UInt32.ofByteArray' : ByteArray → UInt32
-  | bytes => .ofNat bytes.asLEtoNat
-
-def UInt64.ofByteArray' : ByteArray → UInt64
-  | bytes => .ofNat bytes.asLEtoNat
-
 namespace LightData
 
 partial def toString : LightData → String
@@ -44,7 +25,7 @@ partial def toString : LightData → String
   | .u64 x => s!"{x}u64"
   | .lnk x => s!"{x}↑"
   | .str x => s!"\"{x}\""
-  | .arr x => s!"⟪{", ".intercalate $ x.data.map toString}⟫"
+  | .arr x => s!"⟨{", ".intercalate $ x.data.map toString}⟩"
 
 instance : ToString LightData := ⟨LightData.toString⟩
 
@@ -95,7 +76,7 @@ partial def serialize : LightData → ByteArray
   | d@(u16 x)
   | d@(u32 x)
   | d@(u64 x)
-  | d@(lnk x) => .mk #[d.tag] ++ x.toByteArray'
+  | d@(lnk x) => .mk #[d.tag] ++ x.toByteArrayC
   | d@(str x) => let x := x.toUTF8; .mk #[d.tag] ++ serialize x.size ++ x
   | d@(arr x) =>
     let init := ⟨#[d.tag]⟩ ++ serialize x.size
@@ -131,13 +112,13 @@ def deByteArray (n : Nat) : DeM ByteArray := do
   else throw s!"Not enough data to read {n} bytes (size {ctx.size}, idx {idx})"
 
 def deUInt16 : DeM UInt16 :=
-  return .ofByteArray' $ ← deByteArray 2
+  return .ofByteArrayC $ ← deByteArray 2
 
 def deUInt32 : DeM UInt32 :=
-  return .ofByteArray' $ ← deByteArray 4
+  return .ofByteArrayC $ ← deByteArray 4
 
 def deUInt64 : DeM UInt64 :=
-  return .ofByteArray' $ ← deByteArray 8
+  return .ofByteArrayC $ ← deByteArray 8
 
 def deNat : DeM Nat := do
   match ← deUInt8 with
