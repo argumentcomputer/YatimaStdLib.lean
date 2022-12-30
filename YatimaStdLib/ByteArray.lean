@@ -29,11 +29,8 @@ def pushZeros (bytes : ByteArray) (n : Nat) : ByteArray := Id.run do
     bytes := bytes.push 0
   return bytes
 
+instance : BEq ByteArray := ⟨ByteArray.beqC⟩
 instance : Ord ByteArray := ⟨ByteArray.ordC⟩
-
-instance : BEq ByteArray where
-  beq x y := match compare x y with
-    | .eq => true | _ => false
 
 def Subarray.asBA (s : Subarray UInt8) : ByteArray :=
   s.as.data.toByteArray

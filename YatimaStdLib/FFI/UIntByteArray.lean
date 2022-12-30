@@ -16,5 +16,8 @@ opaque UInt32.ofByteArrayC : @& ByteArray → UInt32
 @[extern "lean_byte_array_to_uint64"]
 opaque UInt64.ofByteArrayC : @& ByteArray → UInt64
 
+@[extern "lean_byte_array_beq"]
+opaque ByteArray.beqC : @& ByteArray → @& ByteArray → Bool
+
 @[extern "lean_byte_array_ord"]
 opaque ByteArray.ordC : @& ByteArray → @& ByteArray → Ordering

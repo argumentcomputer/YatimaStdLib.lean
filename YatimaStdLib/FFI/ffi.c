@@ -40,6 +40,14 @@ extern l_res lean_byte_array_to_uint64(l_arg a) {
     return *((uint64_t*)lean_to_sarray(a)->m_data);
 }
 
+extern bool lean_byte_array_beq(l_arg a, l_arg b) {
+    lean_sarray_object* oa = lean_to_sarray(a);
+    lean_sarray_object* ob = lean_to_sarray(b);
+    size_t sa = oa->m_size;
+    if (sa == ob->m_size) return memcmp(oa->m_data, ob->m_data, sa) == 0;
+    return false;
+}
+
 extern uint8_t lean_byte_array_ord(l_arg a, l_arg b) {
     lean_sarray_object* oa = lean_to_sarray(a);
     lean_sarray_object* ob = lean_to_sarray(b);
