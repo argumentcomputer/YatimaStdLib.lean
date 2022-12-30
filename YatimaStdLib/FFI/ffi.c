@@ -6,7 +6,7 @@
 #define l_res lean_obj_res
 
 intern l_res mk_byte_array_from(void* data, size_t len) {
-    lean_sarray_object * o = (lean_sarray_object*)lean_alloc_object(
+    lean_sarray_object* o = (lean_sarray_object*)lean_alloc_object(
         sizeof(lean_sarray_object) + len
     );
     lean_set_st_header((lean_object*)o, LeanScalarArray, 1);
