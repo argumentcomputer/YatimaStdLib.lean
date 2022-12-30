@@ -31,7 +31,6 @@ def UInt32.ofByteArray' : ByteArray → UInt32
 
 def UInt64.ofByteArray' : ByteArray → UInt64
   | bytes => .ofNat bytes.asLEtoNat
-#eval (400).toByteArrayLE
 
 namespace LightData
 
@@ -126,7 +125,7 @@ def deBool : DeM Bool := do
 def deByteArray (n : Nat) : DeM ByteArray := do
   let idx ← get
   let ctx ← read
-  if ctx.size - idx - 1 < n then
+  if idx + n - 1 < ctx.size then
     set $ idx + n
     return ctx.bytes.copySlice idx .empty 0 n
   else throw s!"Not enough data to read {n} bytes (size {ctx.size}, idx {idx})"
@@ -168,8 +167,5 @@ partial def deLightData : DeM LightData := do
 
 def deserialize (bytes : ByteArray) : Except String LightData :=
   (StateT.run (ReaderT.run deLightData ⟨bytes, bytes.size, by eq_refl⟩) 0).1
-
-def qq : LightData := .arr #[300, 300]
-#eval (qq, deserialize qq.serialize)
 
 end LightData
