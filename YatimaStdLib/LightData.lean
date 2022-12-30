@@ -17,12 +17,12 @@ namespace LightData
 
 partial def toString : LightData → String
   | .nil => "nil"
-  | .bol true => "tt"
+  | .bol true  => "tt"
   | .bol false => "ff"
-  | .u8  x => s!"{x}u8"
-  | .u16 x => s!"{x}u16"
-  | .u32 x => s!"{x}u32"
-  | .u64 x => s!"{x}u64"
+  | .u8  x => s!"{x}ᵤ₈"
+  | .u16 x => s!"{x}ᵤ₁₆"
+  | .u32 x => s!"{x}ᵤ₃₂"
+  | .u64 x => s!"{x}ᵤ₆₄"
   | .lnk x => s!"{x}↑"
   | .str x => s!"\"{x}\""
   | .arr x => s!"⟨{", ".intercalate $ x.data.map toString}⟩"
