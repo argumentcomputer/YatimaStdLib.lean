@@ -1,8 +1,8 @@
 import YatimaStdLib.ByteArray
 import YatimaStdLib.DataClasses
+import YatimaStdLib.Either
 
 inductive LightData
-  | nil : LightData
   | bol : Bool   → LightData
   | u8  : UInt8  → LightData
   | u16 : UInt16 → LightData
@@ -11,21 +11,28 @@ inductive LightData
   | lnk : UInt64 → LightData
   | str : String → LightData
   | arr : Array LightData → LightData
+  | prd : LightData × LightData → LightData
+  | opt : Option LightData → LightData
+  | eit : Either LightData LightData → LightData
   deriving Inhabited, BEq
 
 namespace LightData
 
 partial def toString : LightData → String
-  | .nil       => "nil"
-  | .bol true  => "tt"
-  | .bol false => "ff"
-  | .u8  x => s!"{x}ᵤ₈"
-  | .u16 x => s!"{x}ᵤ₁₆"
-  | .u32 x => s!"{x}ᵤ₃₂"
-  | .u64 x => s!"{x}ᵤ₆₄"
-  | .lnk x => s!"{x}↑"
-  | .str x => s!"\"{x}\""
-  | .arr x => s!"⟨{", ".intercalate $ x.data.map toString}⟩"
+  | bol true  => "tt"
+  | bol false => "ff"
+  | u8  x => s!"{x}ᵤ₈"
+  | u16 x => s!"{x}ᵤ₁₆"
+  | u32 x => s!"{x}ᵤ₃₂"
+  | u64 x => s!"{x}ᵤ₆₄"
+  | lnk x => s!"↑{x}"
+  | str x => s!"\"{x}\""
+  | arr x => s!"⟨{", ".intercalate $ x.data.map toString}⟩"
+  | prd (x, y) => s!"({x.toString}, {y.toString})"
+  | opt none => "?"
+  | opt $  some  x => s!"!{x.toString}"
+  | eit $ .left  x => s!"←{x.toString}"
+  | eit $ .right x => s!"→{x.toString}"
 
 instance : ToString LightData := ⟨LightData.toString⟩
 
@@ -38,38 +45,53 @@ partial def ofNat (x : Nat) : LightData :=
   else if x < UInt64.size then u64 (.ofNat x)
   else ofNat $ x % UInt64.size -- overflow
 
-instance : SerDe LightData LightData ε where
-  ser := id
-  de  := pure
+instance : DataMap LightData LightData ε := ⟨id, pure⟩
 
-instance : SerDe Bool LightData String where
+instance : DataMap Bool LightData String where
   ser := bol
   de | bol x => pure x | x => throw s!"Expected a boolean but got {x}"
 
-instance : SerDe Nat LightData String where
+instance : DataMap Nat LightData String where
   ser := ofNat
   de
     | u8 x | u16 x | u32 x | u64 x => pure x.toNat
     | x => throw s!"Expected a numeric value but got {x}"
 
-instance : SerDe String LightData String where
+instance : DataMap String LightData String where
   ser := str
   de | str x => pure x | x => throw s!"Expected a string but got {x}"
 
-instance [SerDe α LightData String] : SerDe (Array α) LightData String where
-  ser x := arr $ x.map SerDe.ser
-  de | arr x => x.mapM SerDe.de | x => throw s!"Expected an array but got {x}"
+variable [h : DataMap α LightData String]
 
-instance [SerDe α LightData String] : SerDe (List α) LightData String where
-  ser x := arr $ .mk $ x.map SerDe.ser
-  de | arr x => x.data.mapM SerDe.de | x => throw s!"Expected an array but got {x}"
+instance : DataMap (Array α) LightData String where
+  ser x := arr $ x.map DataMap.ser
+  de | arr x => x.mapM DataMap.de | x => throw s!"Expected an array but got {x}"
 
-instance [h : SerDe α LightData String] : SerDe (Option α) LightData String where
-  ser | none => nil | some a => arr #[SerDe.ser a]
+instance : DataMap (List α) LightData String where
+  ser x := arr $ .mk $ x.map DataMap.ser
+  de | arr x => x.data.mapM DataMap.de | x => throw s!"Expected an array but got {x}"
+
+instance : DataMap (Option α) LightData String where
+  ser | none => opt none | some a => opt $ some (DataMap.ser a)
   de
-    | nil => return none
-    | arr #[x] => h.de x
-    | x => throw s!"Expected an array but got {x}"
+    | opt none => pure none
+    | opt $ some x => return some (← DataMap.de x)
+    | x => throw s!"Expected an option but got {x}"
+
+variable [h' : DataMap β LightData String]
+
+instance : DataMap (α × β) LightData String where
+  ser | (a, b) => prd (h.ser a, h'.ser b)
+  de
+    | prd (a, b) => return (← h.de a, ← h'.de b)
+    | x => throw s!"Expected a prod but got {x}"
+
+instance : DataMap (Either α β) LightData String where
+  ser | .left a => eit $ .left (h.ser a) | .right b => eit $ .right (h'.ser b)
+  de
+    | eit (.left a) => return .left $ ← h.de a
+    | eit (.right b) => return .right $ ← h'.de b
+    | x => throw s!"Expected an either but got {x}"
 
 instance : OfNat LightData n := ⟨.ofNat n⟩
 
@@ -78,8 +100,8 @@ end DataToOfLightData
 section LightDataToOfByteArray
 
 def tag : LightData → UInt8
-  | nil   => 0
-  | bol _ => 1
+  | bol false => 0
+  | bol true  => 1
   | u8  _ => 2
   | u16 _ => 3
   | u32 _ => 4
@@ -87,20 +109,30 @@ def tag : LightData → UInt8
   | lnk _ => 6
   | str _ => 7
   | arr _ => 8
+  | prd _ => 9
+  | opt    none    => 10
+  | opt $  some  _ => 11
+  | eit $ .left  _ => 12
+  | eit $ .right _ => 13
 
-partial def toByteArray : LightData → ByteArray
-  | nil => .mk #[0]
-  | d@(bol false) => .mk #[d.tag, 0]
-  | d@(bol true) => .mk #[d.tag, 1]
-  | d@(u8  x) => .mk #[d.tag, x]
-  | d@(u16 x)
-  | d@(u32 x)
-  | d@(u64 x)
-  | d@(lnk x) => .mk #[d.tag] ++ x.toByteArrayC
-  | d@(str x) => let x := x.toUTF8; .mk #[d.tag] ++ toByteArray x.size ++ x
-  | d@(arr x) =>
+partial def toByteArray (d : LightData) : ByteArray :=
+  match d with
+  | bol false => .mk #[d.tag]
+  | bol true  => .mk #[d.tag]
+  | u8  x     => .mk #[d.tag, x]
+  | u16 x
+  | u32 x
+  | u64 x
+  | lnk x => .mk #[d.tag] ++ x.toByteArrayC
+  | str x => let x := x.toUTF8; .mk #[d.tag] ++ toByteArray x.size ++ x
+  | arr x =>
     let init := ⟨#[d.tag]⟩ ++ toByteArray x.size
     x.foldl (fun acc x => acc.append x.toByteArray) init
+  | prd (x, y) => .mk #[d.tag] ++ x.toByteArray ++ y.toByteArray
+  | opt none => .mk #[d.tag]
+  | opt $  some  x
+  | eit $ .left  x
+  | eit $ .right x => .mk #[d.tag] ++ x.toByteArray
 
 structure Bytes where
   bytes : ByteArray
@@ -150,8 +182,8 @@ def readNat : OfBytesM Nat := do
 
 partial def readLightData : OfBytesM LightData := do
   match ← readUInt8 with
-  | 0 => return nil
-  | 1 => return bol $ ← readBool
+  | 0 => return bol false
+  | 1 => return bol true
   | 2 => return u8  $ ← readUInt8
   | 3 => return u16 $ ← readUInt16
   | 4 => return u32 $ ← readUInt32
@@ -161,12 +193,17 @@ partial def readLightData : OfBytesM LightData := do
   | 8 =>
     return arr $ ← List.range (← readNat) |>.foldlM (init := #[]) fun acc _ => do
       pure $ acc.push (← readLightData)
+  | 9 => return prd (← readLightData, ← readLightData)
+  | 10 => return opt none
+  | 11 => return opt $ some (← readLightData)
+  | 12 => return eit $ .left (← readLightData)
+  | 13 => return eit $ .right (← readLightData)
   | x => throw s!"Invalid LightData tag: {x}"
 
 def ofByteArray (bytes : ByteArray) : Except String LightData :=
   (StateT.run (ReaderT.run readLightData ⟨bytes, bytes.size, by eq_refl⟩) 0).1
 
-instance : SerDe LightData ByteArray String where
+instance : DataMap LightData ByteArray String where
   ser := toByteArray
   de  := ofByteArray
 
@@ -174,16 +211,21 @@ end LightDataToOfByteArray
 
 section Hashing
 
-protected partial def hash : LightData → UInt64
-  | nil => 0
-  | d@(bol x)
-  | d@(u8  x)
-  | d@(u16 x)
-  | d@(u32 x)
-  | d@(u64 x)
-  | d@(lnk x)
-  | d@(str x) => hash (d.tag, x)
-  | d@(arr x) => hash (d.tag, x.map (·.hash))
+protected partial def hash (d : LightData) : UInt64 :=
+  match d with
+  | bol x
+  | u8  x
+  | u16 x
+  | u32 x
+  | u64 x
+  | lnk x
+  | str x => hash (d.tag, x)
+  | arr x => hash (d.tag, x.map (·.hash))
+  | prd (x, y) => hash (d.tag, x.hash, y.hash)
+  | opt none => hash (d.tag, 0)
+  | opt $  some  x
+  | eit $ .left  x
+  | eit $ .right x => hash (d.tag, x.hash)
 
 instance : HashRepr LightData UInt64 where
   hashFunc := LightData.hash

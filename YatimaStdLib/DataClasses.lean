@@ -1,14 +1,14 @@
 /--
-If any `a : α` can be serialized into `d : δ` for a data format `δ` and if
-there's a function that deserializes `d` back to `a`, being allowed to throw
-errors (of any type `ε`), then we say that `α` has a "SerDe" interface to `δ`
+If any `a : α` can be mapped to `d : δ` for a data format `δ` and if there's a
+function that maps `d` back to `a`, being allowed to throw errors (of any type
+`ε`), then we say that we have a data mapping from `α` to `δ`
 -/
-class SerDe (α δ : Type _) (ε : outParam $ Type _) where
+class DataMap (α δ : Type _) (ε : outParam $ Type _) where
   ser : α → δ
   de : δ → Except ε α
 
-/-- Any `SerDe α δ _` instance gives us a trivial `Coe α δ` instance -/
-instance [SerDe α δ ε] : Coe α δ := ⟨SerDe.ser⟩
+/-- Any `DataMap α δ _` instance gives us a trivial `Coe α δ` instance -/
+instance [DataMap α δ ε] : Coe α δ := ⟨DataMap.ser⟩
 
 /--
 If a data format `δ` can be hashed to a type `τ` and if there is a way to

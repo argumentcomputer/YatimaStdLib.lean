@@ -2,9 +2,11 @@ import LSpec
 import YatimaStdLib.LightData
 
 def data : List LightData := [
-  .nil, true, false, 0, 1, 255, 256, 300, 300000, "", "aaa", "\\", "\"",
-  .arr #[.nil, true, false, 0, 1, 255, 256, 300, 300000, "", "aaa", "\\", "\""],
-  .arr #[.nil, .arr #[.nil, .arr #[.nil, 1, "hello", "world"]]]
+  true, false, 0, 1, 255, 256, 300, 300000, "", "aaa", "\\", "\"",
+  (none : Option Nat), some 3, some (some 2), ("ars", 3, some #[3]),
+  (.left 1 : Either Nat String), (.right #[3] : Either Nat (Array Nat)),
+  .arr #[true, false, 0, 1, 255, 256, 300, 300000, "", "aaa", "\\", "\""],
+  .arr #[.arr #[false, .arr #[true, 1, "hello", "world"]]]
 ]
 
 open LSpec
