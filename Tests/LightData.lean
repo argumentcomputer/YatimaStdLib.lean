@@ -10,8 +10,8 @@ def data : List LightData := [
 open LSpec
 
 #lspec data.foldl (init := .done) fun tSeq d =>
-  let bytes := d.serialize
-  tSeq ++ withExceptOk s!"{d} deserializes" (LightData.deserialize bytes)
+  let bytes := d.toByteArray
+  tSeq ++ withExceptOk s!"{d} deserializes" (LightData.ofByteArray bytes)
     fun d' => test s!"{d} roundtrips" (d == d')
 
 #lspec data.foldl (init := .done) fun tSeq d =>
