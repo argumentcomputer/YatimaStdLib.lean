@@ -1,14 +1,14 @@
 /--
-If any `a : α` can be mapped to `d : δ` for a data format `δ` and if there's a
-function that maps `d` back to `a`, being allowed to throw errors (of any type
-`ε`), then we say that we have a data mapping from `α` to `δ`
+`Encodable α δ ε` means that `α` is encodable into a data format `δ` with some 
+injection `encode : α → δ`. It also provides a partial function `decode : δ → α`
+that may throws errors `ε` for elements with no preimage
 -/
-class DataMap (α δ : Type _) (ε : outParam $ Type _) where
-  ser : α → δ
-  de : δ → Except ε α
+class Encodable (α δ : Type _) (ε : outParam $ Type _) where
+  encode : α → δ
+  decode : δ → Except ε α
 
 /-- Any `DataMap α δ _` instance gives us a trivial `Coe α δ` instance -/
-instance [DataMap α δ ε] : Coe α δ := ⟨DataMap.ser⟩
+instance [Encodable α δ ε] : Coe α δ := ⟨Encodable.encode⟩
 
 /--
 If a data format `δ` can be hashed to a type `τ` and if there is a way to
