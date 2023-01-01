@@ -14,9 +14,35 @@ inductive LightData
   | prd : LightData × LightData → LightData
   | opt : Option LightData → LightData
   | eit : Either LightData LightData → LightData
-  deriving Inhabited, BEq
+  | big : (n : UInt8) → Fin (2 ^ (8 * n.toNat)) → LightData
+  deriving Inhabited
 
 namespace LightData
+
+partial def beq : LightData → LightData → Bool
+  | bol x, bol y
+  | u8  x, u8  y
+  | u16 x, u16 y
+  | u32 x, u32 y
+  | u64 x, u64 y
+  | lnk x, lnk y
+  | str x, str y => x == y
+  | arr x, arr y =>
+    let rec aux : List LightData → List LightData → Bool
+      | _ :: _, []
+      | [], _ :: _ => false
+      | [], [] => true
+      | x :: xs, y :: ys => x.beq y && aux xs ys
+    aux x.data y.data
+  | prd (x₁, x₂), prd (y₁, y₂) => x₁.beq y₁ && x₂.beq y₂
+  | opt none, opt none => true
+  | opt $ some x, opt $ some y
+  | eit $ .left x, eit $ .left y
+  | eit $ .right x, eit $ .right y => x.beq y
+  | big n₁ f₁, big n₂ f₂ => if n₁ == n₂ then f₁.val == f₂.val else false
+  | _, _ => false
+
+instance : BEq LightData := ⟨beq⟩
 
 partial def toString : LightData → String
   | bol true  => "tt"
@@ -33,8 +59,9 @@ partial def toString : LightData → String
   | opt $  some  x => s!"!{x.toString}"
   | eit $ .left  x => s!"←{x.toString}"
   | eit $ .right x => s!"→{x.toString}"
+  | big n f => s!"{n.toNat.toSubscriptString}{f.val}"
 
-instance : ToString LightData := ⟨LightData.toString⟩
+instance : ToString LightData := ⟨toString⟩
 
 section DataToOfLightData
 
@@ -119,6 +146,7 @@ def tag : LightData → UInt8
   | opt $  some  _ => 11
   | eit $ .left  _ => 12
   | eit $ .right _ => 13
+  | big .. => 14
 
 partial def toByteArray (d : LightData) : ByteArray :=
   match d with
@@ -131,6 +159,9 @@ partial def toByteArray (d : LightData) : ByteArray :=
   | prd (x, y) => .mk #[d.tag] ++ x.toByteArray ++ y.toByteArray
   | opt none => .mk #[d.tag]
   | opt $ some x | eit $ .left x | eit $ .right x => ⟨#[d.tag]⟩ ++ x.toByteArray
+  | big n f =>
+    let bytes := f.val.toByteArrayLE
+    .mk #[d.tag, n] ++ (bytes.pushZeros (n.toNat - bytes.size))
 
 structure Bytes where
   bytes : ByteArray
@@ -190,10 +221,17 @@ partial def readLightData : OfBytesM LightData := do
   | 11 => return opt $ some (← readLightData)
   | 12 => return eit $ .left (← readLightData)
   | 13 => return eit $ .right (← readLightData)
+  | 14 =>
+    let len ← readUInt8
+    let lenNat := len.toNat
+    let lenNat8 := 8 * lenNat
+    let h : (2 ^ lenNat8).isPowerOfTwo := .intro lenNat8 rfl
+    return big len $
+      .ofNat' (← readByteArray lenNat).asLEtoNat (Nat.pos_of_isPowerOfTwo h)
   | x => throw s!"Invalid LightData tag: {x}"
 
 def ofByteArray (bytes : ByteArray) : Except String LightData :=
-  (StateT.run (ReaderT.run readLightData ⟨bytes, bytes.size, by eq_refl⟩) 0).1
+  (StateT.run (ReaderT.run readLightData ⟨bytes, bytes.size, rfl⟩) 0).1
 
 instance : Encodable LightData ByteArray String where
   encode := toByteArray
@@ -212,6 +250,7 @@ protected partial def hash (d : LightData) : UInt64 :=
   | opt $  some  x
   | eit $ .left  x
   | eit $ .right x => hash (d.tag, x.hash)
+  | big n f => hash (d.tag, n, f.val.toByteArrayLE.data)
 
 instance : HashRepr LightData UInt64 where
   hashFunc := LightData.hash
