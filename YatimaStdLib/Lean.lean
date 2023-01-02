@@ -1,31 +1,5 @@
 import Lean
 
-namespace Lean.Name
-
-def compareNames : Name → Name → Ordering
-  | .anonymous, .anonymous => .eq
-  | .num namₗ nₗ, .num namᵣ nᵣ =>
-    if nₗ < nᵣ then .lt
-    else
-      if nₗ > nᵣ then .gt
-      else compareNames namₗ namᵣ
-  | .str namₗ sₗ, .str namᵣ sᵣ =>
-    if sₗ < sᵣ then .lt
-    else
-      if sₗ > sᵣ then .gt
-      else compareNames namₗ namᵣ
-  | .anonymous, .num .. => .lt
-  | .anonymous, .str .. => .lt
-  | .num .., .str .. => .lt
-  | .num .., .anonymous => .gt
-  | .str .., .anonymous => .gt
-  | .str .., .num .. => .gt
-
-instance : Ord Name where
-  compare := compareNames
-
-end Lean.Name
-
 namespace Lean.Expr
 
 def constName (e : Expr) : Name :=
