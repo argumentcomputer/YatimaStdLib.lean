@@ -4,9 +4,9 @@
  [{"git":
    {"url": "https://github.com/yatima-inc/lspec/",
     "subDir?": null,
-    "rev": "16ec19e608385e947ef9b7e286c048e27e6aa664",
+    "rev": "129fd4ba76d5cb9abf271dc29208a28f45fd981e",
     "name": "LSpec",
-    "inputRev?": "16ec19e608385e947ef9b7e286c048e27e6aa664"}},
+    "inputRev?": "129fd4ba76d5cb9abf271dc29208a28f45fd981e"}},
   {"git":
    {"url": "https://github.com/leanprover/std4/",
     "subDir?": null,

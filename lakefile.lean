@@ -26,4 +26,4 @@ require std from git
   "https://github.com/leanprover/std4/" @ "2919713bde15d55e3ea3625a03546531283bcb54"
 
 require LSpec from git
-  "https://github.com/yatima-inc/lspec/" @ "16ec19e608385e947ef9b7e286c048e27e6aa664"
+  "https://github.com/yatima-inc/lspec/" @ "129fd4ba76d5cb9abf271dc29208a28f45fd981e"
