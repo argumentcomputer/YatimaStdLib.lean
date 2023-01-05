@@ -25,8 +25,14 @@ def leadingZeroBits (bytes : ByteArray) : Nat := Id.run do
 def pushZeros (bytes : ByteArray) (n : Nat) : ByteArray :=
   bytes ++ ⟨.mkArray n 0⟩
 
+def beq (a b : ByteArray) : Bool :=
+  a.data == b.data
+
 @[extern "lean_byte_array_beq"]
 opaque beqC : @& ByteArray → @& ByteArray → Bool
+
+def ord (a b : ByteArray) : Ordering :=
+  compare a.data.data b.data.data
 
 @[extern "lean_byte_array_ord"]
 opaque ordC : @& ByteArray → @& ByteArray → Ordering
@@ -74,10 +80,3 @@ def shiftAdd (bs : ByteArray) (b : Bit) : ByteArray :=
   ans.set! (ans.size - 1) ((getD ans (ans.size - 1) 0) + b.toUInt8)
 
 end ByteArray
-
-partial def UInt64.toByteArray (u : UInt64) : ByteArray :=
-  let rec loop (u : UInt64) (acc : Array UInt8) :=
-    if u == 0 then acc else loop (u >>> 8) <| acc.push (u &&& (0xff : UInt64)).toUInt8
-  loop u #[] |>.reverse
-             |> ByteArray.mk
-             |> (fun bs => .padLeft bs 0 (8 - bs.size))
