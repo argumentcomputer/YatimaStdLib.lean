@@ -1,6 +1,5 @@
 *.olean
 result*
 /build
-/lean_packages/*
-!/lean_packages/manifest.json
+/lake-packages
 !/YatimaStdLib/MLE/cache.json

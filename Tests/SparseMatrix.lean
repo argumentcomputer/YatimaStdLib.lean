@@ -1,5 +1,4 @@
 import LSpec
-import Lean.Data.Rat
 import YatimaStdLib.SparseMatrix
 
 open Lean LSpec SparseMatrix

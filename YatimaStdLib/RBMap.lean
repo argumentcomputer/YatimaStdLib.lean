@@ -17,6 +17,9 @@ def filterOut [BEq α] [Ord α] (map : RBMap α β cmp) (t : RBSet α cmp) :
     RBMap α β cmp :=
   RBMap.foldl (fun acc a b => if t.contains a then acc else acc.insert a b) map (init := default)
 
+def fromArray (x : Array (α × β)) : RBMap α β cmp :=
+  x.foldl (fun r p => r.insert p.1 p.2) (mkRBMap α β cmp)
+
 /- 
 Merge two RBMaps, always taking the first value in case of a key being present
 in both maps. Intended for set simulation.

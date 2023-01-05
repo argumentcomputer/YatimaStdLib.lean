@@ -56,12 +56,16 @@ def sigBits (x : Nat) : Nat :=
 def log2' (x : Nat) : Nat :=
   sigBits x - 1
 
-/-- Given a natural number n, nextPowerOfTwo returns the smallest power of two,
-which is less than or equal to 2^n-/
-def Nat.nextPowerOfTwo (n : Nat) : Nat :=
+/--
+Given a natural number n, `nextPowerOfTwo'` returns the smallest power of two
+which is less than or equal to `2^n`.
+
+This version uses the low-level implementation of `Nat.log2` and is meant to be
+faster than the original `Nat.nextPowerOfTwo`
+-/
+def nextPowerOfTwo' (n : Nat) : Nat :=
   if n == 0 then 1 else
-  let exp := n.log2' + 1
-  1 <<< exp
+  1 <<< (n.log2 + 1)
 
 section GCD
 
