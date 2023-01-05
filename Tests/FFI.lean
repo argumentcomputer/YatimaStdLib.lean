@@ -1,5 +1,7 @@
 import LSpec
-import YatimaStdLib.FFI.UIntByteArray
+import YatimaStdLib.UInt
+import YatimaStdLib.ByteArray
+import YatimaStdLib.ByteVector
 
 open LSpec
 
@@ -14,10 +16,13 @@ def nats : List Nat := [
   let u16 : UInt16 := .ofNat n
   let u32 : UInt32 := .ofNat n
   let u64 : UInt64 := .ofNat n
+  let x : ByteVector 2 := ⟨u16.toByteArrayC, sorry⟩
+  let y : ByteVector 4 := ⟨u32.toByteArrayC, sorry⟩
+  let z : ByteVector 8 := ⟨u64.toByteArrayC, sorry⟩
   tSeq ++
-    (test s!"{n}₁₆ roundtrips" $ UInt16.ofByteArrayC u16.toByteArrayC == u16) ++
-    (test s!"{n}₃₂ roundtrips" $ UInt32.ofByteArrayC u32.toByteArrayC == u32) ++
-    (test s!"{n}₆₄ roundtrips" $ UInt64.ofByteArrayC u64.toByteArrayC == u64)
+    (test s!"{n}₁₆ roundtrips" $ x.toUInt16 == u16) ++
+    (test s!"{n}₃₂ roundtrips" $ y.toUInt32 == u32) ++
+    (test s!"{n}₆₄ roundtrips" $ z.toUInt64 == u64)
 
 def arrays : List ByteArray := [
   ⟨#[]⟩, ⟨#[1]⟩, ⟨#[0, 3]⟩, ⟨#[1, 1, 1]⟩, ⟨#[3, 3, 3, 3]⟩, ⟨#[13]⟩

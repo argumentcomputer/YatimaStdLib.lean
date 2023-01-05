@@ -1,7 +1,6 @@
 import YatimaStdLib.List
 import YatimaStdLib.Nat
 import YatimaStdLib.UInt
-import YatimaStdLib.FFI.UIntByteArray
 
 namespace ByteArray
 
@@ -23,11 +22,14 @@ def leadingZeroBits (bytes : ByteArray) : Nat := Id.run do
     else c := c + zs
   return c
 
-def pushZeros (bytes : ByteArray) (n : Nat) : ByteArray := Id.run do
-  let mut bytes := bytes
-  for _ in [0 : n] do
-    bytes := bytes.push 0
-  return bytes
+def pushZeros (bytes : ByteArray) (n : Nat) : ByteArray :=
+  bytes ++ ⟨.mkArray n 0⟩
+
+@[extern "lean_byte_array_beq"]
+opaque beqC : @& ByteArray → @& ByteArray → Bool
+
+@[extern "lean_byte_array_ord"]
+opaque ordC : @& ByteArray → @& ByteArray → Ordering
 
 instance : BEq ByteArray := ⟨ByteArray.beqC⟩
 instance : Ord ByteArray := ⟨ByteArray.ordC⟩

@@ -1,4 +1,5 @@
 import YatimaStdLib.ByteArray
+import YatimaStdLib.ByteVector
 import YatimaStdLib.DataClasses
 import YatimaStdLib.Either
 
@@ -178,22 +179,22 @@ def readUInt8 : OfBytesM UInt8 := do
     return ctx.bytes.get ⟨idx, by rw [ctx.valid]; exact h⟩
   else throw "No more bytes to read"
 
-def readByteArray (n : Nat) : OfBytesM ByteArray := do
+def readByteArray (n : Nat) : OfBytesM $ ByteVector n := do
   let idx ← get
   let ctx ← read
   if idx + n - 1 < ctx.size then
     set $ idx + n
-    return ctx.bytes.copySlice idx .empty 0 n
+    return ⟨ctx.bytes.copySlice idx .empty 0 n, sorry⟩
   else throw s!"Not enough data to read {n} bytes (size {ctx.size}, idx {idx})"
 
 def readUInt16 : OfBytesM UInt16 :=
-  return .ofByteArrayC $ ← readByteArray 2
+  return (← readByteArray 2).toUInt16
 
 def readUInt32 : OfBytesM UInt32 :=
-  return .ofByteArrayC $ ← readByteArray 4
+  return (← readByteArray 4).toUInt32
 
 def readUInt64 : OfBytesM UInt64 :=
-  return .ofByteArrayC $ ← readByteArray 8
+  return (← readByteArray 8).toUInt64
 
 def readNat : OfBytesM Nat := do
   match ← readUInt8 with
@@ -212,7 +213,7 @@ partial def readLightData : OfBytesM LightData := do
   | 4 => return u32 $ ← readUInt32
   | 5 => return u64 $ ← readUInt64
   | 6 => return lnk $ ← readUInt64
-  | 7 => return str $ .fromUTF8Unchecked $ ← readByteArray (← readNat)
+  | 7 => return str $ .fromUTF8Unchecked $ (← readByteArray (← readNat)).1
   | 8 =>
     return arr $ ← List.range (← readNat) |>.foldlM (init := #[])
       fun acc _ => do pure $ acc.push (← readLightData)
@@ -227,7 +228,7 @@ partial def readLightData : OfBytesM LightData := do
     let lenNat8 := 8 * lenNat
     let h : (2 ^ lenNat8).isPowerOfTwo := .intro lenNat8 rfl
     return big len $
-      .ofNat' (← readByteArray lenNat).asLEtoNat (Nat.pos_of_isPowerOfTwo h)
+      .ofNat' (← readByteArray lenNat).1.asLEtoNat (Nat.pos_of_isPowerOfTwo h)
   | x => throw s!"Invalid LightData tag: {x}"
 
 def ofByteArray (bytes : ByteArray) : Except String LightData :=
