@@ -20,5 +20,5 @@ instance : FixedSize (Matrix Nat) where
       answer := answer.push (← random size)
     return answer
 
-def main : IO Unit := benchmarks (stdSizes 12) (fun ((v : Vector Nat), (m : Matrix Nat)) =>
-  m.action v)
+def main (args : List String) : IO Unit := benchmarks args (stdSizes 12) 
+  (fun ((v : Vector Nat), (m : Matrix Nat)) => m.action v)
