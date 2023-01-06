@@ -79,4 +79,32 @@ def shiftAdd (bs : ByteArray) (b : Bit) : ByteArray :=
   let ans := shiftLeft bs
   ans.set! (ans.size - 1) ((getD ans (ans.size - 1) 0) + b.toUInt8)
 
+def sliceL (bs : ByteArray) (i n : Nat) : ByteArray :=
+  let rec aux (acc : Array UInt8) : Nat → List UInt8 → Array UInt8
+    | 0, _ => acc
+    | n, [] => acc ++ (.mkArray n 0)
+    | n + 1, b :: bs => aux (acc.push b) n bs
+  .mk $ aux #[] n (bs.data.data.drop i)
+
+@[extern "lean_byte_array_slice"]
+opaque sliceC : @& ByteArray → Nat → Nat → ByteArray
+
+@[extern "lean_byte_array_slice"]
+def slice : @& ByteArray → Nat → Nat → ByteArray :=
+  sliceL
+
+theorem slice_size : (slice bytes i n).size = n := by
+  simp [slice, sliceL]
+  induction n with
+  | zero => simp [sliceL.aux]
+  | succ n h =>
+    let l := bytes.data.data.drop i
+    have : bytes.data.data.drop i = l := rfl
+    rw [this] at h ⊢
+    match l with
+    | [] =>
+      simp [sliceL.aux, mkArray]
+      sorry
+    | b :: bs => sorry
+
 end ByteArray

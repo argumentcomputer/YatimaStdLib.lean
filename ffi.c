@@ -5,6 +5,16 @@
 #define l_arg b_lean_obj_arg
 #define l_res lean_obj_res
 
+intern lean_sarray_object* mk_empty_byte_array(size_t len) {
+    lean_sarray_object* o = (lean_sarray_object*)lean_alloc_object(
+        sizeof(lean_sarray_object) + len
+    );
+    lean_set_st_header((lean_object*)o, LeanScalarArray, 1);
+    o->m_size = len;
+    o->m_capacity = len;
+    return o;
+}
+
 intern l_res mk_byte_array_from(void* data, size_t len) {
     lean_sarray_object* o = (lean_sarray_object*)lean_alloc_object(
         sizeof(lean_sarray_object) + len
@@ -61,4 +71,22 @@ extern uint8_t lean_byte_array_ord(l_arg a, l_arg b) {
     }
     else if (sa < sb) return 0;
     return 2;
+}
+
+extern l_res lean_byte_array_slice(l_arg a, size_t i, size_t n) {
+    lean_sarray_object* oa = lean_to_sarray(a);
+    size_t size = oa->m_size;
+    lean_sarray_object* res = mk_empty_byte_array(n);
+    if (i < size) {
+        size_t copy_len;
+        size_t would = i + n;
+        if (would < size) copy_len = would;
+        else copy_len = size - i;
+        memcpy(
+            (void*)res->m_data,
+            (void*)oa->m_data + i * sizeof(uint8_t),
+            copy_len
+        );
+    }
+    return (lean_object*)res;
 }

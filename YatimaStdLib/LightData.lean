@@ -184,7 +184,7 @@ def readByteArray (n : Nat) : OfBytesM $ ByteVector n := do
   let ctx ← read
   if idx + n - 1 < ctx.size then
     set $ idx + n
-    return ⟨ctx.bytes.copySlice idx .empty 0 n, sorry⟩
+    return ⟨ctx.bytes.slice idx n, ByteArray.slice_size⟩
   else throw s!"Not enough data to read {n} bytes (size {ctx.size}, idx {idx})"
 
 def readUInt16 : OfBytesM UInt16 :=
