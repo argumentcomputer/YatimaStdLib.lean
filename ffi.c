@@ -5,6 +5,17 @@
 #define l_arg b_lean_obj_arg
 #define l_res lean_obj_res
 
+intern lean_sarray_object* mk_empty_byte_array(size_t len) {
+    lean_sarray_object* o = (lean_sarray_object*)lean_alloc_object(
+        sizeof(lean_sarray_object) + len
+    );
+    lean_set_st_header((lean_object*)o, LeanScalarArray, 1);
+    o->m_size = len;
+    o->m_capacity = len;
+    memset(o->m_data, 0, len);
+    return o;
+}
+
 intern l_res mk_byte_array_from(void* data, size_t len) {
     lean_sarray_object* o = (lean_sarray_object*)lean_alloc_object(
         sizeof(lean_sarray_object) + len
@@ -28,15 +39,15 @@ extern l_res lean_uint64_to_byte_array(uint64_t n) {
     return mk_byte_array_from((void*)&n, 8);
 }
 
-extern l_res lean_byte_array_to_uint16(l_arg a) {
+extern uint16_t lean_byte_vector_to_uint16(l_arg a) {
     return *((uint16_t*)lean_to_sarray(a)->m_data);
 }
 
-extern l_res lean_byte_array_to_uint32(l_arg a) {
+extern uint32_t lean_byte_vector_to_uint32(l_arg a) {
     return *((uint32_t*)lean_to_sarray(a)->m_data);
 }
 
-extern l_res lean_byte_array_to_uint64(l_arg a) {
+extern uint64_t lean_byte_vector_to_uint64(l_arg a) {
     return *((uint64_t*)lean_to_sarray(a)->m_data);
 }
 
@@ -61,4 +72,26 @@ extern uint8_t lean_byte_array_ord(l_arg a, l_arg b) {
     }
     else if (sa < sb) return 0;
     return 2;
+}
+
+intern size_t nat_to_size_t(lean_obj_arg n) {
+    if (!lean_is_scalar(n))
+        lean_internal_panic("ByteArray.slice can't accept large parameters");
+    return lean_unbox(n);
+}
+
+extern l_res lean_byte_array_slice(l_arg a, lean_obj_arg oi, lean_obj_arg on) {
+    size_t i = nat_to_size_t(oi);
+    size_t n = nat_to_size_t(on);
+    lean_sarray_object* oa = lean_to_sarray(a);
+    size_t size = oa->m_size;
+    lean_sarray_object* res = mk_empty_byte_array(n);
+    if (i < size) {
+        size_t copy_len;
+        size_t would = i + n;
+        if (would < size) copy_len = would - i;
+        else copy_len = size - i;
+        memcpy(res->m_data, (oa->m_data + i * sizeof(uint8_t)), copy_len);
+    }
+    return (lean_object*)res;
 }

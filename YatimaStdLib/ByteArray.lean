@@ -1,7 +1,6 @@
 import YatimaStdLib.List
 import YatimaStdLib.Nat
 import YatimaStdLib.UInt
-import YatimaStdLib.FFI.UIntByteArray
 
 namespace ByteArray
 
@@ -23,11 +22,20 @@ def leadingZeroBits (bytes : ByteArray) : Nat := Id.run do
     else c := c + zs
   return c
 
-def pushZeros (bytes : ByteArray) (n : Nat) : ByteArray := Id.run do
-  let mut bytes := bytes
-  for _ in [0 : n] do
-    bytes := bytes.push 0
-  return bytes
+def pushZeros (bytes : ByteArray) (n : Nat) : ByteArray :=
+  bytes ++ ⟨.mkArray n 0⟩
+
+def beq (a b : ByteArray) : Bool :=
+  a.data == b.data
+
+@[extern "lean_byte_array_beq"]
+opaque beqC : @& ByteArray → @& ByteArray → Bool
+
+def ord (a b : ByteArray) : Ordering :=
+  compare a.data.data b.data.data
+
+@[extern "lean_byte_array_ord"]
+opaque ordC : @& ByteArray → @& ByteArray → Ordering
 
 instance : BEq ByteArray := ⟨ByteArray.beqC⟩
 instance : Ord ByteArray := ⟨ByteArray.ordC⟩
@@ -71,11 +79,31 @@ def shiftAdd (bs : ByteArray) (b : Bit) : ByteArray :=
   let ans := shiftLeft bs
   ans.set! (ans.size - 1) ((getD ans (ans.size - 1) 0) + b.toUInt8)
 
-end ByteArray
+def sliceL (bs : ByteArray) (i n : Nat) : ByteArray :=
+  let rec aux (acc : Array UInt8) : Nat → List UInt8 → Array UInt8
+    | 0, _ => acc
+    | n, [] => acc ++ (.mkArray n 0)
+    | n + 1, b :: bs => aux (acc.push b) n bs
+  .mk $ aux #[] n (bs.data.data.drop i)
 
-partial def UInt64.toByteArray (u : UInt64) : ByteArray :=
-  let rec loop (u : UInt64) (acc : Array UInt8) :=
-    if u == 0 then acc else loop (u >>> 8) <| acc.push (u &&& (0xff : UInt64)).toUInt8
-  loop u #[] |>.reverse
-             |> ByteArray.mk
-             |> (fun bs => .padLeft bs 0 (8 - bs.size))
+@[extern "lean_byte_array_slice"]
+opaque sliceC : @& ByteArray → Nat → Nat → ByteArray
+
+@[extern "lean_byte_array_slice"]
+def slice : @& ByteArray → Nat → Nat → ByteArray :=
+  sliceL
+
+theorem sliceL.aux_size {n : Nat} :
+    (sliceL.aux acc n bs).size = acc.size + n := by
+  induction bs generalizing acc n
+  · induction n <;> simp [sliceL.aux, ByteArray.size, Array.size]
+  rename_i ih
+  cases n
+  · simp [sliceL.aux]
+  simp [sliceL.aux, ByteArray.size, ih]
+  rw [Nat.succ_eq_add_one, Nat.add_assoc, Nat.add_comm 1 _]
+
+theorem slice_size : (slice bytes i n).size = n := by
+  simp [slice, sliceL, sliceL.aux, sliceL.aux_size, ByteArray.size]
+
+end ByteArray

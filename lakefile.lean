@@ -11,8 +11,8 @@ def ffiC := "ffi.c"
 def ffiO := "ffi.o"
 
 target importTarget (pkg : Package) : FilePath := do
-  let oFile := pkg.oleanDir / pkg.name.toString / "FFI" / ffiO
-  let srcJob ← inputFile $ pkg.srcDir / pkg.name.toString / "FFI" / ffiC
+  let oFile := pkg.oleanDir / ffiO
+  let srcJob ← inputFile ffiC
   buildFileAfterDep oFile srcJob fun srcFile => do
     let flags := #["-I", (← getLeanIncludeDir).toString, "-fPIC"]
     compileO ffiC oFile srcFile flags
