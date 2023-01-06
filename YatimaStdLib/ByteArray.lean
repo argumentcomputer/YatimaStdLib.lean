@@ -87,24 +87,23 @@ def sliceL (bs : ByteArray) (i n : Nat) : ByteArray :=
   .mk $ aux #[] n (bs.data.data.drop i)
 
 @[extern "lean_byte_array_slice"]
-opaque sliceC : @& ByteArray → Nat → Nat → ByteArray
+opaque sliceC : @& ByteArray → @& Nat → @& Nat → ByteArray
 
 @[extern "lean_byte_array_slice"]
-def slice : @& ByteArray → Nat → Nat → ByteArray :=
+def slice : @& ByteArray → @& Nat → @& Nat → ByteArray :=
   sliceL
 
+@[simp] theorem sliceL.aux_size {n : Nat} :
+    (sliceL.aux acc n bs).size = acc.size + n := by
+  induction bs generalizing acc n
+  · induction n <;> simp [sliceL.aux, ByteArray.size, Array.size]
+  rename_i ih
+  cases n
+  · simp [sliceL.aux]
+  simp [sliceL.aux, ByteArray.size, ih]
+  rw [Nat.succ_eq_add_one, Nat.add_assoc, Nat.add_comm 1 _]
+
 theorem slice_size : (slice bytes i n).size = n := by
-  simp [slice, sliceL]
-  induction n with
-  | zero => simp [sliceL.aux]
-  | succ n h =>
-    let l := bytes.data.data.drop i
-    have : bytes.data.data.drop i = l := rfl
-    rw [this] at h ⊢
-    match l with
-    | [] =>
-      simp [sliceL.aux, mkArray]
-      sorry
-    | b :: bs => sorry
+  simp [slice, sliceL, sliceL.aux, ByteArray.size]
 
 end ByteArray
