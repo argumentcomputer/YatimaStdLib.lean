@@ -3,3 +3,5 @@ result*
 /build
 /lake-packages
 !/YatimaStdLib/MLE/cache.json
+
+/.vscode
