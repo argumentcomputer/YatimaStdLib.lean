@@ -1,7 +1,8 @@
 import Lake
 open Lake DSL
 
-package YatimaStdLib
+package YatimaStdLib where
+  moreLinkArgs := #["-lrust_ffi", "-L", "./target/release"]
 
 @[default_target]
 lean_lib YatimaStdLib where
@@ -18,6 +19,7 @@ target importTarget (pkg : Package) : FilePath := do
     compileO ffiC oFile srcFile flags
 
 extern_lib ffi (pkg : Package) := do
+  proc { cmd := "cargo", args := #["build", "--release"] }
   let name := nameToStaticLib "ffi"
   let job ← fetch <| pkg.target ``importTarget
   buildStaticLib (pkg.buildDir / defaultLibDir / name) #[job]
@@ -32,3 +34,4 @@ lean_exe Tests.UInt
 lean_exe Tests.ByteArray
 lean_exe Tests.ByteVector
 lean_exe Tests.LightData
+lean_exe YatimaStdLib.LightData

@@ -1,4 +1,5 @@
 import Std.Data.Array.Basic
+import YatimaStdLib.List
 
 namespace Array
 
@@ -29,3 +30,6 @@ def shuffle (ar : Array α) (seed : Option Nat := none) [Inhabited α] :
 def pad (ar : Array α) (a : α) (n : Nat) : Array α :=
   let diff := n - ar.size
   ar ++ (.mkArray diff a)
+
+instance [Ord α] : Ord (Array α) where
+  compare x y := compare x.data y.data
