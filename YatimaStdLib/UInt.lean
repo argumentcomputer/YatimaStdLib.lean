@@ -7,16 +7,17 @@ def UInt8.showBits (u : UInt8) : String :=
 def UInt8.getBit (u : UInt8) (n : Nat) : Bit :=
   if u &&& (1 <<< (7 - n)).toUInt8 == 0 then .zero else .one
 
-def UInt16.toByteArray (n : UInt16) : ByteArray :=
+def UInt16.toByteArrayL (n : UInt16) : ByteArray :=
   ⟨#[n.toUInt8, (n / 256) % 65536 |>.toUInt8]⟩
+
+@[extern "lean_uint16_to_byte_array"]
+def UInt16.toByteArray : UInt16 → ByteArray :=
+  UInt16.toByteArrayL
 
 theorem UInt16.toByteArray_size_2 : (UInt16.toByteArray n).size = 2 := by
   simp [ByteArray.size, Array.size, List.length]
 
-@[extern "lean_uint16_to_byte_array"]
-opaque UInt16.toByteArrayC : UInt16 → ByteArray
-
-def UInt32.toByteArray (n : UInt32) : ByteArray :=
+def UInt32.toByteArrayL (n : UInt32) : ByteArray :=
   let a₀ := n.toUInt8
   let n := n / 256
   let a₁ := n % 65536 |>.toUInt8
@@ -26,13 +27,14 @@ def UInt32.toByteArray (n : UInt32) : ByteArray :=
   let a₃ := n % 4294967296 |>.toUInt8
   ⟨#[a₀, a₁, a₂, a₃]⟩
 
+@[extern "lean_uint32_to_byte_array"]
+def UInt32.toByteArray : UInt32 → ByteArray :=
+  UInt32.toByteArrayL
+
 theorem UInt32.toByteArray_size_4 : (UInt32.toByteArray n).size = 4 := by
   simp [ByteArray.size, Array.size, List.length]
 
-@[extern "lean_uint32_to_byte_array"]
-opaque UInt32.toByteArrayC : UInt32 → ByteArray
-
-def UInt64.toByteArray (n : UInt64) : ByteArray :=
+def UInt64.toByteArrayL (n : UInt64) : ByteArray :=
   let a₀ := n.toUInt8
   let n := n / 256
   let a₁ := n % 65536 |>.toUInt8
@@ -50,8 +52,9 @@ def UInt64.toByteArray (n : UInt64) : ByteArray :=
   let a₇ := n % 18446744073709551616 |>.toUInt8
   ⟨#[a₀, a₁, a₂, a₃, a₄, a₅, a₆, a₇]⟩
 
+@[extern "lean_uint64_to_byte_array"]
+def UInt64.toByteArray : UInt64 → ByteArray :=
+  UInt64.toByteArrayL
+
 theorem UInt64.toByteArray_size_8 : (UInt64.toByteArray n).size = 8 := by
   simp [ByteArray.size, Array.size, List.length]
-
-@[extern "lean_uint64_to_byte_array"]
-opaque UInt64.toByteArrayC : UInt64 → ByteArray
