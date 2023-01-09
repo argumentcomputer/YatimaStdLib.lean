@@ -153,7 +153,7 @@ partial def toByteArray (d : LightData) : ByteArray :=
   match d with
   | bol _ => .mk #[d.tag]
   | u8  x => .mk #[d.tag, x]
-  | u16 x | u32 x | u64 x | lnk x => .mk #[d.tag] ++ x.toByteArrayC
+  | u16 x | u32 x | u64 x | lnk x => .mk #[d.tag] ++ x.toByteArray
   | str x => let x := x.toUTF8; .mk #[d.tag] ++ toByteArray x.size ++ x
   | arr x => x.foldl (fun acc x => acc.append x.toByteArray)
     (⟨#[d.tag]⟩ ++ toByteArray x.size)

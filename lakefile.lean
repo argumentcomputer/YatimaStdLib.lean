@@ -27,3 +27,8 @@ require std from git
 
 require LSpec from git
   "https://github.com/yatima-inc/lspec/" @ "129fd4ba76d5cb9abf271dc29208a28f45fd981e"
+
+lean_exe Tests.UInt
+lean_exe Tests.ByteArray
+lean_exe Tests.ByteVector
+lean_exe Tests.LightData

@@ -25,20 +25,22 @@ def leadingZeroBits (bytes : ByteArray) : Nat := Id.run do
 def pushZeros (bytes : ByteArray) (n : Nat) : ByteArray :=
   bytes ++ ⟨.mkArray n 0⟩
 
-def beq (a b : ByteArray) : Bool :=
+def beqL (a b : ByteArray) : Bool :=
   a.data == b.data
 
 @[extern "lean_byte_array_beq"]
-opaque beqC : @& ByteArray → @& ByteArray → Bool
+def beq : @& ByteArray → @& ByteArray → Bool :=
+  beqL
 
-def ord (a b : ByteArray) : Ordering :=
+def ordL (a b : ByteArray) : Ordering :=
   compare a.data.data b.data.data
 
 @[extern "lean_byte_array_ord"]
-opaque ordC : @& ByteArray → @& ByteArray → Ordering
+def ord : @& ByteArray → @& ByteArray → Ordering :=
+  ordL
 
-instance : BEq ByteArray := ⟨ByteArray.beqC⟩
-instance : Ord ByteArray := ⟨ByteArray.ordC⟩
+instance : BEq ByteArray := ⟨ByteArray.beq⟩
+instance : Ord ByteArray := ⟨ByteArray.ord⟩
 
 def Subarray.asBA (s : Subarray UInt8) : ByteArray :=
   s.as.data.toByteArray
@@ -85,9 +87,6 @@ def sliceL (bs : ByteArray) (i n : Nat) : ByteArray :=
     | n, [] => acc ++ (.mkArray n 0)
     | n + 1, b :: bs => aux (acc.push b) n bs
   .mk $ aux #[] n (bs.data.data.drop i)
-
-@[extern "lean_byte_array_slice"]
-opaque sliceC : @& ByteArray → Nat → Nat → ByteArray
 
 @[extern "lean_byte_array_slice"]
 def slice : @& ByteArray → Nat → Nat → ByteArray :=
