@@ -34,4 +34,3 @@ lean_exe Tests.UInt
 lean_exe Tests.ByteArray
 lean_exe Tests.ByteVector
 lean_exe Tests.LightData
-lean_exe YatimaStdLib.LightData

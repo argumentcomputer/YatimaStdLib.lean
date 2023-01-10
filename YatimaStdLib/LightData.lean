@@ -251,9 +251,3 @@ instance : HashRepr LightData (ByteVector 32) where
 end Hashing
 
 end LightData
-
-def main : IO Unit := do
-  IO.println "aaa"
-  let qq : ByteArray := .mk #[1, 2, 3]
-  let x := qq.blake3
-  IO.println x
