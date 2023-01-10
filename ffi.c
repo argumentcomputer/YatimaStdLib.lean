@@ -1,7 +1,5 @@
 #include <lean/lean.h>
 #include <string.h>
-#include <stddef.h>
-#include <stdint.h>
 
 #define intern inline static
 #define l_arg b_lean_obj_arg
