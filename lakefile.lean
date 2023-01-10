@@ -35,7 +35,7 @@ section ImportAll
 open System
 open Lean (RBTree)
 
-def stdLibImportAllBlacklist : List String := [ "YatimaStdLib/StringInterner/Interner.lean", "YatimaStdLib/Matrix.lean" ]
+def stdLibImportAllBlacklist : List String := [ "YatimaStdLib/StringInterner/Interner.lean"]
 
 partial def getLeanFilePaths (fp : FilePath) (acc : Array FilePath := #[]) :
     IO $ Array FilePath := do

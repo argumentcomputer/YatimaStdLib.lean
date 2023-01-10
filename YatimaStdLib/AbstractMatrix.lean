@@ -1,3 +1,4 @@
+namespace Abstract
 /-
 This is one attempt at writing down the implementation of a Matrix/Vector library for Poseidon.
 I'm fairly certain this would be unwieldy to use in practice, so we prefer the implementation in
@@ -51,3 +52,5 @@ def vectorSum (v₁ v₂ : Vector A c) : Vector A c :=
 instance : HAdd (Vector A c) (Vector A c) (Vector A c) := ⟨vectorSum⟩
 
 end Matrix
+
+end Abstract
