@@ -5,6 +5,16 @@
 #define l_arg b_lean_obj_arg
 #define l_res lean_obj_res
 
+intern lean_sarray_object* mk_byte_array(size_t len) {
+    lean_sarray_object* o = (lean_sarray_object*)lean_alloc_object(
+        sizeof(lean_sarray_object) + len
+    );
+    lean_set_st_header((lean_object*)o, LeanScalarArray, 1);
+    o->m_size = len;
+    o->m_capacity = len;
+    return o;
+}
+
 intern lean_sarray_object* mk_empty_byte_array(size_t len) {
     lean_sarray_object* o = (lean_sarray_object*)lean_alloc_object(
         sizeof(lean_sarray_object) + len
@@ -93,5 +103,12 @@ extern l_res lean_byte_array_slice(l_arg a, lean_obj_arg oi, lean_obj_arg on) {
         else copy_len = size - i;
         memcpy(res->m_data, (oa->m_data + i * sizeof(uint8_t)), copy_len);
     }
+    return (lean_object*)res;
+}
+
+extern l_res lean_byte_array_blake3(l_arg a) {
+    lean_sarray_object* oa = lean_to_sarray(a);
+    lean_sarray_object* res = mk_byte_array(32);
+    blake3(res->m_data, oa->m_size, oa->m_data);
     return (lean_object*)res;
 }

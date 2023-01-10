@@ -1,5 +1,4 @@
 import YatimaStdLib.List
-import YatimaStdLib.Nat
 import YatimaStdLib.UInt
 
 namespace ByteArray
