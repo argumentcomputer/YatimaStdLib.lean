@@ -83,7 +83,8 @@ def ByteVector.and (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
 def ByteVector.xor (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
   zipWith UInt8.xor x y
 
-def ByteVector.not (x : ByteVector n) : ByteVector n := sorry
+def ByteVector.not (x : ByteVector n) : ByteVector n :=
+  byteMap (fun a => 255 - a) x
 
 end ByteVector
 
