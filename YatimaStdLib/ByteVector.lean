@@ -31,6 +31,9 @@ def get' (vec : ByteVector n) (i : Fin n) : UInt8 :=
 def get! (vec : ByteVector n) (i : Nat) : UInt8 :=
   vec.data.get! i
 
+def byteMap (f : UInt8 → UInt8) (v : ByteVector n) : ByteVector n :=
+  ⟨ByteArray.mk $ Array.map f v.data.data, sorry⟩
+
 @[extern "lean_byte_vector_to_uint16"]
 opaque toUInt16 : @& ByteVector 2 → UInt16
 
@@ -39,6 +42,12 @@ opaque toUInt32 : @& ByteVector 4 → UInt32
 
 @[extern "lean_byte_vector_to_uint64"]
 opaque toUInt64 : @& ByteVector 8 → UInt64
+
+def zipWith (f : UInt8 → UInt8 → UInt8) (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
+  let x' := x.data.data
+  let y' := y.data.data
+  let res := Array.map (fun (x,y) => f x y) $ Array.zip x' y'
+  ⟨ByteArray.mk res, sorry⟩
 
 def byteVecAdd (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
 
@@ -65,11 +74,14 @@ def byteVecDiv (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
 instance : Div (ByteVector n) where
   div := sorry
 
-def ByteVector.or (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
+def ByteVector.lor (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
+  zipWith UInt8.lor x y
 
-def ByteVector.and (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
+def ByteVector.and (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
+  zipWith UInt8.land x y
 
-def ByteVector.xor (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
+def ByteVector.xor (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
+  zipWith UInt8.xor x y
 
 def ByteVector.not (x : ByteVector n) : ByteVector n := sorry
 
