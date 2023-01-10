@@ -19,7 +19,7 @@ target importTarget (pkg : Package) : FilePath := do
     compileO ffiC oFile srcFile flags
 
 extern_lib ffi (pkg : Package) := do
-  proc { cmd := "cargo", args := #["build", "--release"] }
+  proc { cmd := "cargo", args := #["build", "--release"], cwd := pkg.dir }
   let name := nameToStaticLib "ffi"
   let job ← fetch <| pkg.target ``importTarget
   buildStaticLib (pkg.buildDir / defaultLibDir / name) #[job]
