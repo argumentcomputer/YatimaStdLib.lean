@@ -40,6 +40,39 @@ opaque toUInt32 : @& ByteVector 4 → UInt32
 @[extern "lean_byte_vector_to_uint64"]
 opaque toUInt64 : @& ByteVector 8 → UInt64
 
+def byteVecAdd (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
+
+instance : Add (ByteVector n) where
+  add := sorry
+
+def byteVecSub (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
+
+instance : Sub (ByteVector n) where
+  sub := sorry
+
+def byteVecMul (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
+
+instance : Mul (ByteVector n) where
+  mul := sorry
+
+def byteVecInv (x : ByteVector n) : ByteVector n := sorry
+
+instance : Inv (ByteVector n) where
+  inv := sorry
+
+def byteVecDiv (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
+
+instance : Div (ByteVector n) where
+  div := sorry
+
+def ByteVector.or (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
+
+def ByteVector.and (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
+
+def ByteVector.xor (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
+
+def ByteVector.not (x : ByteVector n) : ByteVector n := sorry
+
 end ByteVector
 
 @[extern "lean_byte_array_blake3"]
