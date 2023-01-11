@@ -2,7 +2,7 @@ import Lake
 open Lake DSL
 
 package YatimaStdLib where
-  moreLinkArgs := #["-lrust_ffi", "-L", "./target/release"]
+  moreLinkArgs := #["-lrust_ffi", "-L", "./target/release", "-L", "./lake-packages/YatimaStdLib/target/release"]
 
 @[default_target]
 lean_lib YatimaStdLib where
