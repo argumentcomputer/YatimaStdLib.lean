@@ -54,14 +54,16 @@ opaque toUInt64 : @& ByteVector 8 → UInt64
 
 def map (v : ByteVector n) (f : UInt8 → UInt8) : ByteVector n := Id.run do
   let mut res := v
-  for i in [0 : n] do
-    if h : i < n then res := res.set i h (f $ v.get i h)
+  for h : i in [0 : n] do
+    have := Membership.mem.upper h
+    res := res.set i this (f $ v.get i this)
   pure res
 
 def zipWith (x y : ByteVector n) (f : UInt8 → UInt8 → UInt8) : ByteVector n := Id.run do
   let mut res := x
-  for i in [0 : n] do
-    if h : i < n then res := res.set i h (f (x.get i h) (y.get i h))
+  for h : i in [0 : n] do
+    have := Membership.mem.upper h
+    res := res.set i this (f (x.get i this) (y.get i this))
   pure res
 
 def byteVecAdd (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
