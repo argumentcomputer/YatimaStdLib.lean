@@ -21,14 +21,15 @@ All credits should be given to them.
 
 namespace StringInterner
 
-class Symbol (α : Type _) where
-  /-- Creates a symbol from a `usize`.
-    Returns `None` if `index` is out of bounds for the symbol. -/
-  tryFromUSize : USize → Option α
-  /-- Returns the `usize` representation of `self`. -/
-  toUSize : α → USize
+-- TODO: leave unimplemented for now
+-- class Symbol (α : Type _) where
+--   /-- Creates a symbol from a `usize`.
+--     Returns `None` if `index` is out of bounds for the symbol. -/
+--   tryFromUSize : USize → Option α
+--   /-- Returns the `usize` representation of `self`. -/
+--   toUSize : α → USize
 
-def Symbol.ofUSize! [Inhabited α] [Symbol α] (index : USize) : α :=
-  tryFromUSize index |>.get!
+-- def Symbol.ofUSize! [Inhabited α] [Symbol α] (index : USize) : α :=
+--   tryFromUSize index |>.get!
 
 end StringInterner
