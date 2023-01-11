@@ -5,7 +5,8 @@ package YatimaStdLib
 
 @[default_target]
 lean_lib YatimaStdLib where
-  precompileModules := true
+  -- https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/error.20loading.20library.20Aesop-Nanos.2Edll/near/316767700
+  -- precompileModules := true
 
 def ffiC := "ffi.c"
 def ffiO := "ffi.o"
