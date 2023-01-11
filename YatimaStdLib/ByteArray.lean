@@ -91,8 +91,7 @@ def sliceL (bs : ByteArray) (i n : Nat) : ByteArray :=
 def slice : @& ByteArray → Nat → Nat → ByteArray :=
   sliceL
 
-theorem sliceL.aux_size {n : Nat} :
-    (sliceL.aux acc n bs).size = acc.size + n := by
+theorem sliceL.aux_size : (sliceL.aux acc n bs).size = acc.size + n := by
   induction bs generalizing acc n
   · induction n <;> simp [sliceL.aux, ByteArray.size, Array.size]
   rename_i ih
@@ -103,5 +102,12 @@ theorem sliceL.aux_size {n : Nat} :
 
 theorem slice_size : (slice bytes i n).size = n := by
   simp [slice, sliceL, sliceL.aux, sliceL.aux_size, ByteArray.size]
+
+theorem set_size : (set arr i u).size = arr.size := by
+  simp [size, set]
+
+theorem set!_size : (set! arr i u).size = arr.size := by
+  simp [size, set!, Array.set!, Array.setD]
+  by_cases h : i < arr.data.size <;> simp [h]
 
 end ByteArray

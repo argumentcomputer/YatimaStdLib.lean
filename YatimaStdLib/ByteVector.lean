@@ -31,8 +31,17 @@ def get' (vec : ByteVector n) (i : Fin n) : UInt8 :=
 def get! (vec : ByteVector n) (i : Nat) : UInt8 :=
   vec.data.get! i
 
-def byteMap (f : UInt8 → UInt8) (v : ByteVector n) : ByteVector n :=
-  ⟨ByteArray.mk $ Array.map f v.data.data, sorry⟩
+def set (vec : ByteVector n) (i : Nat) (h : i < n) (u : UInt8) : ByteVector n :=
+  let data := vec.data.set ⟨i, by simp only [vec.valid, h]⟩ u
+  ⟨data, by rw [ByteArray.set_size, vec.valid]⟩
+
+def set' (vec : ByteVector n) (i : Fin n) (u : UInt8) : ByteVector n :=
+  let data := vec.data.set ⟨i, by simp only [vec.valid, i.isLt]⟩ u
+  ⟨data, by rw [ByteArray.set_size, vec.valid]⟩
+
+def set! (vec : ByteVector n) (i : Nat) (u : UInt8) : ByteVector n :=
+  let data := vec.data.set! i u
+  ⟨data, by rw [ByteArray.set!_size, vec.valid]⟩
 
 @[extern "lean_byte_vector_to_uint16"]
 opaque toUInt16 : @& ByteVector 2 → UInt16
@@ -43,11 +52,17 @@ opaque toUInt32 : @& ByteVector 4 → UInt32
 @[extern "lean_byte_vector_to_uint64"]
 opaque toUInt64 : @& ByteVector 8 → UInt64
 
-def zipWith (f : UInt8 → UInt8 → UInt8) (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
-  let x' := x.data.data
-  let y' := y.data.data
-  let res := Array.map (fun (x,y) => f x y) $ Array.zip x' y'
-  ⟨ByteArray.mk res, sorry⟩
+def map (v : ByteVector n) (f : UInt8 → UInt8) : ByteVector n := Id.run do
+  let mut res := v
+  for i in [0 : n] do
+    if h : i < n then res := res.set i h (f $ v.get i h)
+  pure res
+
+def zipWith (x y : ByteVector n) (f : UInt8 → UInt8 → UInt8) : ByteVector n := Id.run do
+  let mut res := x
+  for i in [0 : n] do
+    if h : i < n then res := res.set i h (f (x.get i h) (y.get i h))
+  pure res
 
 def byteVecAdd (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
 
@@ -75,16 +90,16 @@ instance : Div (ByteVector n) where
   div := sorry
 
 def ByteVector.lor (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
-  zipWith UInt8.lor x y
+  x.zipWith y UInt8.lor
 
 def ByteVector.and (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
-  zipWith UInt8.land x y
+  x.zipWith y UInt8.land
 
 def ByteVector.xor (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
-  zipWith UInt8.xor x y
+  x.zipWith y UInt8.xor
 
 def ByteVector.not (x : ByteVector n) : ByteVector n :=
-  byteMap (fun a => 255 - a) x
+  x.map (255 - ·)
 
 end ByteVector
 
