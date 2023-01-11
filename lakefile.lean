@@ -2,7 +2,8 @@ import Lake
 open Lake DSL
 
 package YatimaStdLib where
-  moreLinkArgs := #["-lrust_ffi", "-L", "./target/release", "-L", "./lake-packages/YatimaStdLib/target/release"]
+  moreLinkArgs := #["-lrust_ffi", "-L", "./target/release",
+    "-L", "./lake-packages/YatimaStdLib/target/release"]
 
 @[default_target]
 lean_lib YatimaStdLib where
@@ -35,8 +36,6 @@ section ImportAll
 open System
 open Lean (RBTree)
 
-def stdLibImportAllBlacklist : List String := [ "YatimaStdLib/StringInterner/Interner.lean"]
-
 partial def getLeanFilePaths (fp : FilePath) (acc : Array FilePath := #[]) :
     IO $ Array FilePath := do
   if ← fp.isDir then
@@ -45,9 +44,6 @@ partial def getLeanFilePaths (fp : FilePath) (acc : Array FilePath := #[]) :
 
 def getAllFiles : ScriptM $ List String := do
   let paths := (← getLeanFilePaths ⟨"YatimaStdLib"⟩).map toString
-  let paths := paths.filter fun path => (stdLibImportAllBlacklist.all (· != path))
-  IO.println $ s!"Files blacklisted from `import_all` because of name conflicts: {stdLibImportAllBlacklist}\n" ++
-                 "Please check these files manually (in addition to `YatimaStdLib.lean`) during a toolchain bump."
   let paths : RBTree String compare := RBTree.ofList paths.toList -- ordering
   return paths.toList
 

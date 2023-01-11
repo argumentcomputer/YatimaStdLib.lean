@@ -40,6 +40,7 @@ import YatimaStdLib.SparseMatrix
 import YatimaStdLib.String
 import YatimaStdLib.StringInterner.Backend.Buffer
 import YatimaStdLib.StringInterner.Backend.Module
+import YatimaStdLib.StringInterner.Interner
 import YatimaStdLib.StringInterner.Symbol
 import YatimaStdLib.Traversable
 import YatimaStdLib.Tree
