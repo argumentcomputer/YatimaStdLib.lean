@@ -1,9 +1,7 @@
 import Lake
 open Lake DSL
 
-package YatimaStdLib where
-  moreLinkArgs := #["-lrust_ffi", "-L", "./target/release",
-    "-L", "./lake-packages/YatimaStdLib/target/release"]
+package YatimaStdLib
 
 @[default_target]
 lean_lib YatimaStdLib where
@@ -20,10 +18,14 @@ target importTarget (pkg : Package) : FilePath := do
     compileO ffiC oFile srcFile flags
 
 extern_lib ffi (pkg : Package) := do
-  proc { cmd := "cargo", args := #["build", "--release"], cwd := pkg.dir }
   let name := nameToStaticLib "ffi"
   let job ← fetch <| pkg.target ``importTarget
   buildStaticLib (pkg.buildDir / defaultLibDir / name) #[job]
+
+extern_lib rust_ffi (pkg : Package) := do
+  proc { cmd := "cargo", args := #["build", "--release"], cwd := pkg.dir }
+  let name := nameToStaticLib "rust_ffi"
+  return (pure $ pkg.dir / "target" / "release" / name)
 
 require std from git
   "https://github.com/leanprover/std4/" @ "fde95b16907bf38ea3f310af406868fc6bcf48d1"
