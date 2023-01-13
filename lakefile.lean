@@ -5,8 +5,7 @@ package YatimaStdLib
 
 @[default_target]
 lean_lib YatimaStdLib where
-  -- https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/error.20loading.20library.20Aesop-Nanos.2Edll/near/316767700
-  -- precompileModules := true
+  precompileModules := true
 
 def ffiC := "ffi.c"
 def ffiO := "ffi.o"
@@ -26,7 +25,10 @@ extern_lib ffi (pkg : Package) := do
 extern_lib rust_ffi (pkg : Package) := do
   proc { cmd := "cargo", args := #["build", "--release"], cwd := pkg.dir }
   let name := nameToStaticLib "rust_ffi"
-  return (pure $ pkg.dir / "target" / "release" / name)
+  let srcPath := pkg.dir / "target" / "release" / name
+  let tgtPath := pkg.libDir / name
+  IO.FS.writeBinFile tgtPath (← IO.FS.readBinFile srcPath)
+  return (pure tgtPath)
 
 require std from git
   "https://github.com/leanprover/std4/" @ "fde95b16907bf38ea3f310af406868fc6bcf48d1"
