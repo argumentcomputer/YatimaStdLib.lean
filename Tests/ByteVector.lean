@@ -10,6 +10,30 @@ def nats : List Nat := [
   UInt64.size / 2, UInt64.size-2, UInt64.size-1, UInt64.size, UInt64.size+1
 ]
 
+def correct16 (x y : ByteVector 2) : Bool :=
+  List.foldr (. && .) true
+    [ByteVector.toUInt16 x + ByteVector.toUInt16 y == ByteVector.toUInt16 (x + y),
+    ByteVector.toUInt16 x * ByteVector.toUInt16 y == ByteVector.toUInt16 (x * y),
+    ByteVector.toUInt16 x - ByteVector.toUInt16 y == ByteVector.toUInt16 (x - y),
+    ByteVector.toUInt16 x / ByteVector.toUInt16 y == ByteVector.toUInt16 (x / y)
+    ]
+
+def correct32 (x y : ByteVector 4) : Bool :=
+  List.foldr (. && .) true
+    [ByteVector.toUInt32 x + ByteVector.toUInt32 y == ByteVector.toUInt32 (x + y),
+    ByteVector.toUInt32 x * ByteVector.toUInt32 y == ByteVector.toUInt32 (x * y),
+    ByteVector.toUInt32 x - ByteVector.toUInt32 y == ByteVector.toUInt32 (x - y),
+    ByteVector.toUInt32 x / ByteVector.toUInt32 y == ByteVector.toUInt32 (x / y)
+    ]
+
+def correct64 (x y : ByteVector 8) : Bool :=
+  List.foldr (. && .) true
+    [ByteVector.toUInt64 x + ByteVector.toUInt64 y == ByteVector.toUInt64 (x + y),
+    ByteVector.toUInt64 x * ByteVector.toUInt64 y == ByteVector.toUInt64 (x * y),
+    ByteVector.toUInt64 x - ByteVector.toUInt64 y == ByteVector.toUInt64 (x - y),
+    ByteVector.toUInt64 x / ByteVector.toUInt64 y == ByteVector.toUInt64 (x / y)
+    ]
+
 def main := lspecIO $
   nats.foldl (init := .done) fun tSeq n =>
     let u16 : UInt16 := .ofNat n

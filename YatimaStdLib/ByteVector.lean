@@ -100,6 +100,7 @@ def byteVecAdd (x y : ByteVector n) : ByteVector n := Id.run do
 instance : Add (ByteVector n) where
   add := byteVecAdd
 
+-- TODO: is it correct?
 instance : Sub (ByteVector n) where
   sub x y := x + ByteVector.not y
 
