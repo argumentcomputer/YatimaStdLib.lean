@@ -43,6 +43,13 @@ def set! (vec : ByteVector n) (i : Nat) (u : UInt8) : ByteVector n :=
   let data := vec.data.set! i u
   ⟨data, by rw [ByteArray.set!_size, vec.valid]⟩
 
+def genWith (f : Fin n → UInt8) : ByteVector n := Id.run do
+  let mut res := default
+  for h : i in [0 : n] do
+    have := Membership.mem.upper h
+    res := res.set i this (f $ Fin.mk i this)
+  return res  
+
 @[extern "lean_byte_vector_to_uint16"]
 opaque toUInt16 : @& ByteVector 2 → UInt16
 
@@ -53,43 +60,20 @@ opaque toUInt32 : @& ByteVector 4 → UInt32
 opaque toUInt64 : @& ByteVector 8 → UInt64
 
 def map (v : ByteVector n) (f : UInt8 → UInt8) : ByteVector n := Id.run do
-  let mut res := v
+  let mut res := default
   for h : i in [0 : n] do
     have := Membership.mem.upper h
     res := res.set i this (f $ v.get i this)
   pure res
 
 def zipWith (x y : ByteVector n) (f : UInt8 → UInt8 → UInt8) : ByteVector n := Id.run do
-  let mut res := x
+  let mut res := default
   for h : i in [0 : n] do
     have := Membership.mem.upper h
     res := res.set i this (f (x.get i this) (y.get i this))
   pure res
 
-def byteVecAdd (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
-
-instance : Add (ByteVector n) where
-  add := sorry
-
-def byteVecSub (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
-
-instance : Sub (ByteVector n) where
-  sub := sorry
-
-def byteVecMul (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
-
-instance : Mul (ByteVector n) where
-  mul := sorry
-
-def byteVecInv (x : ByteVector n) : ByteVector n := sorry
-
-instance : Inv (ByteVector n) where
-  inv := sorry
-
-def byteVecDiv (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
-
-instance : Div (ByteVector n) where
-  div := sorry
+-- Boolean and arithmetic operations
 
 def ByteVector.lor (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
   x.zipWith y UInt8.lor
@@ -102,6 +86,37 @@ def ByteVector.xor (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
 
 def ByteVector.not (x : ByteVector n) : ByteVector n :=
   x.map (255 - ·)
+
+def byteVecAdd (x y : ByteVector n) : ByteVector n := Id.run do
+  let mut res := default
+  let mut cin := 0
+  for h : i in [0 : n] do
+    have := Membership.mem.upper h
+    let (r, o) := UInt8.sum3 cin (x.get i this) (y.get i this)
+    res := res.set i this r
+    cin := o
+  return res
+
+instance : Add (ByteVector n) where
+  add := byteVecAdd
+
+instance : Sub (ByteVector n) where
+  sub x y := x + ByteVector.not y
+
+def byteVecMul (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
+
+instance : Mul (ByteVector n) where
+  mul := byteVecMul
+
+def byteVecInv (x : ByteVector n) : ByteVector n := sorry
+
+instance : Inv (ByteVector n) where
+  inv := byteVecInv
+
+def byteVecDiv (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
+
+instance : Div (ByteVector n) where
+  div v₁ v₂ := v₁ * Inv.inv v₂
 
 end ByteVector
 
