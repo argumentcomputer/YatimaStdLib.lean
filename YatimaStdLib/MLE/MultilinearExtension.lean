@@ -4,7 +4,7 @@ import YatimaStdLib.Bit
 namespace MLE
 
 /-- Computes the multilinear extension of a function `f : {0, 1}^ν → Zmod n` -/
-def multilinearExtension (f : Nat → Zmod n) (ν : Nat) (c : Curve) :
+def multilinearExtension (c : Curve) (f : Nat → Zmod c.fSize) (ν : Nat) :
     MultilinearPolynomial $ Zmod c.fSize :=
   .prune $ List.range (1 <<< ν) |>.foldl (init := default) fun acc w =>
     let pol := match c.cache.find? (ν, w) with
@@ -17,7 +17,7 @@ namespace Tests
 open LSpec
 
 /- A couple random functions for testing (Random number generator: My brain)-/
-private def f₁ : Nat → Zmod 13
+private def f₁ : Nat → Zmod pallasFSize
   | 0 => 7
   | 1 => 11
   | 2 => 3
@@ -28,7 +28,7 @@ private def f₁ : Nat → Zmod 13
   | 7 => 2
   | _ => 0
 
-private def f₂ : Nat → Zmod 29
+private def f₂ : Nat → Zmod pallasFSize
   | 0 | 5 | 13 => 19
   | 1 | 12 => 7
   | 2 | 7 => 1
@@ -40,18 +40,18 @@ private def f₂ : Nat → Zmod 29
   | 15 => 3
   | _ => 0
 
-def buildCases (f : Nat → Zmod n) (ν : Nat) : Array (Zmod n) := Id.run do
+def buildCases (f : Nat → Zmod pallasFSize) (ν : Nat) : Array (Zmod pallasFSize) := Id.run do
   let mut answer := #[]
   for i in [:2^ν] do
     answer := answer.push (f i)
   return answer
 
 open MultilinearPolynomial in
-def buildTests (f : Nat → Zmod n) (ν : Nat) : Bool := Id.run do
+def buildTests (f : Nat → Zmod pallasFSize) (ν : Nat) : Bool := Id.run do
   let mut comps := #[]
   let bins := getBits ν
   let results := buildCases f ν 
-  let mle := multilinearExtension f ν .pallas
+  let mle := multilinearExtension .pallas f ν
   for t in [:2^ν] do
     let b := eval mle bins[t]! == results[t]!
     comps := comps.push b

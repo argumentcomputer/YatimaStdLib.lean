@@ -24,7 +24,7 @@ def buildJsonCache (νMax : Nat) : Array Json :=
   List.range νMax.succ |>.foldl (init := #[]) fun acc ν =>
     List.range νMax.succ |>.foldl (init := acc) fun acc w =>
       let pol := @multilinearLagrangePolynomial 3 ν w
-        |>.foldl (init := #[]) fun acc b c => acc.push $ .arr #[b, c + (1 : Int)]
+        |>.foldl (init := #[]) fun acc b c => acc.push $ .arr #[b, c.rep + (1 : Int)]
       acc.push $ .arr #[ν, w, .arr pol]
 
 /-- Writes cached polynomials as a JSON file -/
