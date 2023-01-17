@@ -1,6 +1,9 @@
 import YatimaStdLib.ByteArray
+import YatimaStdLib.ByteVector
 import YatimaStdLib.DataClasses
 import YatimaStdLib.Either
+import YatimaStdLib.Ord
+import YatimaStdLib.Array
 
 inductive LightData
   | bol : Bool   → LightData
@@ -8,14 +11,14 @@ inductive LightData
   | u16 : UInt16 → LightData
   | u32 : UInt32 → LightData
   | u64 : UInt64 → LightData
-  | lnk : UInt64 → LightData
   | str : String → LightData
+  | byt : ByteArray → LightData
+  | lnk : ByteVector 32 → LightData
   | arr : Array LightData → LightData
   | prd : LightData × LightData → LightData
   | opt : Option LightData → LightData
   | eit : Either LightData LightData → LightData
-  | big : (n : UInt8) → Fin (2 ^ (8 * n.toNat)) → LightData
-  deriving Inhabited
+  deriving Inhabited, Ord
 
 namespace LightData
 
@@ -25,8 +28,9 @@ partial def beq : LightData → LightData → Bool
   | u16 x, u16 y
   | u32 x, u32 y
   | u64 x, u64 y
-  | lnk x, lnk y
-  | str x, str y => x == y
+  | str x, str y
+  | byt x, byt y
+  | lnk x, lnk y => x == y
   | arr x, arr y =>
     let rec aux : List LightData → List LightData → Bool
       | _ :: _, []
@@ -39,7 +43,6 @@ partial def beq : LightData → LightData → Bool
   | opt $ some x, opt $ some y
   | eit $ .left x, eit $ .left y
   | eit $ .right x, eit $ .right y => x.beq y
-  | big n₁ f₁, big n₂ f₂ => if n₁ == n₂ then f₁.val == f₂.val else false
   | _, _ => false
 
 instance : BEq LightData := ⟨beq⟩
@@ -51,19 +54,19 @@ partial def toString : LightData → String
   | u16 x => s!"{x}ᵤ₁₆"
   | u32 x => s!"{x}ᵤ₃₂"
   | u64 x => s!"{x}ᵤ₆₄"
-  | lnk x => s!"↑{x}"
   | str x => s!"\"{x}\""
+  | byt x => ToString.toString x
+  | lnk x => s!"↑{x}"
   | arr x => s!"⟨{", ".intercalate $ x.data.map toString}⟩"
   | prd (x, y) => s!"({x.toString}, {y.toString})"
   | opt none => "?"
   | opt $  some  x => s!"!{x.toString}"
   | eit $ .left  x => s!"←{x.toString}"
   | eit $ .right x => s!"→{x.toString}"
-  | big n f => s!"{n.toNat.toSubscriptString}{f.val}"
 
 instance : ToString LightData := ⟨toString⟩
 
-section DataToOfLightData
+section Encoding
 
 def ofNat (x : Nat) : LightData :=
   if x < UInt8.size then u8 (.ofNat x)
@@ -86,6 +89,10 @@ instance : Encodable Nat LightData String where
 instance : Encodable String LightData String where
   encode := str
   decode | str x => pure x | x => throw s!"Expected a string but got {x}"
+
+instance : Encodable ByteArray LightData String where
+  encode := byt
+  decode | byt x => pure x | x => throw s!"Expected a byte array but got {x}"
 
 variable [h : Encodable α LightData String]
 
@@ -127,9 +134,9 @@ instance : Encodable (Either α β) LightData String where
 
 instance : OfNat LightData n := ⟨.ofNat n⟩
 
-end DataToOfLightData
+end Encoding
 
-section LightDataToOfByteArray
+section SerDe
 
 def tag : LightData → UInt8
   | bol false => 0
@@ -138,30 +145,29 @@ def tag : LightData → UInt8
   | u16 _ => 3
   | u32 _ => 4
   | u64 _ => 5
-  | lnk _ => 6
-  | str _ => 7
-  | arr _ => 8
-  | prd _ => 9
-  | opt    none    => 10
-  | opt $  some  _ => 11
-  | eit $ .left  _ => 12
-  | eit $ .right _ => 13
-  | big .. => 14
+  | str _ => 6
+  | byt _ => 7
+  | lnk _ => 8
+  | arr _ => 9
+  | prd _ => 10
+  | opt    none    => 11
+  | opt $  some  _ => 12
+  | eit $ .left  _ => 13
+  | eit $ .right _ => 14
 
 partial def toByteArray (d : LightData) : ByteArray :=
   match d with
   | bol _ => .mk #[d.tag]
   | u8  x => .mk #[d.tag, x]
-  | u16 x | u32 x | u64 x | lnk x => .mk #[d.tag] ++ x.toByteArrayC
+  | u16 x | u32 x | u64 x => .mk #[d.tag] ++ x.toByteArray
   | str x => let x := x.toUTF8; .mk #[d.tag] ++ toByteArray x.size ++ x
+  | byt x => .mk #[d.tag] ++ toByteArray x.size ++ x
+  | lnk x => .mk #[d.tag] ++ x.data
   | arr x => x.foldl (fun acc x => acc.append x.toByteArray)
     (⟨#[d.tag]⟩ ++ toByteArray x.size)
   | prd (x, y) => .mk #[d.tag] ++ x.toByteArray ++ y.toByteArray
   | opt none => .mk #[d.tag]
   | opt $ some x | eit $ .left x | eit $ .right x => ⟨#[d.tag]⟩ ++ x.toByteArray
-  | big n f =>
-    let bytes := f.val.toByteArrayLE
-    .mk #[d.tag, n] ++ (bytes.pushZeros (n.toNat - bytes.size))
 
 structure Bytes where
   bytes : ByteArray
@@ -178,22 +184,22 @@ def readUInt8 : OfBytesM UInt8 := do
     return ctx.bytes.get ⟨idx, by rw [ctx.valid]; exact h⟩
   else throw "No more bytes to read"
 
-def readByteArray (n : Nat) : OfBytesM ByteArray := do
+def readByteVector (n : Nat) : OfBytesM $ ByteVector n := do
   let idx ← get
   let ctx ← read
   if idx + n - 1 < ctx.size then
     set $ idx + n
-    return ctx.bytes.copySlice idx .empty 0 n
+    return ⟨ctx.bytes.slice idx n, ByteArray.slice_size⟩
   else throw s!"Not enough data to read {n} bytes (size {ctx.size}, idx {idx})"
 
 def readUInt16 : OfBytesM UInt16 :=
-  return .ofByteArrayC $ ← readByteArray 2
+  return (← readByteVector 2).toUInt16
 
 def readUInt32 : OfBytesM UInt32 :=
-  return .ofByteArrayC $ ← readByteArray 4
+  return (← readByteVector 4).toUInt32
 
 def readUInt64 : OfBytesM UInt64 :=
-  return .ofByteArrayC $ ← readByteArray 8
+  return (← readByteVector 8).toUInt64
 
 def readNat : OfBytesM Nat := do
   match ← readUInt8 with
@@ -211,23 +217,17 @@ partial def readLightData : OfBytesM LightData := do
   | 3 => return u16 $ ← readUInt16
   | 4 => return u32 $ ← readUInt32
   | 5 => return u64 $ ← readUInt64
-  | 6 => return lnk $ ← readUInt64
-  | 7 => return str $ .fromUTF8Unchecked $ ← readByteArray (← readNat)
-  | 8 =>
+  | 6 => return str $ .fromUTF8Unchecked $ (← readByteVector (← readNat)).1
+  | 7 => return byt (← readByteVector (← readNat)).1
+  | 8 => return lnk $ ← readByteVector 32
+  | 9 =>
     return arr $ ← List.range (← readNat) |>.foldlM (init := #[])
       fun acc _ => do pure $ acc.push (← readLightData)
-  | 9 => return prd (← readLightData, ← readLightData)
-  | 10 => return opt none
-  | 11 => return opt $ some (← readLightData)
-  | 12 => return eit $ .left (← readLightData)
-  | 13 => return eit $ .right (← readLightData)
-  | 14 =>
-    let len ← readUInt8
-    let lenNat := len.toNat
-    let lenNat8 := 8 * lenNat
-    let h : (2 ^ lenNat8).isPowerOfTwo := .intro lenNat8 rfl
-    return big len $
-      .ofNat' (← readByteArray lenNat).asLEtoNat (Nat.pos_of_isPowerOfTwo h)
+  | 10 => return prd (← readLightData, ← readLightData)
+  | 11 => return opt none
+  | 12 => return opt $ some (← readLightData)
+  | 13 => return eit $ .left (← readLightData)
+  | 14 => return eit $ .right (← readLightData)
   | x => throw s!"Invalid LightData tag: {x}"
 
 def ofByteArray (bytes : ByteArray) : Except String LightData :=
@@ -237,22 +237,14 @@ instance : Encodable LightData ByteArray String where
   encode := toByteArray
   decode := ofByteArray
 
-end LightDataToOfByteArray
+end SerDe
 
 section Hashing
 
-protected partial def hash (d : LightData) : UInt64 :=
-  match d with
-  | bol x | u8 x | u16 x | u32 x | u64 x | lnk x | str x => hash (d.tag, x)
-  | arr x => hash (d.tag, x.map (·.hash))
-  | prd (x, y) => hash (d.tag, x.hash, y.hash)
-  | opt none => hash (d.tag, 0)
-  | opt $  some  x
-  | eit $ .left  x
-  | eit $ .right x => hash (d.tag, x.hash)
-  | big n f => hash (d.tag, n, f.val.toByteArrayLE.data)
+protected partial def hash (d : LightData) : ByteVector 32 :=
+  d.toByteArray.blake3
 
-instance : HashRepr LightData UInt64 where
+instance : HashRepr LightData (ByteVector 32) where
   hashFunc := LightData.hash
   hashRepr := lnk
 

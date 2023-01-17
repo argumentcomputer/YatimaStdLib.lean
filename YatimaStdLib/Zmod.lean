@@ -1,14 +1,17 @@
 import YatimaStdLib.Int
 
-abbrev Zmod (_ : Nat) : Type := Int
-
-open Int
+structure Zmod (_ : Nat) where
+  rep : Int
 
 namespace Zmod
 
-def ofInt (a : Int) : Zmod n := a % n
+instance : Coe Int (Zmod n) where
+  coe i := .mk (i % n)
 
-def rep (a : Zmod n) : Int := a
+instance : Coe Nat (Zmod n) where
+  coe i := .mk (i % n)
+
+open Int
 
 instance : Add (Zmod n) where
   add (a b : Zmod n) := (rep a + rep b) % (n : Int)
@@ -17,7 +20,7 @@ instance : Mul (Zmod n) where
   mul (a b : Zmod n) := (rep a * rep b) % (n : Int)
 
 instance : Inhabited (Zmod n) where
-  default := 0
+  default := .mk 0
 
 instance {n m : Nat} : OfNat (Zmod n) m where
   ofNat := m
@@ -33,16 +36,17 @@ instance : Pow (Zmod n) Nat where
 instance : Sub (Zmod n) where
   sub (a b : Zmod n) := (rep a - rep b) % (n : Int)
 
-def modInv (a : Zmod n) : Zmod n := Int.modInv a n
+def modInv (a : Zmod n) : Zmod n := Int.modInv a.rep n
 
 instance : Div (Zmod n) where
   div a b := a * modInv b
 
 instance : HShiftRight (Zmod n) Nat (Zmod n) where
-  hShiftRight x k := (Nat.shiftRight (Int.toNat (rep x)) k) % n
+  hShiftRight x k := (x.rep.toNat.shiftRight k) % n
 
 def norm (x : Zmod n) : Nat :=
-  if x < 0 then (x.rep - (x.rep / n - 1) * n).toNat else x.toNat
+  let rep := x.rep
+  if rep < 0 then (rep - (rep / n - 1) * n).toNat else rep.toNat % n
 
 instance : BEq (Zmod n) where
   beq x y := x.norm == y.norm
