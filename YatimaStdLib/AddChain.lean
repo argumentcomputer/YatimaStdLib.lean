@@ -20,9 +20,12 @@ case of `Chainable`, or `square` for `Square`.
   (https://www.sciencedirect.com/science/article/abs/pii/0196677489900369)
 -/
 
-/-- The typeclass which -/
-class Chainable (α : Type _) extends Add α, Mul α, BEq α, OfNat α (nat_lit 1) where
-  double : α → α := fun x => x + x
+/-- The typeclass which implements efficient `add`, `mul`, `double`, and `doubleAdd` methods -/
+class Chainable (α : Type _) extends BEq α, OfNat α (nat_lit 1) where
+  add : α → α → α 
+  mul : α → α → α 
+  double : α → α := fun x => add x x
+  doubleAdd : α → α → α := fun x y => add (double x) y 
 
 /-
 In this section we include the basic instances for `Chainable` that exist in the core 
@@ -30,26 +33,18 @@ numerical libraries of Lean
 -/
 section instances
 
-instance : Chainable Nat where
-  double n := 2 * n
-
-instance : Chainable UInt8 where
-  double n := 2 * n
-
-instance : Chainable UInt16 where
-  double n := 2 * n
-
-instance : Chainable UInt32 where
-  double n := 2 * n
-
-instance : Chainable UInt64 where
-  double n := 2 * n
-
-instance : Chainable USize where
-  double n := 2 * n
+instance (priority := low) [Add α] [Mul α] [BEq α] [OfNat α (nat_lit 1)] : Chainable α where
+  add := Add.add
+  mul := Mul.mul
 
 instance [Chainable α] : Inhabited α where
   default := 1
+
+instance [Chainable α] : HAdd α α α where
+  hAdd := Chainable.add
+
+instance [Chainable α] : HMul α α α where
+  hMul := Chainable.mul
 
 end instances
 
