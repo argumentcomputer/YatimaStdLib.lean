@@ -1,9 +1,9 @@
+import YatimaStdLib.Nat
 import Std.Data.Int.Basic
 
 namespace Int
 
-def quotRem (a : Nat) (b : Nat) : Nat × Nat :=
-  (a / b, a % b)
+open Nat (quotRem)
 
 /-- 
 Return `(x, y, g)` where `g` is the greatest common divisor of `a` and `b`, and `x`, `y` satisfy

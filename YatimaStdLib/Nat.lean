@@ -2,6 +2,9 @@ import Std.Data.Nat.Basic
 
 namespace Nat
 
+def quotRem (a : Nat) (b : Nat) : Nat × Nat :=
+  (a / b, a % b)
+
 def toByteArrayCore : Nat → Nat → ByteArray → ByteArray
   | 0, _, bytes => bytes
   | fuel + 1, n, bytes =>
