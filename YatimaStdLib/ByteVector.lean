@@ -41,6 +41,3 @@ opaque toUInt32 : @& ByteVector 4 → UInt32
 opaque toUInt64 : @& ByteVector 8 → UInt64
 
 end ByteVector
-
-@[extern "lean_byte_array_blake3"]
-opaque ByteArray.blake3 : @& ByteArray → ByteVector 32
