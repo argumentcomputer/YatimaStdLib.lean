@@ -73,6 +73,15 @@ def zipWith (x y : ByteVector n) (f : UInt8 → UInt8 → UInt8) : ByteVector n 
     res := res.set i this (f (x.get i this) (y.get i this))
   pure res
 
+def shiftRight1 (x : ByteVector n) : ByteVector n := 
+  let temp : ByteVector n := default
+  let tail := x.data.copySlice 1 temp.data 1 n 
+  ⟨tail, sorry⟩ -- TODO : This `sorry` seems tough to fill
+
+def shiftRight (x : ByteVector n) : Nat → ByteVector n
+  | 0     => x
+  | m + 1 => shiftRight (shiftRight1 x) m
+
 -- Boolean and arithmetic operations
 
 def lor (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
@@ -104,20 +113,37 @@ instance : Add (ByteVector n) where
 instance : Sub (ByteVector n) where
   sub x y := x + ByteVector.not y
 
-def mul (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
+private def uInt8OverFlowMul (u₁ u₂ : UInt8) : UInt8 × UInt8 := 
+  let u16 := u₁.toUInt16 * u₂.toUInt16
+  (u16 >>> 8 |>.toUInt8, u16.toUInt8)
+
+private def uInt8Mul (x : ByteVector n) (u : UInt8) : ByteVector n := Id.run do
+  let mut carry: UInt8 := 0
+  let mut answer: ByteVector n := default
+
+  for idx in [: n] do
+    let (carry', res) := uInt8OverFlowMul (x.get! idx) u 
+    answer := answer.set! idx (carry + res)
+    carry := carry'
+
+  return answer
+
+instance : HMul (ByteVector n) UInt8 (ByteVector n) where
+  hMul := uInt8Mul
+
+private def naiiveMul (x y : ByteVector n) : ByteVector n := Id.run do
+  let mut answer: ByteVector n := default
+
+  for (idx, u) in x.data.data.toList.enum do
+    let temp := y * u
+    answer := answer + (shiftRight temp idx)
+  
+  answer
+
+def karatsubaMul (x y : ByteVector n) : ByteVector n := sorry
 
 instance : Mul (ByteVector n) where
-  mul := mul
-
-def inv (x : ByteVector n) : ByteVector n := sorry
-
-instance : Inv (ByteVector n) where
-  inv := inv
-
-def div (x : ByteVector n) (y : ByteVector n) : ByteVector n := x * Inv.inv y
-
-instance : Div (ByteVector n) where
-  div := div
+  mul := naiiveMul
 
 end ByteVector
 
