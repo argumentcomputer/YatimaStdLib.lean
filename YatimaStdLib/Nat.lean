@@ -103,6 +103,17 @@ theorem div2_lt (h : n ≠ 0) : n / 2 < n := by
     exact @div2_lt (n + 2) (by simp_arith)
     simp_arith
 
+def divCount (p : Nat) : Nat :=
+  let rec loop (n acc : Nat) : Nat :=
+    if h : n = 0 then 0 else
+      match n % 2 with
+      | 0 =>
+        have : n / 2 < n := by
+          refine Nat.div2_lt h
+        loop (n / 2) (acc + 1)
+      | _ => acc
+  loop (p - 1) 0
+
 /-- Prints a `Nat` in its hexadecimal form, given the wanted length -/
 def asHex (n : Nat) (length : Nat) : String := 
   if n < USize.size then 

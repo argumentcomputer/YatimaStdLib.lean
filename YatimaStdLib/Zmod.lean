@@ -1,4 +1,5 @@
 import YatimaStdLib.Int
+import YatimaStdLib.Ring
 
 structure Zmod (_ : Nat) where
   rep : Int
@@ -53,5 +54,13 @@ instance : BEq (Zmod n) where
 
 instance : Repr (Zmod n) where
   reprPrec n _ := s!"0x{Nat.toDigits 16 (Zmod.norm n) |>.asString}"
+
+instance : Field (Zmod n) where
+  inv := modInv
+  sqrtRatio a b :=
+    match (a == 0, b == 0) with
+      | (true, _) => (true, 0)
+      | (false, true) => (false, 0)
+      | (false, false) => sorry
 
 end Zmod
