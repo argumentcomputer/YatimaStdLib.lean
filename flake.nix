@@ -1,52 +1,36 @@
 {
-  inputs = {
-    lean = {
-      url = "github:leanprover/lean4/v4.0.0-m5";
+    inputs = {
+        fenix = {
+            url = "github:nix-community/fenix";
+            inputs.nixpkgs.follows = "nixpkgs";
+        };
+        nixpkgs.url = "github:NixOS/nixpkgs";
     };
-    nixpkgs.url = "nixpkgs/nixos-unstable";
-    flake-utils = {
-      url = "github:numtide/flake-utils";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-  };
 
-  outputs = { self, lean, flake-utils, nixpkgs }:
-    let
-      supportedSystems = [
-        "aarch64-linux"
-        "aarch64-darwin"
-        "i686-linux"
-        "x86_64-darwin"
-        "x86_64-linux"
-      ];
-      inherit (flake-utils) lib;
-    in
-    lib.eachSystem supportedSystems (system:
-      let
-        leanPkgs = lean.packages.${system};
-        pkgs = nixpkgs.legacyPackages.${system};
-        name = "YatimaStdLib";  # must match the name of the top-level .lean file
-        project = leanPkgs.buildLeanPackage {
-          inherit name;
-          # deps = [ lean-ipld.project.${system} ];
-          # Where the lean files are located
-          src = ./.;
-        };
-      in
-      {
-        inherit project;
-        packages = project // {
-          ${name} = project.sharedLib;
-        };
+    outputs = {self, fenix, nixpkgs}:
+        let pkgs = nixpkgs.legacyPackages.x86_64-linux;
+            rust_complete = (fenix.outputs.packages.x86_64-linux.complete.withComponents [
+                        "cargo"
+                        "clippy"
+                        "rustc"
+                        "rustfmt"
+                        "rust-src"
+                    ]);
+            # rust_analyzer = fenix.outputs.packages.x86_64-linux.rust-analyzer-nightly;
+        in {
+            defaultPackage.x86_64-linux = pkgs.hello;
 
-        defaultPackage = self.packages.${system}.${name};
-        devShell = pkgs.mkShell {
-          inputsFrom = [ project.executable ];
-          buildInputs = with pkgs; [
-            leanPkgs.lean-dev
-          ];
-          LEAN_PATH = "./src:./test";
-          LEAN_SRC_PATH = "./src:./test";
+            devShell.x86_64-linux =
+                pkgs.mkShell {
+                    buildInputs = [
+                        rust_complete
+                        # rust_analyzer
+                        # Helpers
+                        pkgs.httpie
+                        pkgs.jq
+                        pkgs.yq
+                        pkgs.dig
+                    ];
+                };
         };
-      });
 }

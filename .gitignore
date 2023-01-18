@@ -6,3 +6,4 @@ result*
 /.vscode
 Cargo.lock
 /target
+.direnv/
