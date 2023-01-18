@@ -77,9 +77,7 @@ def zipWith (x y : ByteVector n) (f : UInt8 → UInt8 → UInt8) : ByteVector n 
   pure res
 
 def shiftRight1 (x : ByteVector n) : ByteVector n := 
-  let temp : ByteVector n := default
-  let tail := x.data.copySlice 0 temp.data 1 (n - 1) 
-  ⟨tail, sorry⟩ -- TODO : This `sorry` seems tough to fill
+  ⟨x.data.slice 1 n, ByteArray.slice_size⟩
 
 def shiftRight (x : ByteVector n) : Nat → ByteVector n
   | 0     => x
