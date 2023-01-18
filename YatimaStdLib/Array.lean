@@ -33,3 +33,8 @@ def pad (ar : Array α) (a : α) (n : Nat) : Array α :=
 
 instance [Ord α] : Ord (Array α) where
   compare x y := compare x.data y.data
+
+theorem append_size (arr₁ arr₂ : Array α) (h1 : arr₁.size = n) (h2 : arr₂.size = m) 
+    : (arr₁ ++ arr₂).size = n + m := by
+  unfold Array.size at *
+  simp [h1, h2]

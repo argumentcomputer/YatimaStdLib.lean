@@ -1,4 +1,5 @@
 import YatimaStdLib.ByteArray
+import Std.Data.Nat.Lemmas
 
 structure ByteVector (n : Nat) where
   data  : ByteArray
@@ -146,7 +147,80 @@ private def naiiveMul (x y : ByteVector n) : ByteVector n := Id.run do
   
   answer
 
-def karatsubaMul (x y : ByteVector n) : ByteVector n := sorry
+def split (x : ByteVector n) (size₁ size₂ : Nat) : ByteVector size₁ × ByteVector size₂ :=
+  let left := x.data.slice 0 size₁
+  let right := x.data.slice size₁ size₂
+  (⟨left, ByteArray.slice_size⟩, ⟨right, ByteArray.slice_size⟩)
+
+open Array in
+def append (x : ByteVector n) (y : ByteVector m) : ByteVector (n + m) := 
+  let ⟨xData, xSize⟩ := x
+  let ⟨yData, ySize⟩ := y
+  ⟨⟨xData.data ++ yData.data⟩, append_size xData.data yData.data xSize ySize⟩
+
+def karatsubaMulAux (x y : ByteVector n) (carry : UInt8) :  UInt8 × ByteVector n := 
+  match h : n with
+  | 0 => (0, ⟨.mk #[], rfl⟩)
+  | 1 =>
+    have : 0 < x.data.data.size := by -- TODO : Refactor this so the proof isn't copied twice
+      cases x
+      rename_i data2 valid
+      cases data2
+      unfold ByteArray.size at *
+      dsimp at valid
+      simp [valid] 
+    have : 0 < y.data.data.size := by
+      cases y
+      rename_i data2 valid
+      cases data2
+      unfold ByteArray.size at valid
+      dsimp at valid
+      simp [valid] 
+    let xData := x.data.data[0]
+    let yData := y.data.data[0]
+    let (carry', res) := uInt8OverFlowMul xData yData
+    (carry', .ofNat (res + carry).toNat 1)
+  | r@((_ + 1) + 1) =>
+    let low := r / 2
+    let high := r - low
+
+    have low_lt_r : low < r := by
+      rename_i n' h'
+      apply Nat.div2_lt
+      rw [h']
+      apply Nat.succ_ne_zero
+
+    have high_lt_r : high < r := by
+      apply Nat.sub_lt
+      · rename_i n' h'
+        rw [h']
+        apply Nat.zero_lt_succ
+      · have : 2 ≤ r := by
+          rename_i n' h'
+          rw [h']
+          simp_arith
+        have : 1 ≤ low := by
+          rw [Nat.le_div_iff_mul_le]
+          simp_arith
+          exact this
+          decide
+        simp_arith
+        exact this
+
+    have add_low_high : low + high = r := by
+      apply Nat.add_sub_of_le
+      apply Nat.le_of_lt low_lt_r
+
+    let (tailX, headX) := x.split low high
+    let (tailY, headY) := y.split low high
+
+    let (carry0, z0) := karatsubaMulAux tailX tailY 0
+    let (carry1, z1) : UInt8 × ByteVector 0 := sorry -- karatsubaMulAux (tailX + headX) (tailY + headY) 0
+    let (carry2, z2) := karatsubaMulAux headX headY 0
+
+    sorry
+
+def karatsubaMul (x y : ByteVector n) : ByteVector n := karatsubaMulAux x y 0 |>.snd
 
 instance : Mul (ByteVector n) where
   mul := naiiveMul
