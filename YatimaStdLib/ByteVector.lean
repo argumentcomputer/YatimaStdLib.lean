@@ -78,7 +78,7 @@ def zipWith (x y : ByteVector n) (f : UInt8 → UInt8 → UInt8) : ByteVector n 
 
 def shiftRight1 (x : ByteVector n) : ByteVector n := 
   let temp : ByteVector n := default
-  let tail := x.data.copySlice 1 temp.data 1 n 
+  let tail := x.data.copySlice 0 temp.data 1 (n - 1) 
   ⟨tail, sorry⟩ -- TODO : This `sorry` seems tough to fill
 
 def shiftRight (x : ByteVector n) : Nat → ByteVector n
@@ -147,10 +147,6 @@ private def naiiveMul (x y : ByteVector n) : ByteVector n := Id.run do
     answer := answer + (shiftRight temp idx)
   
   answer
-
-#eval naiiveMul (.ofNat 234123 5) (.ofNat 65734 5)
-
-#eval (ByteVector.ofNat (234123 * 65734) 5)
 
 def karatsubaMul (x y : ByteVector n) : ByteVector n := sorry
 
