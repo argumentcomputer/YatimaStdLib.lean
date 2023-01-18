@@ -75,19 +75,19 @@ def zipWith (x y : ByteVector n) (f : UInt8 → UInt8 → UInt8) : ByteVector n 
 
 -- Boolean and arithmetic operations
 
-def ByteVector.lor (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
+def lor (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
   x.zipWith y UInt8.lor
 
-def ByteVector.and (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
+def and (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
   x.zipWith y UInt8.land
 
-def ByteVector.xor (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
+def xor (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
   x.zipWith y UInt8.xor
 
-def ByteVector.not (x : ByteVector n) : ByteVector n :=
+def not (x : ByteVector n) : ByteVector n :=
   x.map (255 - ·)
 
-def byteVecAdd (x y : ByteVector n) : ByteVector n := Id.run do
+def add (x y : ByteVector n) : ByteVector n := Id.run do
   let mut res := default
   let mut cin := 0
   for h : i in [0 : n] do
@@ -98,26 +98,26 @@ def byteVecAdd (x y : ByteVector n) : ByteVector n := Id.run do
   return res
 
 instance : Add (ByteVector n) where
-  add := byteVecAdd
+  add := add
 
 -- TODO: is it correct?
 instance : Sub (ByteVector n) where
   sub x y := x + ByteVector.not y
 
-def byteVecMul (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
+def mul (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
 
 instance : Mul (ByteVector n) where
-  mul := byteVecMul
+  mul := mul
 
-def byteVecInv (x : ByteVector n) : ByteVector n := sorry
+def inv (x : ByteVector n) : ByteVector n := sorry
 
 instance : Inv (ByteVector n) where
-  inv := byteVecInv
+  inv := inv
 
-def byteVecDiv (x : ByteVector n) (y : ByteVector n) : ByteVector n := sorry
+def div (x : ByteVector n) (y : ByteVector n) : ByteVector n := x * Inv.inv y
 
 instance : Div (ByteVector n) where
-  div v₁ v₂ := v₁ * Inv.inv v₂
+  div := div
 
 end ByteVector
 
