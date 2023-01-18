@@ -50,6 +50,9 @@ def genWith (f : Fin n → UInt8) : ByteVector n := Id.run do
     res := res.set i this (f $ Fin.mk i this)
   return res  
 
+def ofNat (n capacity : Nat) : ByteVector capacity :=
+  ⟨n.toByteArrayLE.slice 0 capacity, ByteArray.slice_size⟩
+
 @[extern "lean_byte_vector_to_uint16"]
 opaque toUInt16 : @& ByteVector 2 → UInt16
 
@@ -117,14 +120,19 @@ private def uInt8OverFlowMul (u₁ u₂ : UInt8) : UInt8 × UInt8 :=
   let u16 := u₁.toUInt16 * u₂.toUInt16
   (u16 >>> 8 |>.toUInt8, u16.toUInt8)
 
+private def uInt8OverFlowAdd (u₁ u₂ : UInt8) : UInt8 × UInt8 :=
+  let u16 := u₁.toUInt16 + u₂.toUInt16
+  (u16 >>> 8 |>.toUInt8, u16.toUInt8)
+
 private def uInt8Mul (x : ByteVector n) (u : UInt8) : ByteVector n := Id.run do
   let mut carry: UInt8 := 0
   let mut answer: ByteVector n := default
 
   for idx in [: n] do
-    let (carry', res) := uInt8OverFlowMul (x.get! idx) u 
-    answer := answer.set! idx (carry + res)
-    carry := carry'
+    let (carry1, res') := uInt8OverFlowMul (x.get! idx) u
+    let (carry2, res) := uInt8OverFlowAdd carry res'
+    answer := answer.set! idx res
+    carry := carry1 + carry2
 
   return answer
 
@@ -139,6 +147,10 @@ private def naiiveMul (x y : ByteVector n) : ByteVector n := Id.run do
     answer := answer + (shiftRight temp idx)
   
   answer
+
+#eval naiiveMul (.ofNat 234123 5) (.ofNat 65734 5)
+
+#eval (ByteVector.ofNat (234123 * 65734) 5)
 
 def karatsubaMul (x y : ByteVector n) : ByteVector n := sorry
 
