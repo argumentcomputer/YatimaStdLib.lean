@@ -11,10 +11,20 @@ represent non-empty lists.
 import YatimaStdLib.Applicative
 import YatimaStdLib.Foldable
 import YatimaStdLib.Traversable
+import YatimaStdLib.List
 
 structure NEList (α : Type u) where
   head : α
   tail : List α
+
+instance [ToString α] : ToString (NEList α) where
+  toString
+    | xs => s!"{xs.head :: xs.tail}"
+
+namespace NEList
+
+def cons (x : α) (xs : List α) : NEList α := ⟨x, xs⟩
+def uno (x : α) : NEList α := cons x []
 
 infixr:67 " :| " => NEList.cons
 notation:max "⟦" x "⟧" => NEList.uno x
@@ -23,20 +33,11 @@ syntax "⟦"term ", " term,* "⟧" : term
 open Lean in
 macro_rules
   | `(⟦$x:term, $[$xs:term],*⟧) => do
-    let xs := [x] ++ xs.toList |>.reverse
-    let mut exprs : TSyntax `term := ← `(⟦$(xs[0]!)⟧)
-    for z in xs.tail! do
-      exprs := ← `(NEList.cons $z $exprs)
-    return exprs
-
-instance [ToString α] : ToString (NEList α) where
-  toString
-    | xs => s!"{xs.head :: xs.tail}"
-
-namespace NEList
-
-/-- Creates a term of `List α` from the elements of a term of `NEList α` -/
-def singleton (x : α) : NEList α := ⟨ x , [] ⟩
+    let xs := xs.toList |>.reverse
+    let mut exprs : TSyntax `term := ← `([])
+    for z in xs do
+      exprs := ← `(List.cons $z $exprs)
+    `(NEList.cons $x $exprs)
 
 /-- Creates a term of `List α` from the elements of a term of `NEList α` -/
 def toList (xs : NEList α) : List α := xs.head :: xs.tail
@@ -59,8 +60,8 @@ def foldr (f : α → β → β) (init : β) (l : NEList α) : β :=
 The `specialize` tag forces the compiler to create a version of the function
 for each `f` used for optimization purposes -/
 @[specialize]
-def map (f : α → β) : NEList α → NEList β
-  | .mk head tail => ⟨f head, tail.map f⟩
+def map (f : α → β) (xs : NEList α) : NEList β :=
+  f xs.head :| xs.tail.map f
 
 instance : Functor NEList where
   map := NEList.map
@@ -76,7 +77,7 @@ instance [BEq τ] : BEq $ NEList τ := ⟨NEList.beq⟩
 def nonEmpty (l : List α) : Option (NEList α) :=
   match l with
   | [] => .none
-  | (x :: xs) => .some ⟨x, xs⟩
+  | (x :: xs) => .some $ x :| xs
 
 def nonEmptyString (s : String) : Option (NEList Char) :=
   match s with
@@ -94,50 +95,30 @@ instance : Foldable NEList where
   foldl := NEList.foldl
 
 def traverse [Applicative φ] (f : α → φ β) (l : NEList α) : φ (NEList β) :=
-  let rec go : List α → φ (List β)
-    | [] => pure []
-    | y :: ys => Applicative.liftA₂ (.cons) (f y) (go ys)
-  Applicative.liftA₂ .mk (f l.head) (go l.tail)
-  -- | ⟦x⟧ => .uno <$> f x
-  -- | x :| xs => Applicative.liftA₂ (.cons) (f x) $ traverse f xs
+  Applicative.liftA₂ .mk (f l.head) (l.tail.traverse f)
 
 open Traversable in
 instance : Traversable NEList where
   traverse := NEList.traverse
 
 instance : Pure NEList where
-  pure x := ⟦x⟧
+  pure x := ⟦ x ⟧
 
-def compareWith [Ord α] : NEList α → NEList α → Ordering
-  | uno a, uno b => compare a b
-  | uno a, cons b _ =>
-    let cmp := compare a b
-    if cmp == .eq then .lt else cmp
-  | cons a _, uno b =>
-    let cmp := compare a b
-    if cmp == .eq then .gt else cmp
-  | cons a as, cons b bs =>
-    let cmp := compare a b
-    if cmp == .eq then compareWith as bs else cmp
+instance [Ord α] : Ord $ NEList α where
+  compare xs ys := compare xs.toList ys.toList
 
-instance [Ord α] : Ord $ NEList α := ⟨compareWith⟩
+def min {α : Type _ } [LE α] [DecidableRel (@LE.le α _)] (as : NEList α) : α :=
+  as.tail.foldl (fun a acc => if a ≤ acc then a else acc) as.head
+
+def max {α : Type _ } [LE α] [DecidableRel (@LE.le α _)] (as : NEList α) : α :=
+  as.tail.foldl (fun a acc => if a ≤ acc then acc else a) as.head
 
 end NEList
 
 namespace List
 
 /-- Builds an `NEList α` from a term of `α` and a term of `List α` -/
-def toNEList (a : α) : List α → NEList α
-  | []      => .uno a
-  | b :: bs => .cons a (toNEList b bs)
+def toNEList (a : α) (as : List α) : NEList α :=
+  a :| as
 
 end List
-
-def NEList.min {α : Type _ } [LE α] [DecidableRel (@LE.le α _)] : NEList α → α
-  | .uno a     => a
-  | .cons a as => if a ≤ (min as) then a else (min as)
-
-def NEList.max {α : Type _ } [LE α] [DecidableRel (@LE.le α _)] : NEList α → α
-  | .uno a     => a
-  | .cons a as => if a ≤ (max as) then (max as) else a
-  

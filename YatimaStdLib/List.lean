@@ -1,4 +1,6 @@
+import YatimaStdLib.Applicative
 import YatimaStdLib.Foldable
+import YatimaStdLib.Traversable
 import Std.Data.List.Basic
 
 namespace List
@@ -34,6 +36,13 @@ instance : Foldable List where
   fold := List.fold
   foldr := List.foldr
   foldl := List.foldl
+
+def traverse [Applicative F] (f : A → F B) : List A → F (List B) :=
+  let cons_f x ys := Applicative.liftA₂ (fun x xs => x :: xs) (f x) ys
+  List.foldr cons_f (pure [])
+
+instance : Traversable List where
+  traverse := List.traverse
 
 -- the `B` suffix avoids name conflicts with mathlib
 def eraseDupB [BEq α] : List α → List α
