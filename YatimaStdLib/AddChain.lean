@@ -170,5 +170,5 @@ open Square in
 /-- A fast implementation of exponentation based off an `AddChain` representation of `exp`. -/
 @[specialize] def fastExp [Square α] (n : α) (exp : Nat) : α := fastExpFunc exp n
 
-@[default_instance] instance [Square α] : HPow α Nat α where
+instance (priority := low) [Square α] : HPow α Nat α where
   hPow n pow := fastExp n pow 
