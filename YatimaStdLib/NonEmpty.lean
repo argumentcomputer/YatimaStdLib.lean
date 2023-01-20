@@ -18,12 +18,13 @@ structure NEList (α : Type u) where
   tail : List α
 
 instance [ToString α] : ToString (NEList α) where
-  toString
-    | xs => s!"{xs.head :: xs.tail}"
+  toString xs := "⟦" ++ xs.tail.foldl (fun acc x => s!"{acc}, {x}") s!"{xs.head}" ++ "⟧"
 
 namespace NEList
 
+@[match_pattern]
 def cons (x : α) (xs : List α) : NEList α := ⟨x, xs⟩
+@[match_pattern]
 def uno (x : α) : NEList α := cons x []
 
 infixr:67 " :| " => NEList.cons
@@ -40,6 +41,7 @@ macro_rules
     `(NEList.cons $x $exprs)
 
 /-- Creates a term of `List α` from the elements of a term of `NEList α` -/
+@[inline]
 def toList (xs : NEList α) : List α := xs.head :: xs.tail
 
 /-- Performs a fold-left on a `NEList`
@@ -95,7 +97,7 @@ instance : Foldable NEList where
   foldl := NEList.foldl
 
 def traverse [Applicative φ] (f : α → φ β) (l : NEList α) : φ (NEList β) :=
-  Applicative.liftA₂ .mk (f l.head) (l.tail.traverse f)
+  Applicative.liftA₂ cons (f l.head) (l.tail.traverse f)
 
 open Traversable in
 instance : Traversable NEList where
