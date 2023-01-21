@@ -14,35 +14,26 @@ import YatimaStdLib.Traversable
 import YatimaStdLib.List
 
 structure NEList (α : Type u) where
-  head : α
-  tail : List α
+  data : List α
+  ne   : data ≠ []
 
 instance [ToString α] : ToString (NEList α) where
-  toString xs := "⟦" ++ xs.tail.foldl (fun acc x => s!"{acc}, {x}") s!"{xs.head}" ++ "⟧"
+  toString xs := toString xs.data
 
 namespace NEList
 
-@[match_pattern]
-def cons (x : α) (xs : List α) : NEList α := ⟨x, xs⟩
-@[match_pattern]
-def uno (x : α) : NEList α := cons x []
+instance : CoeDep (List α) (x :: xs) (NEList α) where
+  coe := { data := x :: xs, ne := by simp }
 
-infixr:67 " :| " => NEList.cons
-notation:max "⟦" x "⟧" => NEList.uno x
-syntax "⟦"term ", " term,* "⟧" : term
+def head : NEList α → α 
+  | ⟨x::_, _⟩ => x
 
-open Lean in
-macro_rules
-  | `(⟦$x:term, $[$xs:term],*⟧) => do
-    let xs := xs.toList |>.reverse
-    let mut exprs : TSyntax `term := ← `([])
-    for z in xs do
-      exprs := ← `(List.cons $z $exprs)
-    `(NEList.cons $x $exprs)
+def tail : NEList α → List α 
+  | ⟨_::xs, _⟩ => xs
 
 /-- Creates a term of `List α` from the elements of a term of `NEList α` -/
 @[inline]
-def toList (xs : NEList α) : List α := xs.head :: xs.tail
+def toList (xs : NEList α) : List α := xs.data
 
 /-- Performs a fold-left on a `NEList`
 The `specialize` tag forces the compiler to create a version of the function
@@ -63,7 +54,7 @@ The `specialize` tag forces the compiler to create a version of the function
 for each `f` used for optimization purposes -/
 @[specialize]
 def map (f : α → β) (xs : NEList α) : NEList β :=
-  f xs.head :| xs.tail.map f
+  f xs.head :: xs.tail.map f
 
 instance : Functor NEList where
   map := NEList.map
@@ -79,7 +70,7 @@ instance [BEq τ] : BEq $ NEList τ := ⟨NEList.beq⟩
 def nonEmpty (l : List α) : Option (NEList α) :=
   match l with
   | [] => .none
-  | (x :: xs) => .some $ x :| xs
+  | (x :: xs) => .some $ x :: xs
 
 def nonEmptyString (s : String) : Option (NEList Char) :=
   match s with
@@ -97,14 +88,14 @@ instance : Foldable NEList where
   foldl := NEList.foldl
 
 def traverse [Applicative φ] (f : α → φ β) (l : NEList α) : φ (NEList β) :=
-  Applicative.liftA₂ cons (f l.head) (l.tail.traverse f)
+  Applicative.liftA₂ (· :: ·) (f l.head) (l.tail.traverse f)
 
 open Traversable in
 instance : Traversable NEList where
   traverse := NEList.traverse
 
 instance : Pure NEList where
-  pure x := ⟦ x ⟧
+  pure x := [x]
 
 instance [Ord α] : Ord $ NEList α where
   compare xs ys := compare xs.toList ys.toList
@@ -121,6 +112,6 @@ namespace List
 
 /-- Builds an `NEList α` from a term of `α` and a term of `List α` -/
 def toNEList (a : α) (as : List α) : NEList α :=
-  a :| as
+  a :: as
 
 end List
