@@ -103,17 +103,9 @@ theorem div2_lt (h : n ≠ 0) : n / 2 < n := by
     exact @div2_lt (n + 2) (by simp_arith)
     simp_arith
 
-def divCount (p : Nat) : Nat :=
-  let rec loop (n acc : Nat) : Nat :=
-    if h : n = 0 then 0 else
-      match n % 2 with
-      | 0 =>
-        have : n / 2 < n := by
-          refine Nat.div2_lt h
-        loop (n / 2) (acc + 1)
-      | _ => acc
-  loop (p - 1) 0
-
+/--
+Evaluates `b^e mod m`
+-/
 def powMod (m b e : Nat) : Nat :=
   let rec go (b e r : Nat) : Nat :=
     if h : e = 0 then r
@@ -126,9 +118,15 @@ def powMod (m b e : Nat) : Nat :=
       else go ((b*b) % m) e' ((r*b) % m)
   go b e 1
 
+/-- A legendre symbol denotes the value of `a^((p - 1)/2) mod p`
+-/
 def legendre (a : Nat) (p : Nat) : Nat :=
   powMod p a ((p - 1) / 2)
 
+/--
+The Tonelli-Shanks algorithm solves the equation having the form
+`x^2 = n mod p`, whenever it exists
+-/
 def tonelli (n : Nat) (p : Nat) : Option (Nat × Nat) :=
   if legendre n p != 1 then none else Id.run do
   let mut q := p - 1
@@ -161,34 +159,6 @@ def tonelli (n : Nat) (p : Nat) : Option (Nat × Nat) :=
     t := (t * c) % p
     m := iMax
   return some (r, p - r)
-
-/-
-        let l := map Nat.succ $ reverse $ iota $ p - 2
-        let z :=
-          2 + (length $ takeWhile (fun i => not (p - 1 == legendre i p)) l)
-        let rec loop (m c r t : Nat) : Option (Nat × Nat) :=
-          match (t - 1) % p == 0 with
-            | true => some (r, p - r)
-            | false => 
-            let iter (t : Nat) (m : Nat) (p : Nat) : Nat := Id.run do
-              let mut t := t
-              while (t - 1) % p != 0 do
-                let mut t2 := (t * t) % p
-                for i in [1:m] do
-                if (t2 - 1) % p == 0 then break
-                else t2 := (t2 * t2) % p
-              return t
-            let i := iter t m p
-            let b := powMod p c 2^(m - i - 1)
-            let r' := (r*b) % p
-            let c' := (b*b) % p
-            let t' := (t*c') % p
-            loop i c' r' t'
-        loop s
-            (powMod p z q)
-            (powMod p n $ (q+1) / 2)
-            (powMod p n q)
--/
 
 /-- Prints a `Nat` in its hexadecimal form, given the wanted length -/
 def asHex (n : Nat) (length : Nat) : String := 
