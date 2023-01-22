@@ -22,15 +22,6 @@ extern_lib ffi (pkg : Package) := do
   let job ← fetch <| pkg.target ``importTarget
   buildStaticLib (pkg.buildDir / defaultLibDir / name) #[job]
 
-extern_lib rust_ffi (pkg : Package) := do
-  proc { cmd := "cargo", args := #["build", "--release"], cwd := pkg.dir }
-  let name := nameToStaticLib "rust_ffi"
-  let srcPath := pkg.dir / "target" / "release" / name
-  IO.FS.createDirAll pkg.libDir
-  let tgtPath := pkg.libDir / name
-  IO.FS.writeBinFile tgtPath (← IO.FS.readBinFile srcPath)
-  return (pure tgtPath)
-
 require std from git
   "https://github.com/leanprover/std4/" @ "fde95b16907bf38ea3f310af406868fc6bcf48d1"
 
@@ -67,7 +58,7 @@ script import_all? do
   let importsFromUser ← IO.FS.readFile ⟨"YatimaStdLib.lean"⟩
   let expectedImports ← getImportsString
   if importsFromUser != expectedImports then
-    IO.eprintln "Invalid import list in 'Yatima.lean'"
+    IO.eprintln "Invalid import list in 'YatimaStdLib.lean'"
     IO.eprintln "Try running 'lake run import_all'"
     return 1
   return 0
@@ -77,7 +68,6 @@ end ImportAll
 lean_exe Tests.UInt
 lean_exe Tests.ByteArray
 lean_exe Tests.ByteVector
-lean_exe Tests.LightData
 lean_exe Tests.AddChain
 
 lean_exe Benchmarks.AddChain

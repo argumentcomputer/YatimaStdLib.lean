@@ -2,6 +2,7 @@ import YatimaStdLib.AbstractMatrix
 import YatimaStdLib.Algebra.Defs
 import YatimaStdLib.Applicative
 import YatimaStdLib.Array
+import YatimaStdLib.Benchmark
 import YatimaStdLib.Bit
 import YatimaStdLib.ByteArray
 import YatimaStdLib.ByteVector
@@ -17,7 +18,6 @@ import YatimaStdLib.HashSet
 import YatimaStdLib.Identity
 import YatimaStdLib.Int
 import YatimaStdLib.Lean
-import YatimaStdLib.LightData
 import YatimaStdLib.List
 import YatimaStdLib.MLE.MultiLinearLagrangeTest
 import YatimaStdLib.MLE.MultilinearExtension

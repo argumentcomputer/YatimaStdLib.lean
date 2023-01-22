@@ -105,12 +105,3 @@ extern l_res lean_byte_array_slice(l_arg a, lean_obj_arg oi, lean_obj_arg on) {
     }
     return (lean_object*)res;
 }
-
-void blake3(uint8_t*, size_t, uint8_t*);
-
-extern l_res lean_byte_array_blake3(l_arg a) {
-    lean_sarray_object* oa = lean_to_sarray(a);
-    lean_sarray_object* res = mk_byte_array(32);
-    blake3(res->m_data, oa->m_size, oa->m_data);
-    return (lean_object*)res;
-}
