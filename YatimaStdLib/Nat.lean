@@ -139,10 +139,34 @@ def tonelli (n : Nat) (p : Nat) : Option (Nat × Nat) :=
       then
         let r := powMod p n (p+1 / 4)
         some (r, p - r)
-      else
-        let l := List.map Nat.succ $ List.reverse $ List.iota $ p - 2
+      else Id.run do
+        for z in [2:p] do
+          if p - 1 == legendre z p then
+            break
+          let l : Option (Nat × Nat) := Id.run do
+            let mut c := powMod p z q
+            let mut t := powMod p n q
+            let mut m := s
+            let mut t2 := 0
+            let mut r := powMod p n $ (q+1) / 2
+            while (t - 1) % p != 0 do
+              t2 := (t * t) % p
+              for i in [1:m] do
+                if (t2 - 1) % p == 0 then
+                  break
+                t2 := (t2 * t2) % p
+                let b := powMod p c 2^(m - i - 1)
+                r := (r * b) % p
+                c := (b * b) % p
+                t := (t * c) % p
+                m := i
+            return some (r, p - r)
+          return l
+
+/-
+        let l := map Nat.succ $ reverse $ iota $ p - 2
         let z :=
-          2 + (List.length $ List.takeWhile (fun i => not (p - 1 == legendre i p)) l)
+          2 + (length $ takeWhile (fun i => not (p - 1 == legendre i p)) l)
         let rec loop (m c r t : Nat) : Option (Nat × Nat) :=
           match (t - 1) % p == 0 with
             | true => some (r, p - r)
@@ -156,8 +180,7 @@ def tonelli (n : Nat) (p : Nat) : Option (Nat × Nat) :=
                 else t2 := (t2 * t2) % p
               return t
             let i := iter t m p
-            let deg := 2^(m - i - 1)
-            let b := powMod p c deg
+            let b := powMod p c 2^(m - i - 1)
             let r' := (r*b) % p
             let c' := (b*b) % p
             let t' := (t*c') % p
@@ -166,6 +189,7 @@ def tonelli (n : Nat) (p : Nat) : Option (Nat × Nat) :=
             (powMod p z q)
             (powMod p n $ (q+1) / 2)
             (powMod p n q)
+-/
 
 /-- Prints a `Nat` in its hexadecimal form, given the wanted length -/
 def asHex (n : Nat) (length : Nat) : String := 
