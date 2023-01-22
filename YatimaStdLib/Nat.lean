@@ -114,6 +114,59 @@ def divCount (p : Nat) : Nat :=
       | _ => acc
   loop (p - 1) 0
 
+def powMod (m b e : Nat) : Nat :=
+  let rec go (b e r : Nat) : Nat :=
+    if h : e = 0 then r
+    else
+      let e' := e / 2
+      have : e' < e := 
+      by exact Nat.div2_lt h
+      if e % 2 = 0
+      then go ((b*b) % m) e' r
+      else go ((b*b) % m) e' ((r*b) % m)
+  go b e 1
+
+def legendre (a : Nat) (p : Nat) : Nat :=
+  powMod p a ((p - 1) / 2)
+
+def tonelli (n : Nat) (p : Nat) : Option (Nat × Nat) :=
+  match legendre n p == 1 with
+    | false => none
+    | true =>
+      let s := divCount p - 1
+      let q := shiftLeft (p - 1) s
+      if s == 1
+      then
+        let r := powMod p n (p+1 / 4)
+        some (r, p - r)
+      else
+        let l := List.map Nat.succ $ List.reverse $ List.iota $ p - 2
+        let z :=
+          2 + (List.length $ List.takeWhile (fun i => not (p - 1 == legendre i p)) l)
+        let rec loop (m c r t : Nat) : Option (Nat × Nat) :=
+          match (t - 1) % p == 0 with
+            | true => some (r, p - r)
+            | false => 
+            let iter (t : Nat) (m : Nat) (p : Nat) : Nat := Id.run do
+              let mut t := t
+              while (t - 1) % p != 0 do
+                let mut t2 := (t * t) % p
+                for i in [1:m] do
+                if (t2 - 1) % p == 0 then break
+                else t2 := (t2 * t2) % p
+              return t
+            let i := iter t m p
+            let deg := 2^(m - i - 1)
+            let b := powMod p c deg
+            let r' := (r*b) % p
+            let c' := (b*b) % p
+            let t' := (t*c') % p
+            loop i c' r' t'
+        loop s
+            (powMod p z q)
+            (powMod p n $ (q+1) / 2)
+            (powMod p n q)
+
 /-- Prints a `Nat` in its hexadecimal form, given the wanted length -/
 def asHex (n : Nat) (length : Nat) : String := 
   if n < USize.size then 
