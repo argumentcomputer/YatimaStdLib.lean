@@ -130,38 +130,37 @@ def legendre (a : Nat) (p : Nat) : Nat :=
   powMod p a ((p - 1) / 2)
 
 def tonelli (n : Nat) (p : Nat) : Option (Nat × Nat) :=
-  match legendre n p == 1 with
-    | false => none
-    | true =>
-      let s := divCount p - 1
-      let q := shiftLeft (p - 1) s
-      if s == 1
-      then
-        let r := powMod p n (p+1 / 4)
-        some (r, p - r)
-      else Id.run do
-        for z in [2:p] do
-          if p - 1 == legendre z p then
-            break
-          let l : Option (Nat × Nat) := Id.run do
-            let mut c := powMod p z q
-            let mut t := powMod p n q
-            let mut m := s
-            let mut t2 := 0
-            let mut r := powMod p n $ (q+1) / 2
-            while (t - 1) % p != 0 do
-              t2 := (t * t) % p
-              for i in [1:m] do
-                if (t2 - 1) % p == 0 then
-                  break
-                t2 := (t2 * t2) % p
-                let b := powMod p c 2^(m - i - 1)
-                r := (r * b) % p
-                c := (b * b) % p
-                t := (t * c) % p
-                m := i
-            return some (r, p - r)
-          return l
+  if legendre n p != 1 then none else Id.run do
+  let mut q := p - 1
+  let mut s := 0
+  while q % 2 == 0 do
+    q := q / 2
+    s := s + 1
+  if s == 1 then
+    let r := powMod p n ((p + 1) / 4)
+    return some (r, p - r)
+  let mut zMax := 2
+  for z in [2 : p] do
+    zMax := z
+    if p - 1 == legendre z p then break
+  let mut c := powMod p zMax q
+  let mut r := powMod p n $ (q + 1) / 2
+  let mut t := powMod p n q
+  let mut m := s
+  while (t - 1) % p != 0 do
+    let mut t2 := (t * t) % p
+    let mut iMax := 1
+    for i in [1:m] do
+      iMax := i
+      if (t2 - 1) % p == 0 then
+        break
+      t2 := (t2 * t2) % p
+    let b := powMod p c (2^(m - iMax - 1))
+    r := (r * b) % p
+    c := (b * b) % p
+    t := (t * c) % p
+    m := iMax
+  return some (r, p - r)
 
 /-
         let l := map Nat.succ $ reverse $ iota $ p - 2
