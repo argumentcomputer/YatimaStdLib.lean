@@ -114,14 +114,14 @@ def powMod (m b e : Nat) : Nat :=
       have : e' < e := 
       by exact Nat.div2_lt h
       if e % 2 = 0
-      then go ((b*b) % m) e' r
-      else go ((b*b) % m) e' ((r*b) % m)
+      then go ((b*b) % m) e' r              -- TODO : Use Montgomery multiplication here to avoid
+      else go ((b*b) % m) e' ((r*b) % m)    --        calculating `mod` at every step
   go b e 1
 
 /-- A legendre symbol denotes the value of `a^((p - 1)/2) mod p`
 -/
-def legendre (a : Nat) (p : Nat) : Nat :=
-  powMod p a ((p - 1) / 2)
+def legendre (a : Nat) (p : Nat) : Nat :=  -- TODO : Use a pre-calculated `(p - 1) / 2 ` AddChain
+  powMod p a ((p - 1) / 2)                 --        and AddChain `fastExp` here
 
 /--
 The Tonelli-Shanks algorithm solves the equation having the form
@@ -142,8 +142,8 @@ def tonelli (n : Nat) (p : Nat) : Option (Nat × Nat) :=
     zMax := z
     if p - 1 == legendre z p then break
   let mut c := powMod p zMax q
-  let mut r := powMod p n $ (q + 1) / 2
-  let mut t := powMod p n q
+  let mut r := powMod p n $ (q + 1) / 2  -- TODO : Group together these two exponetiations into a 
+  let mut t := powMod p n q              --        bached Exp to avoid re-calculating some powers
   let mut m := s
   while (t - 1) % p != 0 do
     let mut t2 := (t * t) % p
