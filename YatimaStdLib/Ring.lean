@@ -16,14 +16,10 @@ instance [Ring R] : Inhabited R where
 
 class Field (K : Type) extends Ring K where
   inv : K → K
-  sqrtRatio : K → K → Bool × K
+  sqrt : K → Option K
+
+instance [Field K] : Div K where
+  div a b := a * Field.inv b
 
 /-- Doubles this element -/
 def double [Field K] (k : K) : K := 2 * k
-
-/-- Returns the square root of the field element, if it is a quadratic residue -/
-def sqrt [Field K] (k : K) : Option K :=
-  let (isSquare, res) := Field.sqrtRatio k 1
-  match isSquare with
-  | false => none
-  | true => some res

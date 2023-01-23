@@ -1,4 +1,5 @@
 import YatimaStdLib.Int
+import YatimaStdLib.Nat
 import YatimaStdLib.Ring
 
 structure Zmod (_ : Nat) where
@@ -26,13 +27,8 @@ instance : Inhabited (Zmod n) where
 instance {n m : Nat} : OfNat (Zmod n) m where
   ofNat := m
 
-def pow' (a : Zmod n) (l : Nat) : Zmod n:=
-  match l with
-    | 0 => 1
-    | k + 1 => a * pow' a k
-
 instance : Pow (Zmod n) Nat where
-  pow := pow'
+  pow a l := Zmod.mk $ Nat.powMod n (natAbs ∘ Zmod.rep $ a) l
 
 instance : Sub (Zmod n) where
   sub (a b : Zmod n) := (rep a - rep b) % (n : Int)
@@ -55,12 +51,14 @@ instance : BEq (Zmod n) where
 instance : Repr (Zmod n) where
   reprPrec n _ := s!"0x{Nat.toDigits 16 (Zmod.norm n) |>.asString}"
 
+def modSqrt (a : Zmod n) : Option (Zmod n) :=
+  let a' := natAbs ∘ Zmod.rep $ a
+  match Nat.tonelli a' n with
+    | some (_,y) => some ∘ Zmod.mk $ y
+    | none => none
+
 instance : Field (Zmod n) where
   inv := modInv
-  sqrtRatio a b :=
-    match (a == 0, b == 0) with
-      | (true, _) => (true, 0)
-      | (false, true) => (false, 0)
-      | (false, false) => sorry
+  sqrt := modSqrt
 
 end Zmod
