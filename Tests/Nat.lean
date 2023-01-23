@@ -22,3 +22,10 @@ open Lean LSpec Nat
        test "legendre is correct" (legendre 73 103 == 102) $
        test "legendre is correct" (legendre 7 19 == 1) $
        test "legendre is correct" (legendre 3 113 == 112)
+
+#lspec test "tonelli is correct" (tonelli 10 13 == some (7, 6)) $
+       test "tonelli is correct" (tonelli 56 101 == some (37,64)) $
+       test "tonelli is correct" (tonelli 1030 10009 == some (1632,8377)) $
+       test "tonelli is correct" (tonelli 1032 10009 == none) $
+       test "tonelli is correct" (tonelli 44402 100049 == some (30468,69581)) $
+       test "tonelli is correct" (tonelli 665820697 1000000009 == some (378633312,621366697))
