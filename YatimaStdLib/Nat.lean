@@ -126,6 +126,8 @@ def legendre (a : Nat) (p : Nat) : Nat :=  -- TODO : Use a pre-calculated `(p - 
 /--
 The Tonelli-Shanks algorithm solves the equation having the form
 `x^2 = n mod p`, whenever it exists
+Ported from this:
+https://rosettacode.org/wiki/Tonelli-Shanks_algorithm#Python
 -/
 def tonelli (n : Nat) (p : Nat) : Option (Nat × Nat) :=
   if legendre n p != 1 then none else Id.run do
