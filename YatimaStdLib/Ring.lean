@@ -20,6 +20,3 @@ class Field (K : Type) extends Ring K where
 
 instance [Field K] : Div K where
   div a b := a * Field.inv b
-
-/-- Doubles this element -/
-def double [Field K] (k : K) : K := 2 * k
