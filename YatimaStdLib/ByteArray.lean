@@ -181,7 +181,7 @@ instance : Sub ByteArray where
   sub := sub
 
 /-- "naiive" multiplication of two ByteArrays -/
-def mul (x y : ByteArray) : ByteArray := Id.run do
+def nmul (x y : ByteArray) : ByteArray := Id.run do
   let mut answer: ByteArray := default
   let mut idx := 0
 
@@ -195,7 +195,7 @@ def mul (x y : ByteArray) : ByteArray := Id.run do
 /-- Karatsuba multiplication of two ByteArrays -/
 partial def kmul (x y : ByteArray) : ByteArray :=
   let n := max x.size y.size
-  if n == 2 then mul x y else 
+  if n ≤ 8 then nmul x y else 
     let low := n / 2
     let high := n - low
     let xLow := x.slice 0 low
