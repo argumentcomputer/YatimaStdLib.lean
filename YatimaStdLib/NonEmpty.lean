@@ -11,10 +11,21 @@ represent non-empty lists.
 import YatimaStdLib.Applicative
 import YatimaStdLib.Foldable
 import YatimaStdLib.Traversable
+import YatimaStdLib.List
 
-inductive NEList (α : Type _)
-  | uno  : α → NEList α
-  | cons : α → NEList α → NEList α
+structure NEList (α : Type u) where
+  head : α
+  tail : List α
+
+instance [ToString α] : ToString (NEList α) where
+  toString xs := "⟦" ++ xs.tail.foldl (fun acc x => s!"{acc}, {x}") s!"{xs.head}" ++ "⟧"
+
+namespace NEList
+
+@[match_pattern]
+def cons (x : α) (xs : List α) : NEList α := ⟨x, xs⟩
+@[match_pattern]
+def uno (x : α) : NEList α := cons x []
 
 infixr:67 " :| " => NEList.cons
 notation:max "⟦" x "⟧" => NEList.uno x
@@ -23,50 +34,36 @@ syntax "⟦"term ", " term,* "⟧" : term
 open Lean in
 macro_rules
   | `(⟦$x:term, $[$xs:term],*⟧) => do
-    let xs := [x] ++ xs.toList |>.reverse
-    let mut exprs : TSyntax `term := ← `(⟦$(xs[0]!)⟧)
-    for z in xs.tail! do
-      exprs := ← `(NEList.cons $z $exprs)
-    return exprs
-
-instance [ToString α] : ToString (NEList α) where
-  toString
-    | ⟦x⟧ => s!"⟦{x}⟧"
-    | xs => let rec go | ⟦e⟧ => s!"{e}" | e :| es => s!"{e}, {go es}"
-      s!"⟦{go xs}⟧"
-
-namespace NEList
+    let xs := xs.toList |>.reverse
+    let mut exprs : TSyntax `term := ← `([])
+    for z in xs do
+      exprs := ← `(List.cons $z $exprs)
+    `(NEList.cons $x $exprs)
 
 /-- Creates a term of `List α` from the elements of a term of `NEList α` -/
-def toList : NEList α → List α
-  | .uno  a   => [a]
-  | .cons a b => a :: toList b
+@[inline]
+def toList (xs : NEList α) : List α := xs.head :: xs.tail
 
 /-- Performs a fold-left on a `NEList`
 The `specialize` tag forces the compiler to create a version of the function
 for each `f` used for optimization purposes -/
 @[specialize]
 def foldl (f : β → α → β) (init : β) (l : NEList α) : β :=
-  match l with
-    | .uno x => f init x
-    | .cons x xs => foldl f (f init x) xs
+  l.toList.foldl f init
 
 /-- Performs a fold-right on a `NEList`
 The `specialize` tag forces the compiler to create a version of the function
 for each `f` used for optimization purposes -/
 @[specialize]
 def foldr (f : α → β → β) (init : β) (l : NEList α) : β :=
-  match l with
-    | .uno x => f x init
-    | .cons x xs => foldr f (f x init) xs
+  l.toList.foldr f init
 
 /-- Performs a map on a `NEList`
 The `specialize` tag forces the compiler to create a version of the function
 for each `f` used for optimization purposes -/
 @[specialize]
-def map (f : α → β) : NEList α → NEList β
-  | uno  a    => uno  (f a)
-  | cons a as => cons (f a) (map f as)
+def map (f : α → β) (xs : NEList α) : NEList β :=
+  f xs.head :| xs.tail.map f
 
 instance : Functor NEList where
   map := NEList.map
@@ -74,74 +71,56 @@ instance : Functor NEList where
 instance BEqOfOrd [Ord τ] : BEq τ where
   beq x y := compare x y == Ordering.eq
 
-protected def beq [BEq α] : NEList α → NEList α → Bool
-  | .uno a,     .uno b     => a == b
-  | .cons a as, .cons b bs => a == b && NEList.beq as bs
-  | _,          _          => false
+protected def beq [BEq α] (xs ys : NEList α) : Bool :=
+  xs.toList == ys.toList
 
 instance [BEq τ] : BEq $ NEList τ := ⟨NEList.beq⟩
 
 def nonEmpty (l : List α) : Option (NEList α) :=
   match l with
-  | [] => Option.none
-  | [x] => Option.some $ NEList.uno x
-  | (x :: xs) => NEList.cons x <$> nonEmpty xs
+  | [] => .none
+  | (x :: xs) => .some $ x :| xs
 
 def nonEmptyString (s : String) : Option (NEList Char) :=
   match s with
     | { data := str } => nonEmpty str
 
 protected def fold [HMul M M M] (l : NEList M) : M :=
-  match l with
-    | .uno x => x
-    | .cons x xs => x * NEList.fold xs
+  let rec go (x : M) : List M → M
+    | [] => x
+    | y :: ys => x * go y ys
+  go l.head l.tail
 
 instance : Foldable NEList where
   fold := NEList.fold
   foldr := NEList.foldr
   foldl := NEList.foldl
 
-def traverse [Applicative φ] (f : α → φ β) : NEList α → φ (NEList β)
-  | ⟦x⟧ => .uno <$> f x
-  | x :| xs => Applicative.liftA₂ (.cons) (f x) $ traverse f xs
+def traverse [Applicative φ] (f : α → φ β) (l : NEList α) : φ (NEList β) :=
+  Applicative.liftA₂ cons (f l.head) (l.tail.traverse f)
 
 open Traversable in
 instance : Traversable NEList where
   traverse := NEList.traverse
 
 instance : Pure NEList where
-  pure x := ⟦x⟧
+  pure x := ⟦ x ⟧
 
-def compareWith [Ord α] : NEList α → NEList α → Ordering
-  | uno a, uno b => compare a b
-  | uno a, cons b _ =>
-    let cmp := compare a b
-    if cmp == .eq then .lt else cmp
-  | cons a _, uno b =>
-    let cmp := compare a b
-    if cmp == .eq then .gt else cmp
-  | cons a as, cons b bs =>
-    let cmp := compare a b
-    if cmp == .eq then compareWith as bs else cmp
+instance [Ord α] : Ord $ NEList α where
+  compare xs ys := compare xs.toList ys.toList
 
-instance [Ord α] : Ord $ NEList α := ⟨compareWith⟩
+def min {α : Type _ } [LE α] [DecidableRel (@LE.le α _)] (as : NEList α) : α :=
+  as.tail.foldl (fun a acc => if a ≤ acc then a else acc) as.head
+
+def max {α : Type _ } [LE α] [DecidableRel (@LE.le α _)] (as : NEList α) : α :=
+  as.tail.foldl (fun a acc => if a ≤ acc then acc else a) as.head
 
 end NEList
 
 namespace List
 
 /-- Builds an `NEList α` from a term of `α` and a term of `List α` -/
-def toNEList (a : α) : List α → NEList α
-  | []      => .uno a
-  | b :: bs => .cons a (toNEList b bs)
+def toNEList (a : α) (as : List α) : NEList α :=
+  a :| as
 
 end List
-
-def NEList.min {α : Type _ } [LE α] [DecidableRel (@LE.le α _)] : NEList α → α
-  | .uno a     => a
-  | .cons a as => if a ≤ (min as) then a else (min as)
-
-def NEList.max {α : Type _ } [LE α] [DecidableRel (@LE.le α _)] : NEList α → α
-  | .uno a     => a
-  | .cons a as => if a ≤ (max as) then (max as) else a
-  
