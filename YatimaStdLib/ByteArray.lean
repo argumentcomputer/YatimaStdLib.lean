@@ -12,6 +12,7 @@ def asLEtoNat (b : ByteArray) : Nat :=
 def asBEtoNat (b : ByteArray) : Nat :=
   b.data.data.foldl (init := 0) fun acc bᵢ => acc.shiftLeft 8 + bᵢ.toNat
 
+/-- Returns the index of -/
 def leadingZeroBits (bytes : ByteArray) : Nat := Id.run do
   let mut c := 0
   for byte in bytes do
@@ -21,6 +22,7 @@ def leadingZeroBits (bytes : ByteArray) : Nat := Id.run do
     else c := c + zs
   return c
 
+/-- Appends `n` bytes of `0`s to a `ByteArray` -/
 def pushZeros (bytes : ByteArray) (n : Nat) : ByteArray :=
   bytes ++ ⟨.mkArray n 0⟩
 
@@ -76,6 +78,7 @@ def shiftLeft (bs : ByteArray) : ByteArray := Id.run do
       (getD bs idx 0 <<< 1 : UInt8) + (getD bs (idx + 1) 0 >>> 7 : UInt8)
   answer
 
+/-- Shift the `ByteArray` right by `n` bytes by prepending the `n`-length array of `0`s -/
 def shiftRight8n (bs : ByteArray) (n : Nat) := ⟨.mkArray n 0⟩ ++ bs
 
 def shiftAdd (bs : ByteArray) (b : Bit) : ByteArray :=
