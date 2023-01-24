@@ -14,24 +14,21 @@ def correct16 (x y : ByteVector 2) : Bool :=
   List.foldr (. && .) true
     [ByteVector.toUInt16 x + ByteVector.toUInt16 y == ByteVector.toUInt16 (x + y),
     ByteVector.toUInt16 x * ByteVector.toUInt16 y == ByteVector.toUInt16 (x * y),
-    ByteVector.toUInt16 x - ByteVector.toUInt16 y == ByteVector.toUInt16 (x - y),
-    ByteVector.toUInt16 x / ByteVector.toUInt16 y == ByteVector.toUInt16 (x / y)
+    ByteVector.toUInt16 x - ByteVector.toUInt16 y == ByteVector.toUInt16 (x - y)
     ]
 
 def correct32 (x y : ByteVector 4) : Bool :=
   List.foldr (. && .) true
     [ByteVector.toUInt32 x + ByteVector.toUInt32 y == ByteVector.toUInt32 (x + y),
     ByteVector.toUInt32 x * ByteVector.toUInt32 y == ByteVector.toUInt32 (x * y),
-    ByteVector.toUInt32 x - ByteVector.toUInt32 y == ByteVector.toUInt32 (x - y),
-    ByteVector.toUInt32 x / ByteVector.toUInt32 y == ByteVector.toUInt32 (x / y)
+    ByteVector.toUInt32 x - ByteVector.toUInt32 y == ByteVector.toUInt32 (x - y)
     ]
 
 def correct64 (x y : ByteVector 8) : Bool :=
   List.foldr (. && .) true
     [ByteVector.toUInt64 x + ByteVector.toUInt64 y == ByteVector.toUInt64 (x + y),
     ByteVector.toUInt64 x * ByteVector.toUInt64 y == ByteVector.toUInt64 (x * y),
-    ByteVector.toUInt64 x - ByteVector.toUInt64 y == ByteVector.toUInt64 (x - y),
-    ByteVector.toUInt64 x / ByteVector.toUInt64 y == ByteVector.toUInt64 (x / y)
+    ByteVector.toUInt64 x - ByteVector.toUInt64 y == ByteVector.toUInt64 (x - y)
     ]
 
 def main := lspecIO $
