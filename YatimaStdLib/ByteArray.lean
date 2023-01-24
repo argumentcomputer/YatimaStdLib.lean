@@ -76,6 +76,8 @@ def shiftLeft (bs : ByteArray) : ByteArray := Id.run do
       (getD bs idx 0 <<< 1 : UInt8) + (getD bs (idx + 1) 0 >>> 7 : UInt8)
   answer
 
+def shiftRight8n (bs : ByteArray) (n : Nat) := ⟨.mkArray n 0⟩ ++ bs
+
 def shiftAdd (bs : ByteArray) (b : Bit) : ByteArray :=
   let ans := shiftLeft bs
   ans.set! (ans.size - 1) ((getD ans (ans.size - 1) 0) + b.toUInt8)
@@ -157,6 +159,27 @@ def add (x y : ByteArray) : ByteArray := Id.run do
 instance : Add ByteArray where
   add := add
 
+def sub (x y : ByteArray) : ByteArray := Id.run do
+  let mut res := default
+  let mut cin := 0
+  let n := max x.size y.size
+
+  for i in [0 : n] do
+    let xi := x.getD i 0
+    let yi := y.getD i 0
+    if xi < yi + cin then
+      let diff := (255 - yi - cin) + xi + 1
+      res := res.push diff
+      cin := 1 else
+      let diff := xi - yi - cin
+      res := res.push diff
+      cin := 0
+
+  return res
+
+instance : Sub ByteArray where
+  sub := sub
+
 /-- "naiive" multiplication of two ByteArrays -/
 def mul (x y : ByteArray) : ByteArray := Id.run do
   let mut answer: ByteArray := default
@@ -164,16 +187,30 @@ def mul (x y : ByteArray) : ByteArray := Id.run do
 
   for u in x do
     let temp := y * u
-    answer := answer + (⟨.mkArray idx 0⟩ ++ temp)
+    answer := answer + temp.shiftRight8n idx
     idx := idx + 1
   
   answer
 
-/-- Karatsuba multiplication of two byte arrays -/
-def kmul (x y : ByteArray) : ByteArray := sorry
+/-- Karatsuba multiplication of two ByteArrays -/
+partial def kmul (x y : ByteArray) : ByteArray :=
+  let n := max x.size y.size
+  if n == 2 then mul x y else 
+    let low := n / 2
+    let high := n - low
+    let xLow := x.slice 0 low
+    let yLow := y.slice 0 low
+    let xHigh := x.slice low high
+    let yHigh := y.slice low high
+    let xMid := xHigh + xLow
+    let yMid := yHigh + yLow
+    let lowMul := kmul xLow yLow
+    let highMul := kmul xHigh yHigh
+    let midMul := kmul xMid yMid - highMul - lowMul
+    highMul.shiftRight8n (2 * high) + midMul.shiftRight8n high + lowMul
 
 instance : Mul ByteArray where
-  mul := mul
+  mul := kmul
 
 end arithmetic
 

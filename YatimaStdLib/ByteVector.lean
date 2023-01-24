@@ -125,7 +125,8 @@ instance : HMul (ByteVector n) UInt8 (ByteVector n) where
 private def naiiveMul (x y : ByteVector n) : ByteVector n :=
   ⟨x.data * y.data |>.slice 0 n, ByteArray.slice_size⟩
 
-def karatsubaMul (x y : ByteVector n) : ByteVector n := sorry
+def karatsubaMul (x y : ByteVector n) : ByteVector n := 
+  ⟨x.data * y.data |>.slice 0 n, ByteArray.slice_size⟩
 
 instance : Mul (ByteVector n) where
   mul := naiiveMul
