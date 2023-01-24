@@ -103,6 +103,65 @@ theorem div2_lt (h : n ≠ 0) : n / 2 < n := by
     exact @div2_lt (n + 2) (by simp_arith)
     simp_arith
 
+/--
+Evaluates `b^e mod m`
+-/
+def powMod (m b e : Nat) : Nat :=
+  let rec go (b e r : Nat) : Nat :=
+    if h : e = 0 then r
+    else
+      let e' := e / 2
+      have : e' < e := 
+      by exact Nat.div2_lt h
+      if e % 2 = 0
+      then go ((b*b) % m) e' r              -- TODO : Use Montgomery multiplication here to avoid
+      else go ((b*b) % m) e' ((r*b) % m)    --        calculating `mod` at every step
+  go b e 1
+
+/-- A legendre symbol denotes the value of `a^((p - 1)/2) mod p`
+-/
+def legendre (a : Nat) (p : Nat) : Nat :=  -- TODO : Use a pre-calculated `(p - 1) / 2 ` AddChain
+  powMod p a ((p - 1) / 2)                 --        and AddChain `fastExp` here
+
+/--
+The Tonelli-Shanks algorithm solves the equation having the form
+`x^2 = n mod p`, whenever it exists
+Ported from this:
+https://rosettacode.org/wiki/Tonelli-Shanks_algorithm#Python
+-/
+def tonelli (n : Nat) (p : Nat) : Option (Nat × Nat) :=
+  if legendre n p != 1 then none else Id.run do
+  let mut q := p - 1
+  let mut s := 0
+  while q % 2 == 0 do
+    q := q / 2
+    s := s + 1
+  if s == 1 then
+    let r := powMod p n ((p + 1) / 4)
+    return some (r, p - r)
+  let mut zMax := 2
+  for z in [2 : p] do
+    zMax := z
+    if p - 1 == legendre z p then break
+  let mut c := powMod p zMax q
+  let mut r := powMod p n $ (q + 1) / 2  -- TODO : Group together these two exponetiations into a 
+  let mut t := powMod p n q              --        bached Exp to avoid re-calculating some powers
+  let mut m := s
+  while (t - 1) % p != 0 do
+    let mut t2 := (t * t) % p
+    let mut iMax := 1
+    for i in [1:m] do
+      iMax := i
+      if (t2 - 1) % p == 0 then
+        break
+      t2 := (t2 * t2) % p
+    let b := powMod p c (2^(m - iMax - 1))
+    r := (r * b) % p
+    c := (b * b) % p
+    t := (t * c) % p
+    m := iMax
+  return some (r, p - r)
+
 /-- Prints a `Nat` in its hexadecimal form, given the wanted length -/
 def asHex (n : Nat) (length : Nat) : String := 
   if n < USize.size then 
