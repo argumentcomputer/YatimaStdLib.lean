@@ -135,16 +135,21 @@ def Nat.buildAddChain (n : Nat) : AddChain Nat × Array ChainStep :=
   (ch, ch.buildSteps)
 
 /-- A typeclass that implements an efficient squaring operation to calculate fast exponentiation -/
-class Square (α : Type _) extends Mul α, OfNat α (nat_lit 1) where
+class Square (α : Type _) extends OfNat α (nat_lit 1) where
+  mul : α → α → α
   square : α → α
+
+namespace Square 
 
 instance [Square α] : Inhabited α where
   default := 1
 
-instance : Square Nat where 
+instance : Square Nat where
+  mul := Nat.mul
   square n := n ^ 2
 
-namespace Square 
+instance [Square α] : Mul α where
+  mul := Square.mul
 
 /-- Given a `steps : Array Chainstep` for an exponent `exp`, calculates `n ^ exp` -/
 @[specialize] def chainExp [Square α] (steps : Array ChainStep) (n : α) : α := Id.run do
@@ -161,6 +166,8 @@ namespace Square
 
 end Square
 
+namespace Exp
+
 open Square in
 /-- Returns the function `n ↦ n ^ exp` by pre-calculating the `AddChain` for `exp`. -/
 @[specialize] def fastExpFunc [Square α] (exp : Nat) : α → α := 
@@ -172,3 +179,5 @@ open Square in
 
 instance (priority := low) [Square α] : HPow α Nat α where
   hPow n pow := fastExp n pow 
+
+end Exp

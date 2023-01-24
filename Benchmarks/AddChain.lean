@@ -1,7 +1,7 @@
 import YatimaStdLib.Benchmark
 import YatimaStdLib.AddChain
 
-open Benchmark
+open Benchmark Exp
 
 instance : FixedSize Nat where
   random size := return size

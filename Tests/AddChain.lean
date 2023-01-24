@@ -1,7 +1,7 @@
 import LSpec
 import YatimaStdLib.AddChain
 
-open Lean LSpec
+open Lean LSpec Exp
 
 /- 
 TODO: Getting a stack overflow when running this.
