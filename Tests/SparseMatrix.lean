@@ -71,12 +71,19 @@ def vec : SparseArray Int :=
 def vec' : SparseArray Int :=
   Std.RBMap.ofArray #[(0, 3487), (1, 2443), (2, 3879)] compare
 
-#lspec test "addition works" (mat₁ + mat₂ == res) $
-       test "addition works" (mat1 + mat2 == res') $
-       test "addition works" (mat1 + mat1 == res'')
-#lspec test "multiplication works" (mat₁ * mat₂ == resProd) $
-       test "multiplication works" (mat1 * mat2 == resProd') $
-       test "multiplication works" (anotherMat * anotherMat'' == prodRes)
-#lspec test "dim works" (mat1.dim == (2,2))
-#lspec test "hadamard works" (hadamard anotherMat anotherMat' == hadamardRes)
-#lspec test "matrix-vector multiplication works" (anotherMat * vec == vec')
+def addTests : TestSeq := 
+       (test "addition works" (mat₁ + mat₂ == res)) ++ 
+       (test "addition works" (mat1 + mat2 == res')) ++
+       (test "addition works" (mat1 + mat1 == res''))
+
+def mulTests : TestSeq := 
+       (test "multiplication works" (mat₁ * mat₂ == resProd)) ++
+       (test "multiplication works" (mat1 * mat2 == resProd')) ++
+       (test "multiplication works" (anotherMat * anotherMat'' == prodRes))
+
+def dimTest : TestSeq := test "dim works" (mat1.dim == (2,2))
+def hadamardTest : TestSeq := test "hadamard works" (hadamard anotherMat anotherMat' == hadamardRes)
+def matVecMulTest : TestSeq := test "matrix-vector multiplication works" (anotherMat * vec == vec')
+
+def main := lspecIO $
+  addTests ++ mulTests ++ dimTest ++ hadamardTest ++ matVecMulTest
