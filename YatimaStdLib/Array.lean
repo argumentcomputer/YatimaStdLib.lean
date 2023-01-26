@@ -33,3 +33,5 @@ def pad (ar : Array α) (a : α) (n : Nat) : Array α :=
 
 instance [Ord α] : Ord (Array α) where
   compare x y := compare x.data y.data
+
+def last (ar : Array α) : Array α := ar.toSubarray.popFront.toArray
