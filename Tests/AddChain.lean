@@ -4,8 +4,7 @@ import YatimaStdLib.AddChain
 open Lean LSpec Exp
 
 /- 
-TODO: Getting a stack overflow when running this.
-(also getting a stack overflow without the `fastExp` side of the equation)
+NOTE: Writing this test by hand is a work-around for `LSpec` running into a stack overflow.
 -/
 def main : IO UInt32 := do
   let bytes ← IO.getRandomBytes 8

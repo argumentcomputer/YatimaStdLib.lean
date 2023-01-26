@@ -74,7 +74,6 @@ instance [Chainable α] : Mul (AddChain α) where
 In this section we implement an efficient algorithm to calculate the minimal AddChain for a natural 
 number
 -/
-section nat
 namespace Nat
 
 mutual 
@@ -98,7 +97,6 @@ partial def minChain (n : Nat) : AddChain Nat :=
 end
 
 end Nat
-end nat
 
 namespace AddChain
 
