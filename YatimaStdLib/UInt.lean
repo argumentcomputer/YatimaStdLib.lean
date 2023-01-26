@@ -7,6 +7,16 @@ def UInt8.showBits (u : UInt8) : String :=
 def UInt8.getBit (u : UInt8) (n : Nat) : Bit :=
   if u &&& (1 <<< (7 - n)).toUInt8 == 0 then .zero else .one
 
+/-- sums up two u8's and returns the result and the cout -/
+def UInt8.sum2 (a b : UInt8) : UInt8 × UInt8 :=
+  (a + b, if b <= 255 - a then 0 else 1)
+
+/-- sums up three u8's and returns the result and the cout -/
+def UInt8.sum3 (i a b : UInt8) : UInt8 × UInt8 :=
+  let (a', o₁) := sum2 i a
+  let (b', o) := sum2 a' b
+  (b', o + o₁)
+
 def UInt16.toByteArrayL (n : UInt16) : ByteArray :=
   ⟨#[n.toUInt8, (n / 256) % 65536 |>.toUInt8]⟩
 
