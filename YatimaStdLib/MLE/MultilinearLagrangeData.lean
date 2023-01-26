@@ -27,10 +27,15 @@ def buildJsonCache (νMax : Nat) : Array Json :=
         |>.foldl (init := #[]) fun acc b c => acc.push $ .arr #[b, c.rep + (1 : Int)]
       acc.push $ .arr #[ν, w, .arr pol]
 
+open System (FilePath)
+
+def innerCachePath : FilePath :=
+  "YatimaStdLib" / "MLE" / "cache.json"
+
 /-- Writes cached polynomials as a JSON file -/
 def writeJsonCache (νMax : Nat) : IO Unit := do
   let json := Json.arr $ buildJsonCache νMax
-  IO.FS.writeFile ⟨"YatimaStdLib/MLE/cache.json"⟩ json.compress
+  IO.FS.writeFile innerCachePath json.compress
 
 -- Uncomment to write the cache file (be careful with the parameter):
 -- #eval writeJsonCache 17
@@ -55,7 +60,10 @@ def jsonToArrayMLP : Json → Except String (Array MLPData)
   | x => throw s!"Unexpected JSON for MLP array: {x.pretty}"
 
 def readCachedMLPData : IO $ Array MLPData := do
-  match Json.parse (← IO.FS.readFile ⟨"YatimaStdLib/MLE/cache.json"⟩) with
+  let outerPath : FilePath := "lake-packages" / "YatimaStdLib"
+  let cachePath :=
+    if ← outerPath.isDir then outerPath / innerCachePath else innerCachePath
+  match Json.parse (← IO.FS.readFile cachePath) with
   | .error e => panic! e
   | .ok cachedJson => match jsonToArrayMLP cachedJson with
     | .error e => panic! e
