@@ -57,7 +57,7 @@ def modSqrt (a : Zmod n) : Option (Zmod n) :=
     | some (_,y) => some ∘ Zmod.mk $ y
     | none => none
 
-instance : Field (Zmod n) where
+instance zmodField : Field (Zmod n) where
   inv := modInv
   sqrt := modSqrt
 

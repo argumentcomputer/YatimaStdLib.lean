@@ -65,8 +65,17 @@ script import_all? do
 
 end ImportAll
 
-lean_exe Tests.UInt
+/- Tests -/
+lean_exe Tests.AddChain
 lean_exe Tests.ByteArray
 lean_exe Tests.ByteVector
+lean_exe Tests.Nat
+lean_exe Tests.Polynomial
+lean_exe Tests.SparseMatrix
+lean_exe Tests.UInt
 
+/- Benchmarks -/
+lean_exe Benchmarks.AddChain
 lean_exe Benchmarks.ByteArray
+lean_exe Benchmarks.Matrix
+lean_exe Benchmarks.SparseMatrix
