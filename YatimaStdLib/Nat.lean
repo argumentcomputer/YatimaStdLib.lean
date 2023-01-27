@@ -59,6 +59,11 @@ def sigBits (x : Nat) : Nat :=
 def log2' (x : Nat) : Nat :=
   sigBits x - 1
 
+-- Shifts `n` to the left by `m+1`, adding 1 on each shift.
+def shiftLeft1 : Nat → Nat → Nat
+  | n, 0   => n
+  | n, m+1 => shiftLeft1 (2*n+1) m
+
 /--
 Given a natural number n, `nextPowerOfTwo'` returns the smallest power of two
 which is less than or equal to `2^n`.
@@ -114,7 +119,7 @@ def powMod (m b e : Nat) : Nat :=
     if h : e = 0 then r
     else
       let e' := e / 2
-      have : e' < e := 
+      have : e' < e :=
       by exact Nat.div2_lt h
       if e % 2 = 0
       then go ((b*b) % m) e' r              -- TODO : Use Montgomery multiplication here to avoid
@@ -147,7 +152,7 @@ def tonelli (n : Nat) (p : Nat) : Option (Nat × Nat) :=
     zMax := z
     if p - 1 == legendre z p then break
   let mut c := powMod p zMax q
-  let mut r := powMod p n $ (q + 1) / 2  -- TODO : Group together these two exponetiations into a 
+  let mut r := powMod p n $ (q + 1) / 2  -- TODO : Group together these two exponetiations into a
   let mut t := powMod p n q              --        bached Exp to avoid re-calculating some powers
   let mut m := s
   while (t - 1) % p != 0 do
@@ -166,10 +171,10 @@ def tonelli (n : Nat) (p : Nat) : Option (Nat × Nat) :=
   return some (r, p - r)
 
 /-- Prints a `Nat` in its hexadecimal form, given the wanted length -/
-def asHex (n : Nat) (length : Nat) : String := 
-  if n < USize.size then 
-    toString n 
-  else 
+def asHex (n : Nat) (length : Nat) : String :=
+  if n < USize.size then
+    toString n
+  else
     let tail := Nat.toDigits 16 n
     let pad := List.replicate (length - tail.length) '0'
     "0x" ++  List.asString (pad ++ tail)
