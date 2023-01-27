@@ -26,6 +26,18 @@ section bit_methods
 
 namespace Bit
 
+def not : Bit → Bit
+  | .zero => .one
+  | .one => .zero
+
+def and : Bit → Bit → Bit
+  | .one, .one => .one
+  | _, _       => .zero
+
+def or : Bit → Bit → Bit
+  | .zero, .zero => .zero
+  | _, _         => .one
+
 def xOr : Bit → Bit → Bit
   | one, zero
   | zero, one => one
@@ -45,6 +57,18 @@ end Bit
 end bit_methods
 
 namespace Bit
+
+def onesComplement (xs : List Bit) : List Bit :=
+  xs.map not
+
+def plusOne (xs : List Bit) : List Bit :=
+  let rec go
+    | []          => []
+    | .one  :: bs => .zero :: go bs
+    | .zero :: bs => .one :: bs
+  List.reverse $ go $ xs.reverse
+
+def twosComplement := plusOne ∘ onesComplement
 
 def arrayXOr (bs : Array Bit) : Bit :=
   bs.foldl (fun b b' => b.xOr b') zero
@@ -79,6 +103,12 @@ def Nat.toBits : Nat → List Bit
     Nat.toBits ((n + 2) / 2) ++ (if n % 2 = 0 then [.zero] else [.one])
   decreasing_by exact Nat.div2_lt h₁;
 
+-- Pads negative Ints with 1s to the next multiple of 8 bits.
+def Int.toBits : Int → List Bit
+  | .ofNat n   => Nat.toBits n
+  | .negSucc m => let bits := Nat.toBits $ m+1
+    Bit.twosComplement $ Bit.listPad ((1 + bits.length / 8) * 8) bits
+
 def UInt8.toBits (u : UInt8) : List Bit :=
   Bit.listPad 8 $ Nat.toBits $ UInt8.toNat u
 
@@ -89,7 +119,7 @@ def ByteArray.toBits (ba : ByteArray) : List Bit :=
 def getBits (n : Nat) : Array (Array Bit) := Id.run do
   let mut answer := #[(.mkArray n 0)]
   for x in [1:2^n] do
-    let xBits := x |> (Nat.toDigits 2 ·) 
+    let xBits := x |> (Nat.toDigits 2 ·)
                    |>.map (fun c => c.toNat - 48)
                    |>.map (fun n => if n == 0 then .zero else .one)
                    |>.reverse
