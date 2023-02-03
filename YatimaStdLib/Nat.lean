@@ -148,8 +148,7 @@ https://rosettacode.org/wiki/Tonelli-Shanks_algorithm#Python
 -/
 def tonelli (n : Nat) (p : Nat) : Option (Nat × Nat) :=
   if legendre n p != 1 then none else Id.run do
-  let mut q := p - 1
-  let (s, _) := get2Adicity q
+  let (s, q) := get2Adicity (p - 1)
   if s == 1 then
     let r := powMod p n ((p + 1) / 4)
     return some (r, p - r)
