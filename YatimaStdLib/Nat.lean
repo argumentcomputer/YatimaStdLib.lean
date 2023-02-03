@@ -126,10 +126,19 @@ def powMod (m b e : Nat) : Nat :=
       else go ((b*b) % m) e' ((r*b) % m)    --        calculating `mod` at every step
   go b e 1
 
-/-- A legendre symbol denotes the value of `a^((p - 1)/2) mod p`
--/
+/-- A legendre symbol denotes the value of `a^((p - 1)/2) mod p` -/
 def legendre (a : Nat) (p : Nat) : Nat :=  -- TODO : Use a pre-calculated `(p - 1) / 2 ` AddChain
   powMod p a ((p - 1) / 2)                 --        and AddChain `fastExp` here
+
+/-- Returns `(s, d)` when `n = 2 ^ s * d` with `d` odd -/
+def get2Adicity (n : Nat) : Nat × Nat :=
+  let rec loop (m acc : Nat) :=
+    match h : m with
+    | 0 | 1 => (acc, 1)
+    | _ + 1 => 
+      have : m / 2 < m := Nat.bitwise_rec_lemma (h ▸ Nat.succ_ne_zero _)
+      if m % 2 ==0 then loop (m / 2) (acc + 1) else (acc, m)
+  loop n 0
 
 /--
 The Tonelli-Shanks algorithm solves the equation having the form
@@ -140,10 +149,7 @@ https://rosettacode.org/wiki/Tonelli-Shanks_algorithm#Python
 def tonelli (n : Nat) (p : Nat) : Option (Nat × Nat) :=
   if legendre n p != 1 then none else Id.run do
   let mut q := p - 1
-  let mut s := 0
-  while q % 2 == 0 do
-    q := q / 2
-    s := s + 1
+  let (s, _) := get2Adicity q
   if s == 1 then
     let r := powMod p n ((p + 1) / 4)
     return some (r, p - r)
