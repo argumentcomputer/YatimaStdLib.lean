@@ -16,6 +16,6 @@ instance : FixedSize (SparseMatrix Nat) where
       answer := answer.insert (n₁ % 20000) (n₂ % 20000) n₃
     return (answer, .up g')
 
-def main (args : List String) : IO Unit := benchmarks args (stdSizes 12) 
+def main (args : List String) : IO Unit := benchmarksMain args (stdSizes 12) 
   (fun ((m₁ : SparseMatrix Nat), (m₂ : SparseMatrix Nat)) => m₁ * m₂)
   

@@ -25,5 +25,5 @@ instance : FixedSize ByteArray where
       answer := answer.push (← random 10)
     return answer
 
-def main (args : List String) : IO Unit := benchmarks args (#[1024, 2048, 4096, 8192, 16384, 32768]) 
+def main (args : List String) : IO Unit := benchmarksMain args (#[1024, 2048, 4096, 8192, 16384, 32768]) 
   (fun ((b₁ : ByteArray), (b₂ : ByteArray)) => b₁ * b₂)
