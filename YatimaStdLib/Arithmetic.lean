@@ -1,5 +1,5 @@
-import YatimaStdLib.Nat
-import YatimaStdLib.AddChain
+import YatimaStdLib.HashMap
+import YatimaStdLib.Int
 
 /--
 An implementation of the probabilistic Miller-Rabin primality test. Returns `false` if it can be
@@ -25,3 +25,29 @@ def millerRabinTest (n k : Nat) : Bool :=
       if y != 1 then
         return false
     return true
+
+open Std in
+/-- 
+Calculates the discrete logarithm of using the Babystep-Giantstep algorithm, should have `O(√n)`
+runtime 
+-/
+def dLog (base result mod : Nat) : Option Nat := do
+  let mut basePowers : HashMap Nat Nat := .empty
+
+  let lim := mod.sqrt + 1
+  let mut temp := 1
+  for pow in [:lim] do
+    basePowers := basePowers.insert temp pow
+    temp := temp * base % mod
+
+  let basePow := Nat.powMod mod base lim
+  let basePowInv := Int.modInv basePow mod |>.toNat
+
+  let mut target := result
+
+  for quot in [:lim] do
+    match basePowers.find? target with
+    | some rem => return quot * lim + rem
+    | none => target := target * basePowInv % mod
+
+  none
