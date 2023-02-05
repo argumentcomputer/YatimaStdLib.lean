@@ -66,6 +66,7 @@ script import_all? do
 end ImportAll
 
 /- Tests -/
+lean_exe Tests.Arithmetic
 lean_exe Tests.AddChain
 lean_exe Tests.ByteArray
 lean_exe Tests.ByteVector
