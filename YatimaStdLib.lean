@@ -2,6 +2,7 @@ import YatimaStdLib.AbstractMatrix
 import YatimaStdLib.AddChain
 import YatimaStdLib.Algebra.Defs
 import YatimaStdLib.Applicative
+import YatimaStdLib.Arithmetic
 import YatimaStdLib.Array
 import YatimaStdLib.Benchmark
 import YatimaStdLib.Bit
