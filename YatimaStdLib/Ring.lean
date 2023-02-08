@@ -1,6 +1,10 @@
-class Ring (R : Type) extends Add R, Mul R, Sub R, OfNat R (nat_lit 0), OfNat R (nat_lit 1), HPow R Nat R, BEq R
+class Ring (R : Type) extends Add R, Mul R, Sub R, OfNat R (nat_lit 0), OfNat R (nat_lit 1), 
+  HPow R Nat R, BEq R
 
 namespace Ring
+
+instance {R : Type _} [Add R] [Mul R] [Sub R] [OfNat R (nat_lit 0)] [OfNat R (nat_lit 1)] 
+  [HPow R Nat R] [BEq R] : Ring R where
 
 def fromNat [Ring R] (n : Nat) : R :=
   match n with
@@ -15,10 +19,6 @@ instance [Ring R] : OfNat R n where
 
 instance [Ring R] : Inhabited R where
   default := 0
-
-instance : Ring Nat where
-
-instance : Ring Int where
 
 end Ring
 
