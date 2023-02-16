@@ -1,11 +1,11 @@
-class Ring (R : Type) extends Add R, Mul R, Sub R, HPow R Nat R, BEq R where
+class Ring (R : Type) extends Add R, Mul R, Sub R, HPow R Nat R, BEq R, Coe Nat R where
   zero : R
   one : R
 
 namespace Ring
 
 instance {R : Type _} [Add R] [Mul R] [Sub R] [OfNat R (nat_lit 0)] [OfNat R (nat_lit 1)] 
-  [HPow R Nat R] [BEq R] : Ring R where
+  [HPow R Nat R] [BEq R] [Coe Nat R] : Ring R where
   zero := 0
   one := 1
 
