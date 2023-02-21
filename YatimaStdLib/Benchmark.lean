@@ -15,11 +15,6 @@ two up to `2^maxSize`
 -/
 def Array.stdSizes (maxSize : Nat) := Array.iota maxSize |>.map (2 ^ ·)
 
-private def Std.RBMap.orderedSummary [ToString α] [ToString β] [Inhabited β] [Ord α]
-    (benchs : Std.RBMap α β compare) : String := 
-  let orderedKeys := benchs.keysArray.qsort (fun n₁ n₂ => compare n₁ n₂ |>.isLE)
-  orderedKeys.foldl (init := "") fun acc key => acc ++ s!"\n{key}:{benchs.find! key}"
-
 private def Array.average (arr : Array Nat) : Nat := 
   let sum := arr.foldl (init := 0) fun acc a => acc + a
   sum / arr.size
@@ -36,11 +31,13 @@ generator that creates instances of type `α` of given size.
 -/
 class FixedSize (α : Type u) where
   random (size : Nat) : RandT StdGen α
+  size (a : α) : Nat
 
 open FixedSize
 
 instance [FixedSize α] [FixedSize β] : FixedSize (α × β) where
   random (size : Nat) := return (← random size, ← random size)
+  size p := FixedSize.size p.fst
 
 end fixed_size
 
@@ -63,14 +60,54 @@ open Std in
 class BenchResult where
   keys : Type _
   inst : Ord keys
-  data : RBMap keys Nat compare
+  data : IO $ RBMap keys Nat compare
   printKeys : keys → String 
 
-def BenchResult.print (result : BenchResult) : Array String := sorry
+open BenchResult in
+def BenchResult.print (result : BenchResult) : IO $ Array String := 
+  return (← result.data).foldl (init := #[]) 
+                               (fun acc key res => acc.push s!"{printKeys key}: {res}")
 
 open Std in
-class Benchmark (K : Type _) where
-  run (f : α → β) (n : Nat) : BenchResult
+structure Benchmark where
+  run (rounds : Nat) : BenchResult
+
+open Std in
+def benchmarkRunAux [Ord α] (inputs : Array α) (f : α → β) (numIter : Nat) :
+  IO $ RBMap α Nat compare := do
+    let mut cron : Std.RBMap α Nat compare := .empty
+    let mut answers := #[]
+    for input in inputs do
+      let mut times : Array Nat := #[]
+      for _ in [:numIter] do
+        let before ← IO.monoNanosNow
+        answers := answers.push $ f input
+        let after ← IO.monoNanosNow
+        let diff := after - before
+        times := times.push diff
+      cron := cron.insert input times.average 
+    return cron
+
+structure FunctionAsymptotics {α : Type _} [Ord α] (f : α → β) where
+  inputsSizes : Array Nat 
+
+open SlimCheck in
+def FunctionAsymptotics.generateInputs [Ord α] [cmd : FixedSize α] {f : α → β} 
+  (K : FunctionAsymptotics f) : IO $ Array α := do
+    let mut answer : Array α := #[]
+    for size in K.inputsSizes do
+      answer := answer.push (← IO.runRand $ cmd.random size)
+    return answer 
+
+def FunctionAsymptotics.benchmark {f : α → β} [FixedSize α] [Ord α] (K : FunctionAsymptotics f) : Benchmark where
+  run rounds := {
+    keys := α
+    inst := inferInstance  
+    data := do
+      let inputs ← FunctionAsymptotics.generateInputs K
+      return ← benchmarkRunAux inputs f rounds 
+    printKeys := fun input => s!"{FixedSize.size input}"
+  }
 
 def parseArgs (args : List String) : Except String TestMode := 
   let numIdx? := args.findIdx? (fun str => str == "-n" || str == "--num")
@@ -108,19 +145,10 @@ def parseArgs (args : List String) : Except String TestMode :=
     else
       .error "-n or --num must be followed by a number of iterations"
 
-open Std in
-def benchLogger [ToString α] [Ord α] [ToString β] [Inhabited β] (cron : RBMap α β compare) 
-    (logging : LoggingMode) : IO Unit :=
-  match logging with
-  | .stdOut => IO.println cron.orderedSummary
-  | .fsOut name? => 
-    let filename := match name? with | .some name => name | .none => "benchmark"
-    IO.FS.writeFile filename (cron.orderedSummary)
-
-def benchMain (args : List String) (f : α → β) (bench : Type _) [Benchmark bench] : IO UInt32 := do
+def benchMain (args : List String) (bench : Benchmark) : IO UInt32 := do
   match parseArgs args with
   | .ok mode => 
-    let result := Benchmark.run bench f mode.rounds |>.print
+    let result ← Benchmark.run bench mode.rounds |>.print
     match mode.loggingMode with
     | .stdOut => 
       for line in result do
@@ -133,3 +161,4 @@ def benchMain (args : List String) (f : α → β) (bench : Type _) [Benchmark b
   | .error str => 
     IO.eprintln str
     return 1
+  
