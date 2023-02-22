@@ -40,3 +40,9 @@ theorem append_size (arr₁ arr₂ : Array α) (h1 : arr₁.size = n) (h2 : arr�
     : (arr₁ ++ arr₂).size = n + m := by
   unfold Array.size at *
   simp [h1, h2]
+
+def stdSizes (maxSize : Nat) := Array.iota maxSize |>.map (2 ^ ·)
+
+def average (arr : Array Nat) : Nat := 
+  let sum := arr.foldl (init := 0) fun acc a => acc + a
+  sum / arr.size

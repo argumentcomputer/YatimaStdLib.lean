@@ -35,4 +35,7 @@ def mapValues (m : RBMap α β cmp) (f : β → χ) : RBMap α χ cmp :=
 def mapKeys [Ord χ] (m : RBMap α β cmp) (f : α → χ) : RBMap χ β compare :=
   m.foldl (init := default) fun acc a b => acc.insert (f a) b
 
+def zipD (m₁ : RBMap α β₁ cmp) (m₂ : RBMap α β₂ cmp) (b₂ : β₂) : RBMap α (β₁ × β₂) cmp :=
+  m₁.foldl (init := default) fun acc a b₁ => acc.insert a (b₁, m₂.findD a b₂)
+
 end Std.RBMap

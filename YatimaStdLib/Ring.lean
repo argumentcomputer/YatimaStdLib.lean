@@ -9,6 +9,11 @@ instance {R : Type _} [Add R] [Mul R] [Sub R] [OfNat R (nat_lit 0)] [OfNat R (na
   zero := 0
   one := 1
 
+instance : Ring Nat where
+  zero := 0
+  one := 1
+  coe := id
+
 instance [Ring R] : OfNat R (nat_lit 0) where
   ofNat := zero
 
