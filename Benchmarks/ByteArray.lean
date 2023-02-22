@@ -1,5 +1,6 @@
 import YatimaStdLib.Benchmark
 import YatimaStdLib.ByteArray
+import YatimaStdLib.Functions
 
 open Benchmark FixedSize
 
@@ -12,11 +13,13 @@ instance : FixedSize Nat where
       (m, g') := RandomGen.next g'
       answer := answer * 256 + (m % 256)
     return (answer, .up g')
+  size n := n
 
 instance : FixedSize UInt8 where
   random _ := do
     let n : Nat := ← random 10
     return n.toUInt8
+  size u := u.log2 |>.toNat
 
 instance : FixedSize ByteArray where
   random size := do
@@ -24,6 +27,11 @@ instance : FixedSize ByteArray where
     for _ in [:size] do
       answer := answer.push (← random 10)
     return answer
+  size b := b.size
 
-def main (args : List String) : IO Unit := benchmarksMain args (#[1024, 2048, 4096, 8192, 16384, 32768]) 
-  (fun ((b₁ : ByteArray), (b₂ : ByteArray)) => b₁ * b₂)
+def byteArrayMul (b₁ b₂ : ByteArray) : ByteArray := b₁ * b₂
+
+def byteArrayMulBench : FunctionAsymptotics $ unCurry byteArrayMul where
+  inputSizes := Array.stdSizes 8
+
+def main (args : List String) : IO UInt32 := benchMain args byteArrayMulBench.benchmark

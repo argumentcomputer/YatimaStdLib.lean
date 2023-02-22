@@ -1,4 +1,5 @@
 import YatimaStdLib.Benchmark
+import YatimaStdLib.Functions
 import YatimaStdLib.SparseMatrix
 
 open Benchmark
@@ -15,7 +16,12 @@ instance : FixedSize (SparseMatrix Nat) where
       (n₃, g') := next g'
       answer := answer.insert (n₁ % 20000) (n₂ % 20000) n₃
     return (answer, .up g')
+  size mat := mat.entries.keys.size
 
-def main (args : List String) : IO Unit := benchmarksMain args (stdSizes 12) 
-  (fun ((m₁ : SparseMatrix Nat), (m₂ : SparseMatrix Nat)) => m₁ * m₂)
+def sparseMatrixMul := @SparseMatrix.multiplication Nat
+
+def sparseMatrixMulBench : FunctionAsymptotics $ unCurry sparseMatrixMul where
+  inputSizes := Array.stdSizes 12
+
+def main (args : List String) : IO UInt32 := benchMain args sparseMatrixMulBench.benchmark
   
