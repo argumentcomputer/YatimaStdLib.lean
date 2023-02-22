@@ -76,6 +76,23 @@ def orderedRunnerAux [Ord α] (inputs : Array α) (f : α → β) (numIter : Nat
 structure FunctionAsymptotics {α : Type _} (f : α → β) where
   inputSizes : Array Nat 
 
+open SlimCheck in
+def FunctionAsymptotics.generateInputs [Ord α] [cmd : FixedSize α] {f : α → β} 
+  (K : FunctionAsymptotics f) : IO $ Array α := do
+    let mut answer : Array α := #[]
+    for size in K.inputSizes do
+      answer := answer.push (← IO.runRand $ cmd.random size)
+    return answer 
+
+def FunctionAsymptotics.benchmark {f : α → β} [FixedSize α] [Ord α] (K : FunctionAsymptotics f) : Runner where
+  run rounds := {
+    keys := Nat
+    inst := inferInstance  
+    data := do
+      let inputs ← FunctionAsymptotics.generateInputs K
+      return ← unorderedRunnerAux inputs f rounds FixedSize.size
+    printKeys := fun input => s!"{input}"
+  }
 
 structure FixedInputBenchmarks {α : Type _} (f : α → β) where
   inputs : Array α
