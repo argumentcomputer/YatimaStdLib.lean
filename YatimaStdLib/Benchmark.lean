@@ -6,7 +6,24 @@ import YatimaStdLib.RBMap
 # Benchmarking
 
 Some basic utilities for benchmarking. See the `Benchmarks` folder for examples of use.
+
+There are current 4 benchmarking modes implemented:
+- `FunctionAsymptotics`: Takes in a single function `f : α → β` where `α` implemented `FixedSize`  
+  and a list of input sizes, and runs a benchmark on an array of randomly generated inputs.
+- `FixedInput`: Takes in a function `f : α → β` and a array of inputs `inputs : Array α`, and
+  benchmarks the time to run `f` on the list of inputs 
+- `Comparison`: Takes in two functions `f g : α → β` and an array of inputs `inputs : Array α` and
+  benchmarks the relative times for `f` and `g` on the fixed array of inputs
+- `RandomComparison`: Similar to the above, but works on a type `a` which implements `FixedSize` and
+  runs the benchmark on randomly generated inputs
+
+More modes can be easily implemented using the `unorderedRunnerAux` and `orderedRunnerAux` utilities
+by following the guide set out in the above examples
+
+**NOTE**: Functions that are fed into the benchmarking infrastructure must be **uncurried**
+          (it is on the TODO to eliminate this restriction)
 -/
+
 section fixed_size
 
 open SlimCheck
@@ -29,15 +46,30 @@ end fixed_size
 
 namespace Benchmark
 
+/-- 
+Logging mode for the benchmark logger. `stdOut` prints to `stdOut` and `fsOut` prints to the
+filesystem to a file named `name?` (or `benchmark` if no name is provided) 
+-/
 inductive LoggingMode
   | stdOut
-  | fsOut (name : Option String)
+  | fsOut (name? : Option String)
 
+/-- 
+The mode in which the benchmark is being run based off the arguments given to the binary 
+`loggingMode` is as aboe and `rounds` determines the number of repetitions are averaged to generate
+the timing results
+-/
 structure TestMode where
   rounds : Nat
   loggingMode : LoggingMode
 
 open Std in
+/--
+The type that contains all the resulting data from a benchmark run. 
+
+Note: `keys`, `values`, and `keyOrd` can in many cases be left out when defining an instance of
+`Result` by having Lean solve them via unification from information coming from `data`.
+-/
 class Result where
   keys : Type _
   values : Type _
@@ -52,6 +84,9 @@ def Result.print (result : Result) : IO $ Array String :=
                                (fun acc key res => acc.push s!"{printKeys key}: {printVal res}")
 
 open Std in
+/--
+The actual Benchmark runner
+-/
 structure Runner where
   run (rounds : Nat) : Result
 
@@ -145,7 +180,8 @@ def RandomComparison.benchmark {f g : α → β} [Ord α] [FixedSize α] (K : Ra
     printVal := fun (n₁, n₂) => s!"f:{n₁} vs g:{n₂}"
   }
 
-def parseArgs (args : List String) : Except String TestMode := 
+/-- Parse arguments coming from `main` -/
+private def parseArgs (args : List String) : Except String TestMode := 
   let numIdx? := args.findIdx? (fun str => str == "-n" || str == "--num")
   let logIdx? := args.findIdx? (fun str => str == "-l" || str == "--log")
   match numIdx?, logIdx? with 
@@ -181,6 +217,15 @@ def parseArgs (args : List String) : Except String TestMode :=
     else
       .error "-n or --num must be followed by a number of iterations"
 
+/-- 
+This should be the main function used in a benchmark. In general the workflow will be:
+
+* Define the function(s) you wish to benchmark
+* If using randomized test inputs, define a `FixedSize` instance for your input types
+* Instantiate the benchmark runner you want to use (`FunctionAsymptotics`, `FixedInput`, etc...)
+  with the function and inputs
+* Call `benchMain` with the runner from stage 3.
+-/
 def benchMain (args : List String) (bench : Runner) : IO UInt32 := do
   match parseArgs args with
   | .ok mode => 
@@ -197,4 +242,5 @@ def benchMain (args : List String) (bench : Runner) : IO UInt32 := do
   | .error str => 
     IO.eprintln str
     return 1
+
   
