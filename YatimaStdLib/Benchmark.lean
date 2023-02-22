@@ -40,14 +40,16 @@ structure TestMode where
 open Std in
 class Result where
   keys : Type _
-  inst : Ord keys
-  data : IO $ RBMap keys Nat compare
+  values : Type _
+  keyOrd : Ord keys
+  data : IO $ RBMap keys values compare
   printKeys : keys → String 
+  printVal : values → String 
 
 open Result in
 def Result.print (result : Result) : IO $ Array String := 
   return (← result.data).foldl (init := #[]) 
-                               (fun acc key res => acc.push s!"{printKeys key}: {res}")
+                               (fun acc key res => acc.push s!"{printKeys key}: {printVal res}")
 
 open Std in
 structure Runner where
@@ -57,9 +59,9 @@ open Std in
 def unorderedRunnerAux {χ : Type _} [Ord χ] (inputs : Array α) (f : α → β) (numIter : Nat) 
   (order : α → χ) : IO $ RBMap χ Nat compare := do
     let mut cron : Std.RBMap χ Nat compare := .empty
-    let mut answers := #[] -- TODO: Initialize size to make this `O(1)`
+    let mut answers := Array.mkEmpty inputs.size
     for input in inputs do
-      let mut times : Array Nat := #[]
+      let mut times : Array Nat := .mkEmpty numIter
       for _ in [:numIter] do
         let before ← IO.monoNanosNow
         answers := answers.push $ f input 
@@ -77,28 +79,71 @@ structure FunctionAsymptotics {α : Type _} (f : α → β) where
   inputSizes : Array Nat 
 
 open SlimCheck in
-def FunctionAsymptotics.generateInputs [Ord α] [cmd : FixedSize α] {f : α → β} 
+def FunctionAsymptotics.generateInputs [cmd : FixedSize α] {f : α → β} 
   (K : FunctionAsymptotics f) : IO $ Array α := do
     let mut answer : Array α := #[]
     for size in K.inputSizes do
       answer := answer.push (← IO.runRand $ cmd.random size)
     return answer 
 
-def FunctionAsymptotics.benchmark {f : α → β} [FixedSize α] [Ord α] (K : FunctionAsymptotics f) : Runner where
+def FunctionAsymptotics.benchmark {f : α → β} [FixedSize α] (K : FunctionAsymptotics f) : Runner where
   run rounds := {
-    keys := Nat
-    inst := inferInstance  
     data := do
       let inputs ← FunctionAsymptotics.generateInputs K
       return ← unorderedRunnerAux inputs f rounds FixedSize.size
-    printKeys := fun input => s!"{input}"
+    printKeys := ToString.toString
+    printVal := ToString.toString
   }
 
-structure FixedInputBenchmarks {α : Type _} (f : α → β) where
+structure FixedInput {α : Type _} (f : α → β) where
   inputs : Array α
 
-structure ComparisonBenchmarks {α : Type _} (f g : α → β) where
+def FixedInput.benchmark {f : α → β} [Ord α] [ToString α] (K : FixedInput f) 
+    : Runner where
+  run rounds := {
+    data := return ← orderedRunnerAux K.inputs f rounds 
+    printKeys := ToString.toString
+    printVal := ToString.toString
+  }
+
+structure Comparison {α : Type _} (f g : α → β) where
   inputs : Array α  
+
+def Comparison.benchmark {f g : α → β} [Ord α] [ToString α] (K : Comparison f g) 
+    : Runner where
+  run rounds := {
+    data := do
+      let fData ← orderedRunnerAux K.inputs f rounds
+      let gData ← orderedRunnerAux K.inputs g rounds
+      let answer := fData.zipD gData 0
+      return answer 
+    printKeys := ToString.toString
+    printVal := fun (n₁, n₂) => s!"f:{n₁} vs g:{n₂}"
+  }
+
+structure RandomComparison {α : Type _} (f g : α → β) where
+  inputSizes : Array Nat
+
+open SlimCheck in
+def RandomComparison.generateInputs [cmd : FixedSize α] {f g : α → β} 
+  (K : RandomComparison f g) : IO $ Array α := do
+    let mut answer : Array α := #[]
+    for size in K.inputSizes do
+      answer := answer.push (← IO.runRand $ cmd.random size)
+    return answer 
+
+def RandomComparison.benchmark {f g : α → β} [Ord α] [FixedSize α] (K : RandomComparison f g) 
+    : Runner where
+  run rounds := {
+    data := do
+      let inputs ← K.generateInputs 
+      let fData ← orderedRunnerAux inputs f rounds
+      let gData ← orderedRunnerAux inputs g rounds
+      let answer := fData.zipD gData 0
+      return answer 
+    printKeys := fun key => s!"{FixedSize.size key}"
+    printVal := fun (n₁, n₂) => s!"f:{n₁} vs g:{n₂}"
+  }
 
 def parseArgs (args : List String) : Except String TestMode := 
   let numIdx? := args.findIdx? (fun str => str == "-n" || str == "--num")
