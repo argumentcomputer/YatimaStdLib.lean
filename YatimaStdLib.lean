@@ -15,6 +15,7 @@ import YatimaStdLib.Either
 import YatimaStdLib.Fin
 import YatimaStdLib.Float
 import YatimaStdLib.Foldable
+import YatimaStdLib.Functions
 import YatimaStdLib.HashMap
 import YatimaStdLib.HashSet
 import YatimaStdLib.Identity
