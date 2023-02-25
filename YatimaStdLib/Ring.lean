@@ -20,6 +20,9 @@ instance [Ring R] : OfNat R (nat_lit 0) where
 instance [Ring R] : OfNat R (nat_lit 1) where
   ofNat := one
 
+instance [Ring R] : Neg R where
+  neg x := 0 - x 
+
 instance [Ring R] : Inhabited R where
   default := 0
 
