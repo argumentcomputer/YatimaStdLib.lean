@@ -37,4 +37,6 @@ namespace Field
 instance [Field K] : Div K where
   div a b := a * Field.inv b
 
+postfix:max "⁻¹" => inv
+
 end Field
