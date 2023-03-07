@@ -1,21 +1,36 @@
 import YatimaStdLib.Bit
 
-def UInt8.showBits (u : UInt8) : String :=
+namespace UInt8
+
+def showBits (u : UInt8) : String :=
   let numStr := u.toNat |> Nat.toDigits 2
   "".pushn '0' (8 - numStr.length) ++ ⟨numStr⟩
 
-def UInt8.getBit (u : UInt8) (n : Nat) : Bit :=
+def toHexString (n : UInt8) : String :=
+  let toLetter
+    | 10 => "a"
+    | 11 => "b"
+    | 12 => "c"
+    | 13 => "d"
+    | 14 => "e"
+    | 15 => "f"
+    | n => toString n
+  "0x" ++ toLetter (n / 16) ++ toLetter (n % 16)
+
+def getBit (u : UInt8) (n : Nat) : Bit :=
   if u &&& (1 <<< (7 - n)).toUInt8 == 0 then .zero else .one
 
 /-- sums up two u8's and returns the result and the cout -/
-def UInt8.sum2 (a b : UInt8) : UInt8 × UInt8 :=
+def sum2 (a b : UInt8) : UInt8 × UInt8 :=
   (a + b, if b <= 255 - a then 0 else 1)
 
 /-- sums up three u8's and returns the result and the cout -/
-def UInt8.sum3 (i a b : UInt8) : UInt8 × UInt8 :=
+def sum3 (i a b : UInt8) : UInt8 × UInt8 :=
   let (a', o₁) := sum2 i a
   let (b', o) := sum2 a' b
   (b', o + o₁)
+
+end UInt8
 
 def UInt16.toByteArrayL (n : UInt16) : ByteArray :=
   ⟨#[n.toUInt8, (n / 256) % 65536 |>.toUInt8]⟩

@@ -80,7 +80,11 @@ def listPad (n : Nat) (bs : List Bit) : List Bit :=
   let l := bs.length
   if l >= n then bs else List.replicate (n - l) zero ++ bs
 
--- Interprets a `List Bit` as a `Nat`, taking `Endian`ness into consideration.
+/-- Remove all the leading zeroes. -/
+def unlead (xs : List Bit) : List Bit := xs.dropWhile (· = .zero)
+
+/-- Interpret a `List Bit` as a `Nat`, taking `Endian`ness into consideration.
+-/
 def bitsToNat (l: List Bit) (en : Endian := default) : Nat :=
   let rec go
     | [], acc => acc
@@ -88,8 +92,13 @@ def bitsToNat (l: List Bit) (en : Endian := default) : Nat :=
   let bits := if en = .big then l else List.reverse l
   go bits default
 
--- Takes first `n` elems of the `List Bit` and interprets them as a `Nat`.
--- Returns `none` if the list is shorter than `n`.
+/-- Interpret a `List Bit` as a `UInt8`, taking `Endian`ness into consideration.
+-/
+def bitsToUInt8 (l: List Bit) (en : Endian := default) : UInt8 :=
+  bitsToNat l en |>.toUInt8
+
+/-- Takes first `n` elems of the `List Bit` and interprets them as a `Nat`.
+Returns `none` if the list is shorter than `n`. -/
 def someBitsToNat? (n : Nat) (l: List Bit) (en : Endian := default) : Option Nat :=
   if n > l.length || n = 0 then .none else .some $ bitsToNat (l.take n) en
 
@@ -103,7 +112,7 @@ def Nat.toBits : Nat → List Bit
     Nat.toBits ((n + 2) / 2) ++ (if n % 2 = 0 then [.zero] else [.one])
   decreasing_by exact Nat.div2_lt h₁;
 
--- Pads negative Ints with 1s to the next multiple of 8 bits.
+/-- Pads negative `Int`s with 1s to the next multiple of 8 bits. -/
 def Int.toBits : Int → List Bit
   | .ofNat n   => Nat.toBits n
   | .negSucc m => let bits := Nat.toBits $ m+1
