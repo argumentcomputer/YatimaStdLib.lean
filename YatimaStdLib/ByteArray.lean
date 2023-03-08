@@ -43,6 +43,11 @@ def ord : @& ByteArray → @& ByteArray → Ordering :=
 instance : BEq ByteArray := ⟨ByteArray.beq⟩
 instance : Ord ByteArray := ⟨ByteArray.ord⟩
 
+instance : DecidableEq ByteArray
+  | a, b => match decEq a.data b.data with
+    | isTrue h₁  => isTrue $ congrArg ByteArray.mk h₁
+    | isFalse h₂ => isFalse $ fun h => by cases h; exact (h₂ rfl)
+
 def Subarray.asBA (s : Subarray UInt8) : ByteArray :=
   s.as.data.toByteArray
 
@@ -52,6 +57,13 @@ def toString (bs : ByteArray) : String := Id.run do
   for u in bs do
     ans := ans ++ UInt8.showBits u ++ ","
   return ans.dropRight 1 ++ "]"
+
+def toHexString (bs : ByteArray) : String := Id.run do
+  if bs.isEmpty then "b[]" else
+  let mut ans := "b["
+  for u in bs do
+    ans := ans ++ UInt8.toHexString u ++ ", "
+  return ans.dropRight 2 ++ "]"
 
 instance : Repr ByteArray where
   reprPrec bs _ := toString bs
@@ -115,14 +127,14 @@ theorem set!_size : (set! arr i u).size = arr.size := by
   simp [size, set!, Array.set!, Array.setD]
   by_cases h : i < arr.data.size <;> simp [h]
 
-/- 
+/-
 In this section we define Arithmetic on ByteArrays viewed as natural numbers encoded in
 little-endian form
 -/
 
 section arithmetic
 
-private def uInt8OverFlowMul (u₁ u₂ : UInt8) : UInt8 × UInt8 := 
+def uInt8OverFlowMul (u₁ u₂ : UInt8) : UInt8 × UInt8 :=
   let u16 := u₁.toUInt16 * u₂.toUInt16
   (u16 >>> 8 |>.toUInt8, u16.toUInt8)
 
@@ -139,7 +151,7 @@ def uInt8Mul (x : ByteArray) (u : UInt8) : ByteArray := Id.run do
     let (carry2, res) := uInt8OverFlowAdd carry res'
     answer := answer.push res
     carry := carry1 + carry2
-  
+
   answer := if carry == 0 then answer else answer.push carry
   return answer
 
@@ -155,7 +167,7 @@ def add (x y : ByteArray) : ByteArray := Id.run do
     let (r, o) := UInt8.sum3 cin (x.getD i 0) (y.getD i 0)
     res := res.push r
     cin := o
-  
+
   res := if cin == 0 then res else res.push cin
   return res
 
@@ -192,13 +204,13 @@ def nmul (x y : ByteArray) : ByteArray := Id.run do
     let temp := y * u
     answer := answer + temp.shiftRight8n idx
     idx := idx + 1
-  
+
   answer
 
 /-- Karatsuba multiplication of two ByteArrays -/
 partial def kmul (x y : ByteArray) : ByteArray :=
   let n := max x.size y.size
-  if n ≤ 8 then nmul x y else 
+  if n ≤ 8 then nmul x y else
     let low := n / 2
     let high := n - low
     let xLow := x.slice 0 low

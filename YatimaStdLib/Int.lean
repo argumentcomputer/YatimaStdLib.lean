@@ -1,9 +1,12 @@
+import YatimaStdLib.Bit
 import YatimaStdLib.Nat
 import Std.Data.Int.Basic
 
 namespace Int
 
 open Nat hiding bitwise
+
+def toUInt8 (x : Int) : UInt8 := Bit.bitsToUInt8 x.toBits
 
 section bitwise
 
@@ -57,6 +60,13 @@ instance : OrOp Int := ⟨lor⟩
 instance : Xor Int := ⟨lxor⟩
 instance : ShiftLeft  Int := ⟨shiftLeft⟩
 instance : ShiftRight Int := ⟨shiftRight⟩
+
+/-- Turn a negative integer into a positive by taking its bit representation
+and interpreting it as unsigned. `size` is the number of bits to assume. -/
+def unsign (i : Int) (size : Nat := 64) : Int :=
+  match i with
+  | .ofNat m => m
+  | .negSucc _ => i + ((2 : Int) ^ size)
 
 end bitwise
 
