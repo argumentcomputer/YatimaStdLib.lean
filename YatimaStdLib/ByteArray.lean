@@ -134,7 +134,7 @@ little-endian form
 
 section arithmetic
 
-private def uInt8OverFlowMul (u₁ u₂ : UInt8) : UInt8 × UInt8 :=
+def uInt8OverFlowMul (u₁ u₂ : UInt8) : UInt8 × UInt8 :=
   let u16 := u₁.toUInt16 * u₂.toUInt16
   (u16 >>> 8 |>.toUInt8, u16.toUInt8)
 
