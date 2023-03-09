@@ -14,26 +14,20 @@ import YatimaStdLib.Traversable
 import YatimaStdLib.List
 
 structure NEList (α : Type u) where
-  data : List α
-  ne   : data ≠ []
+  head : α
+  tail : List α
 
 instance [ToString α] : ToString (NEList α) where
-  toString xs := toString xs.data
+  toString xs := toString (xs.head :: xs.tail)
 
 namespace NEList
 
 instance : CoeDep (List α) (x :: xs) (NEList α) where
-  coe := { data := x :: xs, ne := by simp }
-
-def head : NEList α → α 
-  | ⟨x::_, _⟩ => x
-
-def tail : NEList α → List α 
-  | ⟨_::xs, _⟩ => xs
+  coe := { head := x, tail := xs }
 
 /-- Creates a term of `List α` from the elements of a term of `NEList α` -/
 @[inline]
-def toList (xs : NEList α) : List α := xs.data
+def toList (xs : NEList α) : List α := xs.head :: xs.tail
 
 /-- Performs a fold-left on a `NEList`
 The `specialize` tag forces the compiler to create a version of the function
