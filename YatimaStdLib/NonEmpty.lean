@@ -18,12 +18,31 @@ structure NEList (α : Type u) where
   tail : List α
 
 instance [ToString α] : ToString (NEList α) where
-  toString xs := toString (xs.head :: xs.tail)
+  toString xs := "⟦" ++ xs.tail.foldl (fun acc x => s!"{acc}, {x}") s!"{xs.head}" ++ "⟧"
 
 namespace NEList
 
 instance : CoeDep (List α) (x :: xs) (NEList α) where
   coe := { head := x, tail := xs }
+
+@[match_pattern]
+def cons (x : α) (xs : List α) : NEList α := ⟨x, xs⟩
+
+@[match_pattern]
+def singleton (x : α) : NEList α := cons x []
+
+infixr:67 " :| " => NEList.cons
+notation:max "⟦" x "⟧" => NEList.singleton x
+syntax "⟦"term ", " term,* "⟧" : term
+
+open Lean in
+macro_rules
+  | `(⟦$x:term, $[$xs:term],*⟧) => do
+    let xs := xs.toList |>.reverse
+    let mut exprs : TSyntax `term := ← `([])
+    for z in xs do
+      exprs := ← `(List.cons $z $exprs)
+    `(NEList.cons $x $exprs)
 
 /-- Creates a term of `List α` from the elements of a term of `NEList α` -/
 @[inline]
