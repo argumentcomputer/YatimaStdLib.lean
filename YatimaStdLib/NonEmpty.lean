@@ -133,6 +133,8 @@ instance : HAppend (List α) (NEList α) (NEList α) where
     | [], ys => ys
     | x::xs, ys => x :| (xs ++ ys.toList)
 
+def length (xs : NEList α) : Nat := 1 + xs.tail.length
+
 end NEList
 
 namespace List
