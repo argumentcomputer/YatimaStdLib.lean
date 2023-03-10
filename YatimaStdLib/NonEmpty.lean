@@ -128,6 +128,11 @@ def min {α : Type _ } [LE α] [DecidableRel (@LE.le α _)] (as : NEList α) : �
 def max {α : Type _ } [LE α] [DecidableRel (@LE.le α _)] (as : NEList α) : α :=
   as.tail.foldl (fun a acc => if a ≤ acc then acc else a) as.head
 
+instance : HAppend (List α) (NEList α) (NEList α) where
+  hAppend
+    | [], ys => ys
+    | x::xs, ys => x :| (xs ++ ys.toList)
+
 end NEList
 
 namespace List
