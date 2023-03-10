@@ -10,8 +10,8 @@ import YatimaStdLib.ByteArray
 import YatimaStdLib.ByteVector
 import YatimaStdLib.Cached
 import YatimaStdLib.Cronos
-import YatimaStdLib.DataClasses
 import YatimaStdLib.Either
+import YatimaStdLib.Encodable
 import YatimaStdLib.Fin
 import YatimaStdLib.Float
 import YatimaStdLib.Foldable
