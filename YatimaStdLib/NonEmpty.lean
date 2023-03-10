@@ -48,6 +48,15 @@ macro_rules
 @[inline]
 def toList (xs : NEList α) : List α := xs.head :: xs.tail
 
+/-- Creates a `List α` with a proof that it is not empty from an `NEList α` -/
+@[inline]
+def toListWithProof (xs : NEList α) : ∃ xs : List α, xs ≠ [] := .intro (xs.head :: xs.tail) (by simp)
+
+/-- Creates a term of `NEList α` from the elements of a term of `NEList α` -/
+@[inline]
+def fromList : (xs : List α) → (ne : xs ≠ []) → NEList α
+| .cons head tail, _ => head :| tail
+
 /-- Performs a fold-left on a `NEList`
 The `specialize` tag forces the compiler to create a version of the function
 for each `f` used for optimization purposes -/
