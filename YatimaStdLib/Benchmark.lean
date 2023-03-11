@@ -94,12 +94,12 @@ open Std in
 def unorderedRunnerAux {χ : Type _} [Ord χ] (inputs : Array α) (f : α → β) (numIter : Nat) 
   (order : α → χ) : IO $ RBMap χ Nat compare := do
     let mut cron : Std.RBMap χ Nat compare := .empty
-    let mut answers := Array.mkEmpty inputs.size
+    let mut answer : Option β := default
     for input in inputs do
       let mut times : Array Nat := .mkEmpty numIter
       for _ in [:numIter] do
         let before ← IO.monoNanosNow
-        answers := answers.push $ f input 
+        answer := some $ f input 
         let after ← IO.monoNanosNow
         let diff := after - before
         times := times.push diff
