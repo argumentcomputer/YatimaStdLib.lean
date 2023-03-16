@@ -77,5 +77,8 @@ def action (M : Matrix R) (v : Vector R) : Vector R :=
 def mul (M N : Matrix R) : Matrix R :=
   N.map (fun v => action M v)
 
+instance : HMul R (Matrix R) (Matrix R) where
+  hMul r m := m.map fun v => r * v
+
 end Matrix
 end matrix
