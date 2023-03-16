@@ -59,6 +59,5 @@ def modSqrt (a : Zmod n) : Option (Zmod n) :=
 
 instance zmodField : Field (Zmod n) where
   inv := modInv
-  sqrt := modSqrt
 
 end Zmod
