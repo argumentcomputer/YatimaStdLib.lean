@@ -30,7 +30,6 @@ end Ring
 
 class Field (K : Type) extends Ring K where
   inv : K → K
-  sqrt : K → Option K
 
 namespace Field
 
