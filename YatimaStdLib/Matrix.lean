@@ -80,5 +80,9 @@ def mul (M N : Matrix R) : Matrix R :=
 instance : HMul R (Matrix R) (Matrix R) where
   hMul r m := m.map fun v => r * v
 
+def twoInv [Field R] (M : Matrix R) : Matrix R :=
+  let det := M[0]![0]! * M[1]![1]! - M[0]![1]! * M[1]![0]!
+  (Field.inv det) * #[#[M[1]![1]!, -M[0]![1]!], #[-M[1]![0]!, M[0]![0]!]]
+
 end Matrix
 end matrix

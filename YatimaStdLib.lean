@@ -34,6 +34,8 @@ import YatimaStdLib.NonEmpty
 import YatimaStdLib.Option
 import YatimaStdLib.Ord
 import YatimaStdLib.Polynomial
+import YatimaStdLib.Random
+import YatimaStdLib.Rat
 import YatimaStdLib.RBMap
 import YatimaStdLib.RBNode
 import YatimaStdLib.RWST
