@@ -60,4 +60,7 @@ def modSqrt (a : Zmod n) : Option (Zmod n) :=
 instance zmodField : Field (Zmod n) where
   inv := modInv
 
+instance : ToString (Zmod n) where
+  toString := reprStr
+
 end Zmod

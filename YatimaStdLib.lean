@@ -37,6 +37,8 @@ import YatimaStdLib.Polynomial
 import YatimaStdLib.RBMap
 import YatimaStdLib.RBNode
 import YatimaStdLib.RWST
+import YatimaStdLib.Random
+import YatimaStdLib.Rat
 import YatimaStdLib.Ring
 import YatimaStdLib.Seq
 import YatimaStdLib.SparseMatrix
