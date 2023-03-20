@@ -1,5 +1,3 @@
-namespace Random
-
 class Random (K : Type _) where
   random {gen : Type u} [RandomGen gen] [Inhabited gen] (g : gen) : K × gen 
 
