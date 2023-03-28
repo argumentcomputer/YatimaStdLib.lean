@@ -13,7 +13,7 @@ theorem mlt {b : Nat} : {a : Nat} → a < n → b % n < n
   | _+1, h => Nat.mod_lt _ (Nat.lt_trans (Nat.zero_lt_succ _) h)
 
 def inv : Fin n → Fin n
-  | ⟨a, h⟩ => ⟨(Int.modToNat (Nat.gcdA a n) n) % n, mlt h⟩
+  | ⟨a, h⟩ => ⟨(Int.modToNat (Nat.GCD.gcdA a n) n) % n, mlt h⟩
 
 instance : YatimaStdLib.Inv (Fin n) where
   inv a := Fin.inv a
