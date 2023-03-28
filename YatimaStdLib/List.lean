@@ -5,7 +5,7 @@ import Std.Data.List.Basic
 
 namespace List
 
-def sum [HAdd α α α] [Zero α] (xs : List α) : α :=
+def sum [HAdd α α α] [YatimaStdLib.Zero α] (xs : List α) : α :=
   xs.foldl (· + ·) 0
 
 def compareAux [Ord α] : List α → List α → Ordering
@@ -27,6 +27,8 @@ def mapOption {α β: Type u} : (α → Option β) → List α → List β
     | some r => r :: (mapOption f xs)
 
 def catOptions {α : Type u} : List (Option α) → List α := mapOption id
+
+open YatimaStdLib (One)
 
 protected def fold [HMul M M M] [One M] : List M → M
   | [] => One.one

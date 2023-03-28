@@ -1,6 +1,6 @@
 import YatimaStdLib.AbstractMatrix
 import YatimaStdLib.AddChain
-import YatimaStdLib.Algebra.Defs
+import YatimaStdLib.Algebra
 import YatimaStdLib.Applicative
 import YatimaStdLib.Arithmetic
 import YatimaStdLib.Array

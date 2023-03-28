@@ -1,3 +1,5 @@
+namespace YatimaStdLib
+
 class Zero.{u} (α : Type u) where
   zero : α
 
@@ -21,3 +23,5 @@ class MulOneClass (M : Type u) extends One M, Mul M where
   one_mul : ∀ (a : M), 1 * a = a
 
 class Monoid (M : Type u) extends Semigroup M, MulOneClass M 
+
+end YatimaStdLib
