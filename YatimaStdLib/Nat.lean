@@ -75,7 +75,7 @@ def nextPowerOfTwo' (n : Nat) : Nat :=
   if n == 0 then 1 else
   1 <<< (n.log2 + 1)
 
-section GCD
+namespace GCD
 
 /-! From mathlib -/
 
