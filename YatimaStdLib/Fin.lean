@@ -1,4 +1,4 @@
-import YatimaStdLib.Algebra.Defs
+import YatimaStdLib.Algebra
 import YatimaStdLib.Nat
 import YatimaStdLib.Int
 
@@ -15,7 +15,7 @@ theorem mlt {b : Nat} : {a : Nat} → a < n → b % n < n
 def inv : Fin n → Fin n
   | ⟨a, h⟩ => ⟨(Int.modToNat (Nat.gcdA a n) n) % n, mlt h⟩
 
-instance : Inv (Fin n) where
+instance : YatimaStdLib.Inv (Fin n) where
   inv a := Fin.inv a
 
 end Fin
