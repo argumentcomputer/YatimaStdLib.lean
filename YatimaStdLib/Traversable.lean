@@ -8,10 +8,10 @@ performing an Applicative (or, therefore, Monad) action on each element from lef
 Inspired by:
 https://hackage.haskell.org/package/base-4.16.1.0/docs/Data-Traversable.html#t:Traversable
 -/
-class Traversable (T : Type u → Type u) [Functor T] [Foldable T] where
+class YatimaStdLib.Traversable (T : Type u → Type u) [Functor T] [Foldable T] where
   traverse : [Applicative F] → (A → F B) → T A → F (T B)
 
-namespace Traversable
+namespace YatimaStdLib.Traversable
 
 universe u
 
@@ -24,4 +24,4 @@ def mapM [Monad M] [Functor T] [Foldable T] [Traversable T] : (A → M B) → T 
 def sequence [Monad M] [Functor T] [Foldable T] [Traversable T] : T (M A) → M (T A) :=
   sequenceA
 
-end Traversable
+end YatimaStdLib.Traversable
