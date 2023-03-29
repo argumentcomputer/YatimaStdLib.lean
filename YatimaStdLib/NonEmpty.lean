@@ -101,10 +101,10 @@ instance : Foldable NEList where
   foldl := NEList.foldl
 
 def traverse [Applicative φ] (f : α → φ β) (l : NEList α) : φ (NEList β) :=
-  Applicative.liftA₂ (· :: ·) (f l.head) (l.tail.traverse f)
+  Applicative.liftA₂ (· :: ·) (f l.head) (YatimaStdLib.List.traverse f l.tail)
 
-open Traversable in
-instance : Traversable NEList where
+open YatimaStdLib.Traversable in
+instance : YatimaStdLib.Traversable NEList where
   traverse := NEList.traverse
 
 instance : Pure NEList where

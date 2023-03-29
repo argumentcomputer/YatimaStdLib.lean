@@ -5,7 +5,7 @@ import Std.Data.List.Basic
 
 namespace List
 
-def sum [HAdd α α α] [YatimaStdLib.Zero α] (xs : List α) : α :=
+def _root_.YatimaStdLib.List.sum [HAdd α α α] [YatimaStdLib.Zero α] (xs : List α) : α :=
   xs.foldl (· + ·) 0
 
 def compareAux [Ord α] : List α → List α → Ordering
@@ -39,12 +39,12 @@ instance : Foldable List where
   foldr := List.foldr
   foldl := List.foldl
 
-def traverse [Applicative F] (f : A → F B) : List A → F (List B) :=
+def _root_.YatimaStdLib.List.traverse [Applicative F] (f : A → F B) : List A → F (List B) :=
   let cons_f x ys := Applicative.liftA₂ (fun x xs => x :: xs) (f x) ys
   List.foldr cons_f (pure [])
 
-instance : Traversable List where
-  traverse := List.traverse
+instance : YatimaStdLib.Traversable List where
+  traverse := YatimaStdLib.List.traverse
 
 -- the `B` suffix avoids name conflicts with mathlib
 def eraseDupB [BEq α] : List α → List α
