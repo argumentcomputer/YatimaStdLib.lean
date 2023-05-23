@@ -9,6 +9,3 @@ TODO: add deriving macros
 class Encodable (α δ : Type _) where
   encode : α → δ
   decode : δ → Except String α
-
-/-- Any `Encodable α δ` instance gives us a trivial `Coe α δ` instance -/
-instance [Encodable α δ] : Coe α δ := ⟨Encodable.encode⟩
