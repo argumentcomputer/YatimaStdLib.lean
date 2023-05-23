@@ -23,7 +23,7 @@ extern_lib ffi (pkg : Package) := do
   buildStaticLib (pkg.buildDir / defaultLibDir / name) #[job]
 
 require std from git
-  "https://github.com/leanprover/std4/" @ "fde95b16907bf38ea3f310af406868fc6bcf48d1"
+  "https://github.com/leanprover/std4/" @ "2f23536b83bc91f329c3675f4eb061d029ba489a"
 
 require LSpec from git
   "https://github.com/lurk-lab/LSpec" @ "88f7d23e56a061d32c7173cea5befa4b2c248b41"

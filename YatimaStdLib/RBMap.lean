@@ -4,9 +4,6 @@ namespace Std.RBMap
 
 variable {cmp : α → α → Ordering}
 
-def single (a : α) (b : β) : RBMap α β cmp :=
-  RBMap.empty.insert a b
-
 def enumList (xs : List α) : RBMap α Nat cmp :=
   RBMap.ofList (xs.enum.map (fun (x, y) => (y, x))) cmp
 
