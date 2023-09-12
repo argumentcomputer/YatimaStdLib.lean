@@ -22,10 +22,10 @@ extern_lib ffi pkg := do
   buildStaticLib (pkg.nativeLibDir / name) #[job]
 
 require std from git
-  "https://github.com/leanprover/std4/" @ "main"
+  "https://github.com/leanprover/std4/" @ "642cbc9960b49a65a779b8fce56b05ff83cf9e35"
 
 require LSpec from git
-  "https://github.com/lurk-lab/LSpec" @ "main"
+  "https://github.com/lurk-lab/LSpec" @ "3b6023654b917c8641ec5e626724a43380cff8f0"
 
 section ImportAll
 

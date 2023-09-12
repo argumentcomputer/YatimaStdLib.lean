@@ -7,7 +7,7 @@
     "rev": "3b6023654b917c8641ec5e626724a43380cff8f0",
     "opts": {},
     "name": "LSpec",
-    "inputRev?": "main",
+    "inputRev?": "3b6023654b917c8641ec5e626724a43380cff8f0",
     "inherited": false}},
   {"git":
    {"url": "https://github.com/leanprover/std4/",
@@ -15,5 +15,5 @@
     "rev": "642cbc9960b49a65a779b8fce56b05ff83cf9e35",
     "opts": {},
     "name": "std",
-    "inputRev?": "main",
+    "inputRev?": "642cbc9960b49a65a779b8fce56b05ff83cf9e35",
     "inherited": false}}]}
