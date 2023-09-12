@@ -10,23 +10,22 @@ lean_lib YatimaStdLib where
 def ffiC := "ffi.c"
 def ffiO := "ffi.o"
 
-target importTarget (pkg : Package) : FilePath := do
-  let oFile := pkg.oleanDir / ffiO
+target ffi.o pkg : FilePath := do
+  let oFile := pkg.buildDir / ffiO
   let srcJob ← inputFile $ pkg.dir / ffiC
-  buildFileAfterDep oFile srcJob fun srcFile => do
-    let flags := #["-I", (← getLeanIncludeDir).toString, "-fPIC"]
-    compileO ffiC oFile srcFile flags
+  let flags := #["-I", (← getLeanIncludeDir).toString, "-fPIC"]
+  buildO ffiC oFile srcJob flags
 
-extern_lib ffi (pkg : Package) := do
+extern_lib ffi pkg := do
   let name := nameToStaticLib "ffi"
-  let job ← fetch <| pkg.target ``importTarget
-  buildStaticLib (pkg.buildDir / defaultLibDir / name) #[job]
+  let job ← fetch <| pkg.target ``ffi.o
+  buildStaticLib (pkg.nativeLibDir / name) #[job]
 
 require std from git
-  "https://github.com/leanprover/std4/" @ "2f23536b83bc91f329c3675f4eb061d029ba489a"
+  "https://github.com/leanprover/std4/" @ "642cbc9960b49a65a779b8fce56b05ff83cf9e35"
 
 require LSpec from git
-  "https://github.com/lurk-lab/LSpec" @ "88f7d23e56a061d32c7173cea5befa4b2c248b41"
+  "https://github.com/lurk-lab/LSpec" @ "3b6023654b917c8641ec5e626724a43380cff8f0"
 
 section ImportAll
 

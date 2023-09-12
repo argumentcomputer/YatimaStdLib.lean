@@ -1,15 +1,19 @@
-{"version": 4,
+{"version": 5,
  "packagesDir": "lake-packages",
  "packages":
  [{"git":
    {"url": "https://github.com/lurk-lab/LSpec",
     "subDir?": null,
-    "rev": "88f7d23e56a061d32c7173cea5befa4b2c248b41",
+    "rev": "3b6023654b917c8641ec5e626724a43380cff8f0",
+    "opts": {},
     "name": "LSpec",
-    "inputRev?": "88f7d23e56a061d32c7173cea5befa4b2c248b41"}},
+    "inputRev?": "3b6023654b917c8641ec5e626724a43380cff8f0",
+    "inherited": false}},
   {"git":
    {"url": "https://github.com/leanprover/std4/",
     "subDir?": null,
-    "rev": "2f23536b83bc91f329c3675f4eb061d029ba489a",
+    "rev": "642cbc9960b49a65a779b8fce56b05ff83cf9e35",
+    "opts": {},
     "name": "std",
-    "inputRev?": "2f23536b83bc91f329c3675f4eb061d029ba489a"}}]}
+    "inputRev?": "642cbc9960b49a65a779b8fce56b05ff83cf9e35",
+    "inherited": false}}]}
