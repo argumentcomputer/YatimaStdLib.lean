@@ -6,6 +6,7 @@ import YatimaStdLib.Arithmetic
 import YatimaStdLib.Array
 import YatimaStdLib.Benchmark
 import YatimaStdLib.Bit
+import YatimaStdLib.Bitwise
 import YatimaStdLib.ByteArray
 import YatimaStdLib.ByteVector
 import YatimaStdLib.Cached
