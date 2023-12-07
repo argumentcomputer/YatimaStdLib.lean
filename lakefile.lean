@@ -25,7 +25,8 @@ require std from git
   "https://github.com/leanprover/std4/" @ "9e37a01f8590f81ace095b56710db694b5bf8ca0"
 
 require LSpec from git
-  "https://github.com/lurk-lab/LSpec" @ "550123b4a9846acf5f402c696111453baafb44be"
+  "https://github.com/lurk-lab/LSpec" @ "3388be5a1d1390594a74ec469fd54a5d84ff6114"
+
 
 section ImportAll
 
