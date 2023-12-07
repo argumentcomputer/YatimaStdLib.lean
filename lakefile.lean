@@ -22,10 +22,11 @@ extern_lib ffi pkg := do
   buildStaticLib (pkg.nativeLibDir / name) #[job]
 
 require std from git
-  "https://github.com/leanprover/std4/" @ "642cbc9960b49a65a779b8fce56b05ff83cf9e35"
+  "https://github.com/leanprover/std4/" @ "9e37a01f8590f81ace095b56710db694b5bf8ca0"
 
 require LSpec from git
-  "https://github.com/lurk-lab/LSpec" @ "3b6023654b917c8641ec5e626724a43380cff8f0"
+  "https://github.com/lurk-lab/LSpec" @ "3388be5a1d1390594a74ec469fd54a5d84ff6114"
+
 
 section ImportAll
 
@@ -69,7 +70,7 @@ lean_exe Tests.Arithmetic
 lean_exe Tests.AddChain
 lean_exe Tests.ByteArray
 lean_exe Tests.ByteVector
-lean_exe Tests.Int
+lean_exe Tests.Bitwise
 lean_exe Tests.Nat
 lean_exe Tests.Polynomial
 lean_exe Tests.SparseMatrix

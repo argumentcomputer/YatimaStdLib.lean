@@ -7,9 +7,6 @@ namespace Array
 def iota (n : Nat) : Array Nat :=
   Array.mk (List.range n) |>.push n
 
-def join (l : Array (Array A)) : Array A :=
-  Array.foldr (. ++ .) #[] l
-
 instance : Monad Array where
   map := Array.map
   pure x := #[x]

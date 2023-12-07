@@ -11,6 +11,11 @@ inductive Bit where
   | one
   deriving DecidableEq, Inhabited
 
+instance : Repr Bit where
+  reprPrec bit _ := match bit with
+    | .one => "1"
+    | .zero => "0"
+
 instance : ToString Bit where
   toString
     | .one  => "1"
