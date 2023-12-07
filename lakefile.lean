@@ -69,7 +69,7 @@ lean_exe Tests.Arithmetic
 lean_exe Tests.AddChain
 lean_exe Tests.ByteArray
 lean_exe Tests.ByteVector
-lean_exe Tests.Int
+lean_exe Tests.Bitwise
 lean_exe Tests.Nat
 lean_exe Tests.Polynomial
 lean_exe Tests.SparseMatrix

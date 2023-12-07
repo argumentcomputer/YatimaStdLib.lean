@@ -1,7 +1,7 @@
 import LSpec
-import YatimaStdLib.Int
+import YatimaStdLib.Bitwise
 
-open LSpec Int
+open LSpec Bitwise
 
 def landTests : TestSeq :=
   group "bitwise AND" $
