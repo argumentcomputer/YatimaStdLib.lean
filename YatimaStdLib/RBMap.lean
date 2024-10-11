@@ -1,6 +1,8 @@
-import Std.Data.RBMap
+import Batteries.Data.RBMap
 
-namespace Std.RBMap
+namespace Batteries.RBMap
+
+open Std
 
 variable {cmp : α → α → Ordering}
 
@@ -17,7 +19,7 @@ def filterOut [BEq α] [Ord α] (map : RBMap α β cmp) (t : RBSet α cmp) :
 def fromArray (x : Array (α × β)) : RBMap α β cmp :=
   x.foldl (fun r p => r.insert p.1 p.2) (mkRBMap α β cmp)
 
-/- 
+/-
 Merge two RBMaps, always taking the first value in case of a key being present
 in both maps. Intended for set simulation.
 -/
@@ -35,4 +37,3 @@ def mapKeys [Ord χ] (m : RBMap α β cmp) (f : α → χ) : RBMap χ β compare
 def zipD (m₁ : RBMap α β₁ cmp) (m₂ : RBMap α β₂ cmp) (b₂ : β₂) : RBMap α (β₁ × β₂) cmp :=
   m₁.foldl (init := default) fun acc a b₁ => acc.insert a (b₁, m₂.findD a b₂)
 
-end Std.RBMap

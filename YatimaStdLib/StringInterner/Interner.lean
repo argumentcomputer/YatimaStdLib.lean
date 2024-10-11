@@ -50,7 +50,7 @@ def run' (state : StringInterner α) (b : Buffer := default)
 
 def getOrIntern (str : String) : StringInterner Symbol := do
   let hash := str.hash
-  match (← get).find? hash with
+  match (← get)[hash]? with
     | some sym => return sym
     | none =>
       let symbol ← MonadBackend.intern str
@@ -58,7 +58,7 @@ def getOrIntern (str : String) : StringInterner Symbol := do
       return symbol
 
 def get (str : String) : StringInterner (Option Symbol) := do
-  return (← StateT.get).find? str.hash
+  return (← StateT.get)[str.hash]?
 
 def resolve! (symbol : Symbol) : StringInterner String :=
   MonadBackend.resolve! symbol

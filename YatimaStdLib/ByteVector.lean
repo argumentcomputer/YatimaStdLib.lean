@@ -1,5 +1,5 @@
 import YatimaStdLib.ByteArray
-import Std.Data.Nat.Lemmas
+import Batteries.Data.Nat.Lemmas
 
 structure ByteVector (n : Nat) where
   data  : ByteArray
@@ -49,7 +49,7 @@ def genWith (f : Fin n → UInt8) : ByteVector n := Id.run do
   for h : i in [0 : n] do
     have := Membership.mem.upper h
     res := res.set i this (f $ Fin.mk i this)
-  return res  
+  return res
 
 def ofNat (n capacity : Nat) : ByteVector capacity :=
   ⟨n.toByteArrayLE.slice 0 capacity, ByteArray.slice_size⟩
@@ -83,12 +83,12 @@ def split (x : ByteVector n) (size₁ size₂ : Nat) : ByteVector size₁ × Byt
   (⟨left, ByteArray.slice_size⟩, ⟨right, ByteArray.slice_size⟩)
 
 open Array in
-def append (x : ByteVector n) (y : ByteVector m) : ByteVector (n + m) := 
+def append (x : ByteVector n) (y : ByteVector m) : ByteVector (n + m) :=
   let ⟨xData, xSize⟩ := x
   let ⟨yData, ySize⟩ := y
   ⟨⟨xData.data ++ yData.data⟩, append_size xData.data yData.data xSize ySize⟩
 
-def shiftRight1 (x : ByteVector n) : ByteVector n := 
+def shiftRight1 (x : ByteVector n) : ByteVector n :=
   ⟨x.data.slice 1 n, ByteArray.slice_size⟩
 
 def shiftRight (x : ByteVector n) : Nat → ByteVector n
@@ -109,7 +109,7 @@ def xor (x : ByteVector n) (y : ByteVector n) : ByteVector n :=
 def not (x : ByteVector n) : ByteVector n :=
   x.map (255 - ·)
 
-def add (x y : ByteVector n) : ByteVector n := 
+def add (x y : ByteVector n) : ByteVector n :=
   ⟨x.data + y.data |>.slice 0 n, ByteArray.slice_size⟩
 
 instance : Add (ByteVector n) where
@@ -125,7 +125,7 @@ instance : HMul (ByteVector n) UInt8 (ByteVector n) where
 private def naiiveMul (x y : ByteVector n) : ByteVector n :=
   ⟨x.data * y.data |>.slice 0 n, ByteArray.slice_size⟩
 
-def karatsubaMul (x y : ByteVector n) : ByteVector n := 
+def karatsubaMul (x y : ByteVector n) : ByteVector n :=
   ⟨x.data * y.data |>.slice 0 n, ByteArray.slice_size⟩
 
 instance : Mul (ByteVector n) where

@@ -4,7 +4,7 @@ class Ring (R : Type) extends Add R, Mul R, Sub R, HPow R Nat R, BEq R, Coe Nat 
 
 namespace Ring
 
-instance {R : Type _} [Add R] [Mul R] [Sub R] [OfNat R (nat_lit 0)] [OfNat R (nat_lit 1)] 
+instance {R : Type _} [Add R] [Mul R] [Sub R] [OfNat R (nat_lit 0)] [OfNat R (nat_lit 1)]
   [HPow R Nat R] [BEq R] [Coe Nat R] : Ring R where
   zero := 0
   one := 1
@@ -14,6 +14,11 @@ instance : Ring Nat where
   one := 1
   coe := id
 
+instance : Ring Int where
+  zero := 0
+  one := 1
+  coe := fun n => n
+
 instance [Ring R] : OfNat R (nat_lit 0) where
   ofNat := zero
 
@@ -21,7 +26,7 @@ instance [Ring R] : OfNat R (nat_lit 1) where
   ofNat := one
 
 instance [Ring R] : Neg R where
-  neg x := 0 - x 
+  neg x := 0 - x
 
 instance [Ring R] : Inhabited R where
   default := 0

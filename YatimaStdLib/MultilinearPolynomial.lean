@@ -1,4 +1,4 @@
-import Std.Data.RBMap
+import Batteries.Data.RBMap
 import YatimaStdLib.Nat
 import LSpec
 
@@ -15,12 +15,12 @@ For example, `(6, 9)` encodes `9x₁x₂` because
 * `9` is the coefficient
 * `6₁₀ = 110₂`, so the variables on indexes `1` and `2` are present
 -/
-abbrev MultilinearPolynomial α := Std.RBMap Nat α compare
+abbrev MultilinearPolynomial α := Batteries.RBMap Nat α compare
 
 namespace MultilinearPolynomial
 
 /-- The indices of variables in a summand -/
-abbrev Indices := Std.RBSet Nat compare
+abbrev Indices := Batteries.RBSet Nat compare
 
 /-- Extracts the variable indices encoded on a base -/
 def Indices.ofBase (b : Nat) : Indices :=
@@ -116,7 +116,7 @@ the range of the array are considered to have value 0.
 Evaluates a MLP on a map that indicates the value of the variables indexed from
 0. Variables whose indexes aren't in the map are considered to have value 0.
 -/
-@[specialize] def eval' (input : Std.RBMap Nat α compare) : α :=
+@[specialize] def eval' (input : Batteries.RBMap Nat α compare) : α :=
   mlp.foldl (init := 0) fun acc b c => HAdd.hAdd acc $
     Indices.ofBase b |>.foldl (init := c) fun acc i =>
       acc * (input.find? i |>.getD 0)

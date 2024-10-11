@@ -1,4 +1,4 @@
-import Std.Data.Array.Basic
+import Batteries.Data.Array.Basic
 import YatimaStdLib.List
 
 namespace Array
@@ -33,13 +33,13 @@ instance [Ord α] : Ord (Array α) where
 
 def last (ar : Array α) : Array α := ar.toSubarray.popFront.toArray
 
-theorem append_size (arr₁ arr₂ : Array α) (h1 : arr₁.size = n) (h2 : arr₂.size = m) 
+theorem append_size (arr₁ arr₂ : Array α) (h1 : arr₁.size = n) (h2 : arr₂.size = m)
     : (arr₁ ++ arr₂).size = n + m := by
   unfold Array.size at *
   simp [h1, h2]
 
 def stdSizes (maxSize : Nat) := Array.iota maxSize |>.map (2 ^ ·)
 
-def average (arr : Array Nat) : Nat := 
+def average (arr : Array Nat) : Nat :=
   let sum := arr.foldl (init := 0) fun acc a => acc + a
   sum / arr.size

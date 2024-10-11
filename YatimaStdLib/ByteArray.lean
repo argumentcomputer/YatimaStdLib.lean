@@ -49,7 +49,7 @@ instance : DecidableEq ByteArray
     | isFalse h₂ => isFalse $ fun h => by cases h; exact (h₂ rfl)
 
 def Subarray.asBA (s : Subarray UInt8) : ByteArray :=
-  s.as.data.toByteArray
+  s.array.data.toByteArray
 
 def toString (bs : ByteArray) : String := Id.run do
   if bs.isEmpty then "b[]" else
@@ -110,12 +110,15 @@ def slice : @& ByteArray → Nat → Nat → ByteArray :=
 
 theorem sliceL.aux_size : (sliceL.aux acc n bs).size = acc.size + n := by
   induction bs generalizing acc n
-  · induction n <;> simp [sliceL.aux, ByteArray.size, Array.size]
+  · induction n
+    · simp only [aux, Nat.add_zero]
+    · simp only [aux, mkArray, Nat.succ_eq_add_one, Array.append, Array.size]
+      simp only [Array.append_data, List.length_append, Array.data_length, List.length_replicate] -- TODO: Clean up this mess at some point
   rename_i ih
   cases n
   · simp [sliceL.aux]
   simp [sliceL.aux, ByteArray.size, ih]
-  rw [Nat.succ_eq_add_one, Nat.add_assoc, Nat.add_comm 1 _]
+  rw [Nat.add_assoc, Nat.add_comm 1 _]
 
 theorem slice_size : (slice bytes i n).size = n := by
   simp [slice, sliceL, sliceL.aux, sliceL.aux_size, ByteArray.size]

@@ -1,8 +1,8 @@
 import YatimaStdLib.RBMap
 
 structure Cronos where
-  refs : Std.RBMap String Nat compare
-  data : Std.RBMap String Nat compare
+  refs : Batteries.RBMap String Nat compare
+  data : Batteries.RBMap String Nat compare
   deriving Inhabited
 
 namespace Cronos

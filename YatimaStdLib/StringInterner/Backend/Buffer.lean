@@ -72,7 +72,7 @@ def resolveIndexToStr (index : Nat) : BufferM String := do
   let (strLen, strLenBytes) ← decodeVarSize! index
   let start := index + strLenBytes
   let strBytes := (← get).data.extract start (start + strLen)
-  return .fromUTF8Unchecked strBytes
+  return .fromUTF8! strBytes
 
 end BufferM
 

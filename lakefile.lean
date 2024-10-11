@@ -12,21 +12,19 @@ def ffiO := "ffi.o"
 
 target ffi.o pkg : FilePath := do
   let oFile := pkg.buildDir / ffiO
-  let srcJob ← inputFile $ pkg.dir / ffiC
+  let srcJob ← inputTextFile $ pkg.dir / ffiC
   let flags := #["-I", (← getLeanIncludeDir).toString, "-fPIC"]
-  buildO ffiC oFile srcJob flags
+  buildO oFile srcJob flags
 
 extern_lib ffi pkg := do
   let name := nameToStaticLib "ffi"
   let job ← fetch <| pkg.target ``ffi.o
   buildStaticLib (pkg.nativeLibDir / name) #[job]
 
-require std from git
-  "https://github.com/leanprover/std4/" @ "9e37a01f8590f81ace095b56710db694b5bf8ca0"
+require batteries from git
+  "https://github.com/leanprover-community/batteries" @ "v4.12.0"
 
-require LSpec from git
-  "https://github.com/lurk-lab/LSpec" @ "3388be5a1d1390594a74ec469fd54a5d84ff6114"
-
+require LSpec from git "https://github.com/lurk-lab/LSpec" @ "v4.12.0-toolchain"
 
 section ImportAll
 

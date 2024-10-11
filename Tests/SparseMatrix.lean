@@ -45,7 +45,7 @@ def anotherMat' : SparseMatrix Int :=
     ]
 
 def anotherMat'' : SparseMatrix Int :=
-  ofArrayWithDims 3 2 
+  ofArrayWithDims 3 2
     #[ ((0,0), 43), ((0,1), 76),
        ((1,0), 32), ((1,1), 45),
        ((2,0), 21), ((2,1), 7)
@@ -65,18 +65,18 @@ def hadamardRes : SparseMatrix Int :=
        ((2,0), 1806), ((2,1), 1802), ((2,2), 96)
     ]
 
-def vec : SparseArray Int := 
-  Std.RBMap.ofArray #[(0,34), (1,37), (2,19)] compare
+def vec : SparseArray Int :=
+  Batteries.RBMap.ofArray #[(0,34), (1,37), (2,19)] compare
 
 def vec' : SparseArray Int :=
-  Std.RBMap.ofArray #[(0, 3487), (1, 2443), (2, 3879)] compare
+  Batteries.RBMap.ofArray #[(0, 3487), (1, 2443), (2, 3879)] compare
 
-def addTests : TestSeq := 
-       (test "addition works" (mat₁ + mat₂ == res)) ++ 
+def addTests : TestSeq :=
+       (test "addition works" (mat₁ + mat₂ == res)) ++
        (test "addition works" (mat1 + mat2 == res')) ++
        (test "addition works" (mat1 + mat1 == res''))
 
-def mulTests : TestSeq := 
+def mulTests : TestSeq :=
        (test "multiplication works" (mat₁ * mat₂ == resProd)) ++
        (test "multiplication works" (mat1 * mat2 == resProd')) ++
        (test "multiplication works" (anotherMat * anotherMat'' == prodRes))

@@ -1,4 +1,4 @@
-import Std.Data.Nat.Basic
+import Batteries.Data.Nat.Basic
 
 namespace Nat
 
@@ -135,7 +135,7 @@ def get2Adicity (n : Nat) : Nat × Nat :=
   let rec loop (m acc : Nat) :=
     match h : m with
     | 0 | 1 => (acc, 1)
-    | _ + 1 => 
+    | _ + 1 =>
       have : m / 2 < m := Nat.bitwise_rec_lemma (h ▸ Nat.succ_ne_zero _)
       if m % 2 ==0 then loop (m / 2) (acc + 1) else (acc, m)
   loop n 0
@@ -184,30 +184,3 @@ def asHex (n : Nat) (length : Nat) : String :=
     let pad := List.replicate (length - tail.length) '0'
     "0x" ++  List.asString (pad ++ tail)
 
-def subDigitChar (n : Nat) : Char :=
-  if n = 0 then '₀' else
-  if n = 1 then '₁' else
-  if n = 2 then '₂' else
-  if n = 3 then '₃' else
-  if n = 4 then '₄' else
-  if n = 5 then '₅' else
-  if n = 6 then '₆' else
-  if n = 7 then '₇' else
-  if n = 8 then '₈' else
-  if n = 9 then '₉' else
-  '*'
-
-partial def toSubDigitsAux : Nat → List Char → List Char
-  | n, ds =>
-    let d  := subDigitChar <| n % 10;
-    let n' := n / 10;
-    if n' = 0 then d::ds
-    else toSubDigitsAux n' (d::ds)
-
-def toSubDigits (n : Nat) : List Char :=
-  toSubDigitsAux n []
-
-def toSubscriptString (n : Nat) : String :=
-  (toSubDigits n).asString
-
-end Nat

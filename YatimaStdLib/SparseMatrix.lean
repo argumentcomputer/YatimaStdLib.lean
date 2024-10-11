@@ -1,11 +1,11 @@
+import Batteries.Data.RBMap
 import YatimaStdLib.Array
 import YatimaStdLib.Ord
 import YatimaStdLib.Ring
 import YatimaStdLib.RBMap
-import Std.Data.RBMap
 
 structure SparseMatrix (R : Type _) where
-  entries : Std.RBMap (Nat × Nat) R compare
+  entries : Batteries.RBMap (Nat × Nat) R compare
   rows : Nat
   cols : Nat
 
@@ -13,18 +13,18 @@ instance [ToString R] : ToString (SparseMatrix R) where
   toString m :=
   let print (p : (Nat × Nat) × R) :=
     match p with
-      | ((i,j), v) => 
-        "row:" ++ 
+      | ((i,j), v) =>
+        "row:" ++
         toString i ++
         " col:" ++
         toString j ++
         " " ++
         toString v ++ "\n"
   let triples :=
-    print <$> Std.RBMap.toList m.entries
+    print <$> Batteries.RBMap.toList m.entries
   List.foldr (. ++ .) "" triples
 
-open Std.RBMap
+open Batteries.RBMap
 
 namespace SparseMatrix
 
@@ -32,14 +32,14 @@ namespace SparseMatrix
 Empty matrix
 -/
 def empty (col : Nat) (row : Nat) : SparseMatrix R :=
-  SparseMatrix.mk Std.RBMap.empty col row
+  SparseMatrix.mk Batteries.RBMap.empty col row
 
 /--
 Insert a triple
 -/
 def insert (m : SparseMatrix R) (col row : Nat) (a : R) : SparseMatrix R :=
   SparseMatrix.mk
-    (Std.RBMap.insert m.entries (col,row) a)
+    (Batteries.RBMap.insert m.entries (col,row) a)
     m.rows
     m.cols
 
@@ -49,7 +49,7 @@ Creates a sparse matrix from a list
 def ofListWithDims
   (rows : Nat) (cols : Nat) (l : List ((Nat × Nat) × R)) : SparseMatrix R :=
   SparseMatrix.mk
-    (Std.RBMap.ofList l compare)
+    (Batteries.RBMap.ofList l compare)
     rows
     cols
 
@@ -59,14 +59,14 @@ Creates a sparse matrix from an array
 def ofArrayWithDims
   (rows : Nat) (cols : Nat) (l : Array ((Nat × Nat) × R)) : SparseMatrix R :=
   SparseMatrix.mk
-    (Std.RBMap.ofArray l compare)
+    (Batteries.RBMap.ofArray l compare)
     rows
     cols
 
 instance : Functor SparseMatrix where
   map f m :=
   SparseMatrix.mk
-    (Std.RBMap.mapVal (fun _ x => f x) m.entries)
+    (Batteries.RBMap.mapVal (fun _ x => f x) m.entries)
     m.rows
     m.cols
 
@@ -84,7 +84,7 @@ Transpose a sparse matrix
 -/
 def transpose (m : SparseMatrix R) : SparseMatrix R :=
   SparseMatrix.mk
-    (Std.RBMap.mapKeys m.entries $ fun (a,b) => (b,a))
+    (Batteries.RBMap.mapKeys m.entries $ fun (a,b) => (b,a))
     m.cols
     m.rows
 
@@ -107,7 +107,7 @@ def addition (m₁ m₂ : SparseMatrix R) : SparseMatrix R :=
 instance : Add (SparseMatrix R) where
   add := SparseMatrix.addition
 
-abbrev SparseArray R := Std.RBMap Nat R compare
+abbrev SparseArray R := Batteries.RBMap Nat R compare
 
 def SparseArray.zipProd (x y : SparseArray R) : SparseArray R :=
   y.foldl (init := default) fun acc k v => match x.find? k with
@@ -126,14 +126,14 @@ instance : BEq (SparseArray R) where
   beq x y := x.prune == y.prune
 
 def Array.toSparse (x : Array R) : SparseArray R :=
-  SparseArray.prune $ Std.RBMap.fromArray $ Array.zip (Array.iota x.size) (x : Array R)
+  SparseArray.prune $ Batteries.RBMap.fromArray $ Array.zip (Array.iota x.size) (x : Array R)
 
-def collectRows (m : SparseMatrix R) : Std.RBMap Nat (SparseArray R) compare :=
+def collectRows (m : SparseMatrix R) : Batteries.RBMap Nat (SparseArray R) compare :=
   m.entries.foldl (init := default) fun acc (i, j) v => match acc.find? i with
     | some arr => acc.insert i (arr.insert j v)
     | none => acc.insert i (.single j v)
 
-def collectCols (m : SparseMatrix R) : Std.RBMap Nat (SparseArray R) compare :=
+def collectCols (m : SparseMatrix R) : Batteries.RBMap Nat (SparseArray R) compare :=
   m.entries.foldl (init := default) fun acc (i, j) v => match acc.find? j with
     | some arr => acc.insert j (arr.insert i v)
     | none => acc.insert j (.single i v)

@@ -1,8 +1,8 @@
-import Lean.Data.HashSet
+import Std.Data.HashSet
 
 syntax "⦃" term,* "⦄" : term
 
-open Lean
+open Std
 
 open Lean in
 macro_rules
@@ -13,11 +13,9 @@ macro_rules
     return ← `($acc)
 
 instance [ToString α] [BEq α] [Hashable α] : ToString (HashSet α) where
-  toString set := 
+  toString set :=
     let content := ", ".intercalate (set |>.toList |>.reverse |>.map fun k => s!"{k}")
     s!"⦃{content}⦄"
 
 namespace Std.HashSet
 
-def union {α : Type _} [BEq α] [Hashable α] (s t : HashSet α) : HashSet α :=
-  s.fold (HashSet.insert) t

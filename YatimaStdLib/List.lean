@@ -1,7 +1,7 @@
 import YatimaStdLib.Applicative
 import YatimaStdLib.Foldable
 import YatimaStdLib.Traversable
-import Std.Data.List.Basic
+import Batteries.Data.List.Basic
 
 namespace List
 

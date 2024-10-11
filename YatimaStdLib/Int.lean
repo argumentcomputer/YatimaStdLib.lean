@@ -1,17 +1,12 @@
 import YatimaStdLib.Bit
 import YatimaStdLib.Nat
-import Std.Data.Int.Basic
 import YatimaStdLib.Bitwise
 
 namespace Int
 
-open Nat hiding bitwise
+open Nat
 
 def toUInt8 (x : Int) : UInt8 := Bit.bitsToUInt8 x.toBits
-
-section bitwise
-open Bitwise
-end bitwise
 
 /--
 Return `(x, y, g)` where `g` is the greatest common divisor of `a` and `b`, and `x`, `y` satisfy
@@ -22,7 +17,7 @@ def gcdExtNat (a : Nat) (b : Nat) : Int × Int × Int :=
   match h : b with
     | 0 => (1, 0, a)
     | k + 1 =>
-      let p := quotRem a b
+      let p := Nat.quotRem a b
       let q := p.1
       let r := p.2
       have : r < k.succ := by
@@ -32,7 +27,6 @@ def gcdExtNat (a : Nat) (b : Nat) : Int × Int × Int :=
         exact Nat.zero_lt_of_ne_zero h2
       let (s, t, g) := gcdExtNat b r
       (t, s - q * t, g)
-  termination_by _ => b
 
 def gcdExt (a : Int) (b : Int) : Int × Int × Int :=
   gcdExtNat (Int.natAbs a) (Int.natAbs b)
