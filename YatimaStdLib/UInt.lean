@@ -33,7 +33,7 @@ def sum3 (i a b : UInt8) : UInt8 × UInt8 :=
 end UInt8
 
 def UInt16.toByteArrayL (n : UInt16) : ByteArray :=
-  ⟨#[n.toUInt8, (n / 256) % 65536 |>.toUInt8]⟩
+  ⟨#[n.toUInt8, (n >>> 8) |>.toUInt8]⟩
 
 @[extern "lean_uint16_to_byte_array"]
 def UInt16.toByteArray : UInt16 → ByteArray :=
@@ -44,12 +44,12 @@ theorem UInt16.toByteArray_size_2 : (UInt16.toByteArray n).size = 2 := by
 
 def UInt32.toByteArrayL (n : UInt32) : ByteArray :=
   let a₀ := n.toUInt8
-  let n := n / 256
-  let a₁ := n % 65536 |>.toUInt8
-  let n := n / 256
-  let a₂ := n % 16777216 |>.toUInt8
-  let n := n / 256
-  let a₃ := n % 4294967296 |>.toUInt8
+  let n := n >>> 8
+  let a₁ := n |>.toUInt8
+  let n := n >>> 8
+  let a₂ := n |>.toUInt8
+  let n := n >>> 8
+  let a₃ := n |>.toUInt8
   ⟨#[a₀, a₁, a₂, a₃]⟩
 
 @[extern "lean_uint32_to_byte_array"]
@@ -61,20 +61,20 @@ theorem UInt32.toByteArray_size_4 : (UInt32.toByteArray n).size = 4 := by
 
 def UInt64.toByteArrayL (n : UInt64) : ByteArray :=
   let a₀ := n.toUInt8
-  let n := n / 256
-  let a₁ := n % 65536 |>.toUInt8
-  let n := n / 256
-  let a₂ := n % 16777216 |>.toUInt8
-  let n := n / 256
-  let a₃ := n % 4294967296 |>.toUInt8
-  let n := n / 256
-  let a₄ := n % 1099511627776 |>.toUInt8
-  let n := n / 256
-  let a₅ := n % 281474976710656 |>.toUInt8
-  let n := n / 256
-  let a₆ := n % 72057594037927936 |>.toUInt8
-  let n := n / 256
-  let a₇ := n % 18446744073709551616 |>.toUInt8
+  let n := n >>> 8
+  let a₁ := n |>.toUInt8
+  let n := n >>> 8
+  let a₂ := n |>.toUInt8
+  let n := n >>> 8
+  let a₃ := n |>.toUInt8
+  let n := n >>> 8
+  let a₄ := n |>.toUInt8
+  let n := n >>> 8
+  let a₅ := n |>.toUInt8
+  let n := n >>> 8
+  let a₆ := n |>.toUInt8
+  let n := n >>> 8
+  let a₇ := n |>.toUInt8
   ⟨#[a₀, a₁, a₂, a₃, a₄, a₅, a₆, a₇]⟩
 
 @[extern "lean_uint64_to_byte_array"]
