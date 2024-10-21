@@ -23,7 +23,6 @@ import YatimaStdLib.Identity
 import YatimaStdLib.Int
 import YatimaStdLib.Lean
 import YatimaStdLib.List
-import YatimaStdLib.MLE.MultiLinearLagrangeTest
 import YatimaStdLib.MLE.MultilinearExtension
 import YatimaStdLib.MLE.MultilinearLagrangeData
 import YatimaStdLib.MLE.MultilinearLagrangePolynomial

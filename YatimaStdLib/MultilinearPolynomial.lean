@@ -133,46 +133,4 @@ Evaluates a MLP on a map that indicates the value of the variables indexed from
 instance : BEq $ MultilinearPolynomial α where
   beq x y := x.prune == y.prune
 
-namespace Tests
-
-open LSpec
-
--- TODO : prove this as a theorem
-#lspec check "roundtripping" $ ∀ n, (Indices.ofBase n).toBase = n
-
-/-- 3x₀x₄ + 2x₁ + 4 -/
-def pol1 := ofSummandsL [(2, [1]), (3, [4, 0]), (4, [])]
-
-/-- 2x₁x₄ + 4x₀x₄ + 1x₁x₃ + 3 -/
-def pol2 := ofSummandsL [(1, [1, 3]), (4, [4, 0]), (2, [4, 1]), (3, [])]
-
-/-- 9x₀x₄ + 6x₁ + 12 -/
-def pol1Scaled3 := ofSummandsL [(6, [1]), (9, [4, 0]), (12, [])]
-
-/-- 2x₁x₄ + 7x₀x₄ + 1x₁x₃ + 2x₁ + 7 -/
-def pol1AddPol2 :=
-  ofSummandsL [(1, [1, 3]), (2, [1]), (7, [4, 0]), (2, [4, 1]), (7, [])]
-
-/-- 4x₂x₃ + 12x₂ + 5 -/
-def pol3 := ofSummandsL [(12, [2]), (4, [2, 3]), (5, [])]
-
-/-- 12x₀x₂x₃x₄ + 36x₀x₂x₄ + 15x₀x₄ + 8x₁x₂x₃ + 16x₂x₃ + 24x₁x₂ + 48x₂ + 10x₁ + 20 -/
-def pol1MulPol3 := ofSummandsL [
-  (12, [0, 2, 3, 4]), (36, [0, 2, 4]), (15, [0, 4]),
-  (8, [1, 2, 3]), (24, [1, 2]), (10, [1]),
-  (16, [2, 3]), (48, [2]), (20, [])]
-
-#lspec
-  test "scaling works" (pol1.scale 3 == pol1Scaled3) $
-  test "addition is correct" (pol1.add pol2 == pol1AddPol2) $
-  test "disjoint multiplication is correct" (pol1.disjointMul pol3 == pol1MulPol3) $
-  test "evaluation is correct" (pol1MulPol3.eval #[0, 1, 2, 0, 4] == 174) $
-  test "scaling with zero results on zero" (pol1.scale 0 == default) $
-  test "zero is right-neutral on addition" (pol1 + default == pol1) $
-  test "zero is left-neutral on addition" (default + pol1 == pol1) $
-  test "multiplying by zero takes to zero" (pol1 * default == default) $
-  test "zero multiplied by anything goes to zero" (default * pol1 == default)
-
-end Tests
-
 end MultilinearPolynomial
