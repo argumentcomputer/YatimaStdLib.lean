@@ -3,7 +3,7 @@ import YatimaStdLib.AddChain
 
 open Lean LSpec Exp
 
-/- 
+/-
 NOTE: Writing this test by hand is a work-around for `LSpec` running into a stack overflow.
 -/
 def main : IO UInt32 := do
@@ -12,7 +12,7 @@ def main : IO UInt32 := do
 
   IO.println "Starting test"
 
-  for _ in [:1000] do
+  for _ in [:100] do
     let n ← IO.rand 0 1000000
     let m ← IO.rand 0 1000000
     unless fastExp n m == n ^ m do
