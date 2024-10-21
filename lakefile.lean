@@ -24,7 +24,8 @@ extern_lib ffi pkg := do
 require batteries from git
   "https://github.com/leanprover-community/batteries" @ "v4.12.0"
 
-require LSpec from git "https://github.com/lurk-lab/LSpec" @ "v4.12.0-toolchain"
+require LSpec from git
+  "https://github.com/argumentcomputer/LSpec" @ "v4.12.0"
 
 section ImportAll
 
